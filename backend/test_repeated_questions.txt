@@ -1,0 +1,70 @@
+EXAM PAPER 1 - PHYSICS
+
+Question 1: What is the definition of velocity?
+(a) Speed in a direction (b) Rate of change of position (c) Acceleration (d) Force/mass
+
+Question 2: Define velocity with proper explanation
+Answer: Velocity is the rate at which an object changes its position in a specific direction.
+
+Question 3: How does velocity differ from speed?
+Explain the difference between velocity and speed.
+
+Question 4: State the formula for calculating velocity
+Calculate velocity using the formula v = d/t where d is displacement and t is time
+
+Question 5: What is photosynthesis?
+(a) Process in animals (b) Making food from sunlight (c) Respiration (d) Digestion
+
+Question 6: Explain photosynthesis in plants
+Photosynthesis is the process where plants make their own food using sunlight, water, and carbon dioxide.
+
+Question 7: Define photosynthesis and its importance
+State the definition and importance of photosynthesis in nature
+
+Question 8: Describe the process of photosynthesis with equation
+The equation: 6CO2 + 6H2O + light → C6H12O6 + 6O2
+
+Question 9: What is Newton's first law of motion?
+(a) Force = mass × acceleration (b) An object at rest stays at rest (c) Action = reaction (d) Energy conservation
+
+Question 10: State Newton's law of inertia
+Newton's first law states that objects in motion tend to stay in motion unless acted upon by external force
+
+Question 11: Explain Newton's first law of motion
+The first law of motion states that a body at rest remains at rest and a body in motion remains in motion
+
+Question 12: Define inertia according to Newton
+Inertia is the property of an object to resist changes in its motion
+
+Question 13: What is osmosis?
+(a) Diffusion (b) Movement of water through membrane (c) Digestion (d) Respiration
+
+Question 14: Define osmosis in biology
+Osmosis is the movement of water molecules across a semipermeable membrane
+
+Question 15: Explain the process of osmosis
+Water molecules move from area of high water potential to low water potential through osmosis
+
+Question 16: Describe osmosis with an example
+In osmosis, water moves across membranes. Example: raisins swell in water
+
+Question 17: What is the capital of France?
+(a) Lyon (b) Paris (c) Marseille (d) Nice
+
+Question 18: Name the capital city of France
+The capital of France is Paris, located in the north-central part of the country
+
+Question 19: What is the area of a circle?
+(a) πr (b) 2πr (c) πr² (d) πr³
+
+Question 20: How do you calculate the area of a circle?
+The area of a circle is calculated using the formula A = πr² where r is the radius
+
+Question 21: Define the term 'ecosystem'
+(a) Living things only (b) Non-living things only (c) Both living and non-living (d) Plants only
+
+Question 22: What is an ecosystem and its components?
+An ecosystem consists of living organisms and their physical environment interacting together
+
+Question 23: Explain the concept of an ecosystem
+Ecosystems are composed of biotic (organisms) and abiotic (environment) factors working together

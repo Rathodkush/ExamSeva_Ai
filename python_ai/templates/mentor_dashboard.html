@@ -1,0 +1,6 @@
+{# Mentor functionality removed. Redirecting to student dashboard. #}
+{% extends "base.html" %}
+{% block title %}Mentor - Removed{% endblock %}
+{% block content %}
+<div class="alert alert-warning">Mentor functionality has been removed. <a href="{{ url_for('dashboard') }}">Go to Dashboard</a></div>
+{% endblock %}

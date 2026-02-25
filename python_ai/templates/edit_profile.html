@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Profile - ExamSeva{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-lg">
+            <div class="card-header bg-warning">
+                <h3 class="mb-0"><i class="fas fa-edit"></i> Edit Profile</h3>
+            </div>
+            <div class="card-body p-5">
+                <form method="POST">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-user"></i> Full Name</label>
+                            <input type="text" class="form-control" name="name" value="{{ user.name }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-phone"></i> Phone</label>
+                            <input type="tel" class="form-control" name="phone" value="{{ user.phone or '' }}">
+                        </div>
+                    </div>
+                    
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label"><i class="fas fa-map-marker-alt"></i> Address</label>
+                                <input type="text" class="form-control" name="address" value="{{ user.address or '' }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label"><i class="fas fa-graduation-cap"></i> Standard</label>
+                                <input type="text" class="form-control" name="standard" value="{{ user.standard or '' }}">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label"><i class="fas fa-building"></i> University</label>
+                                <input type="text" class="form-control" name="university" value="{{ user.university or '' }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label"><i class="fas fa-book"></i> Course Type</label>
+                                <input type="text" class="form-control" name="course_type" value="{{ user.course_type or '' }}">
+                            </div>
+                        </div>
+                    
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> Save Changes
+                        </button>
+                        <a href="{{ url_for('profile') }}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,127 @@
+.admin-announcements {
+  min-height: 100vh;
+  background: #f5f7fa;
+  padding: 20px;
+  width: 100%;
+}
+
+.announcements-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.announcement-card {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.announcement-header {
+  margin-bottom: 15px;
+}
+
+.announcement-header h3 {
+  margin: 0 0 10px 0;
+  color: #333;
+}
+
+.announcement-meta {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.type-badge {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.type-badge.general {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.type-badge.exam_update {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.type-badge.result_notice {
+  background: #d4edda;
+  color: #155724;
+}
+
+.visibility-badge {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.visibility-badge.visible {
+  background: #d4edda;
+  color: #155724;
+}
+
+.visibility-badge.hidden {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.announcement-content {
+  margin-bottom: 15px;
+}
+
+.announcement-content p {
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+.announcement-date {
+  font-size: 0.85rem;
+  color: #999;
+  font-style: italic;
+}
+
+.announcement-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.edit-btn, .delete-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.edit-btn {
+  background: #667eea;
+  color: white;
+}
+
+.edit-btn:hover {
+  background: #5568d3;
+}
+
+.delete-btn {
+  background: #dc3545;
+  color: white;
+}
+
+.delete-btn:hover {
+  background: #c82333;
+}
+
+@media (max-width: 768px) {
+  .announcement-meta {
+    flex-direction: column;
+  }
+}

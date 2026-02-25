@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - ExamSeva{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-lg">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">
+                    <i class="fas fa-user-circle"></i> My Profile
+                </h3>
+            </div>
+            <div class="card-body p-5">
+                <div class="row mb-4">
+                    <div class="col-md-3 text-center">
+                        <div class="fs-1 mb-2">
+                            <i class="fas fa-user-circle text-primary"></i>
+                        </div>
+                        <h5>{{ current_user.name }}</h5>
+                        <span class="badge bg-info">{{ current_user.role.upper() }}</span>
+                    </div>
+                    <div class="col-md-9">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>Username:</strong></td>
+                                <td>{{ current_user.username }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Email:</strong></td>
+                                <td>{{ current_user.email }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Phone:</strong></td>
+                                <td>{{ current_user.phone or 'Not provided' }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Member Since:</strong></td>
+                                <td>{{ current_user.created_at.strftime('%B %d, %Y') }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Last Login:</strong></td>
+                                <td>{{ current_user.last_login.strftime('%B %d, %Y %H:%M') if current_user.last_login else 'Never' }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <!-- Student Information -->
+                    <div class="mt-4">
+                        <h5><i class="fas fa-graduation-cap"></i> Student Information</h5>
+                        <table class="table">
+                            <tr>
+                                <td><strong>Address:</strong></td>
+                                <td>{{ current_user.address or 'Not specified' }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Standard:</strong></td>
+                                <td>{{ current_user.standard or 'Not specified' }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>University:</strong></td>
+                                <td>{{ current_user.university or 'Not specified' }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Course Type:</strong></td>
+                                <td>{{ current_user.course_type or 'Not specified' }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                
+                <div class="mt-4">
+                    <a href="{{ url_for('edit_profile') }}" class="btn btn-warning">
+                        <i class="fas fa-edit"></i> Edit Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Register - ExamSeva{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-3">
+    <div class="col-lg-8">
+        <div class="card shadow-lg">
+            <div class="card-body p-5">
+                <h2 class="card-title text-center mb-4">
+                    <i class="fas fa-user-plus"></i> Create Account
+                </h2>
+                
+                <form method="POST" id="registerForm" class="needs-validation">
+                    <!-- Role fixed to student for public registration -->
+                    <input type="hidden" name="role" value="student">
+                    
+                    <!-- Common Fields -->
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-user"></i> Full Name *</label>
+                            <input type="text" class="form-control" name="name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-envelope"></i> Email *</label>
+                            <input type="email" class="form-control" name="email" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-user-tag"></i> Username *</label>
+                            <input type="text" class="form-control" name="username" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-phone"></i> Phone Number *</label>
+                            <input type="tel" class="form-control" name="phone" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-lock"></i> Password *</label>
+                            <input type="password" class="form-control" name="password" required minlength="6">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-lock"></i> Confirm Password *</label>
+                            <input type="password" class="form-control" name="confirm_password" required minlength="6">
+                        </div>
+                    </div>
+                    
+                    <!-- Student-Specific Fields -->
+                    <div id="studentFields" class="row" style="display: block;">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-map-marker-alt"></i> Address</label>
+                            <input type="text" class="form-control" name="address">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-graduation-cap"></i> Standard/Class</label>
+                            <input type="text" class="form-control" name="standard" placeholder="e.g., 12th, B.Tech">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-building"></i> University</label>
+                            <input type="text" class="form-control" name="university">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-book"></i> Course Type/Degree</label>
+                            <input type="text" class="form-control" name="course_type" placeholder="e.g., Bachelor, Master">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100 btn-lg">
+                        <i class="fas fa-user-plus"></i> Create Account
+                    </button>
+                </form>
+                
+                <hr>
+                <p class="text-center">
+                    Already have an account? <a href="{{ url_for('login') }}" class="text-decoration-none">Login here</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- registration form ends -->
+{% endblock %}

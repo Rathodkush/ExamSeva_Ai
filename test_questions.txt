@@ -1,0 +1,14 @@
+1. What is the capital of India?
+Delhi
+
+2. Explain the process of photosynthesis.
+Photosynthesis is the process by which plants make food using sunlight, water and carbon dioxide.
+
+3. Define Newton's first law of motion.
+An object at rest stays at rest, and an object in motion stays in motion with the same speed and in the same direction unless acted upon by an unbalanced force.
+
+4. Calculate the area of a circle with radius 5 cm.
+Area = πr² = 3.14 × 25 = 78.5 cm²
+
+5. What are the main components of a computer system?
+The main components are CPU, memory, storage, input devices, and output devices.

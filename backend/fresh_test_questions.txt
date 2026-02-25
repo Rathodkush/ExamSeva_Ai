@@ -1,0 +1,30 @@
+
+Question 1: What is velocity?
+Answer: Velocity is the rate of change of position.
+
+Question 2: Define velocity with proper explanation.
+Answer: Velocity is the rate at which an object changes its position in a specific direction.
+
+Question 3: How does velocity differ from speed?
+Answer: Velocity has direction, speed does not.
+
+Question 4: What is photosynthesis?
+Answer: Photosynthesis is the process by which plants make their own food.
+
+Question 5: Describe the photosynthesis process.
+Answer: Plants use sunlight, water and carbon dioxide to produce glucose and oxygen.
+
+Question 6: What is osmosis?
+Answer: Osmosis is the movement of water across a semipermeable membrane.
+
+Question 7: Define osmosis in biology.
+Answer: Osmosis is the diffusion of water molecules from higher to lower concentration.
+
+Question 8: What is ecosystem?
+Answer: An ecosystem is a community of living organisms interacting with their environment.
+
+Question 9: Define ecology.
+Answer: Ecology is the study of organisms and their environment.
+
+Question 10: Unique Question - What is the capital of France?
+Answer: Paris.

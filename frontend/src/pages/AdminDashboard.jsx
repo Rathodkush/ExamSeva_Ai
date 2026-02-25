@@ -1,0 +1,146 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
+import '../styles/AdminDashboard.css';
+
+function AdminDashboard() {
+  const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!isAuthenticated || user?.role !== 'admin') {
+      navigate('/admin-login');
+      return;
+    }
+    fetchDashboardData();
+
+    // Auto-refresh dashboard data every 10 seconds to show real-time updates
+    const interval = setInterval(() => {
+      fetchDashboardData();
+    }, 10000); // Refresh every 10 seconds
+
+    return () => clearInterval(interval);
+  }, [isAuthenticated, user]);
+
+  const fetchDashboardData = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('http://localhost:4000/api/admin/dashboard', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setStats(response.data);
+    } catch (err) {
+      console.error('Error fetching dashboard:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <div className="admin-loading">Loading dashboard...</div>;
+  }
+
+  return (
+    <div className="admin-dashboard">
+      <div className="admin-header">
+        <h1>Admin Dashboard</h1>
+        <div className="admin-user-info">
+          <span>Welcome, {user?.fullName}</span>
+          <Link to="/admin-settings" className="settings-link">⚙️ Settings</Link>
+        </div>
+      </div>
+
+      <div className="admin-nav">
+        <Link to="/admin-dashboard" className="nav-item active">Dashboard</Link>
+        <Link to="/admin-users" className="nav-item">Users</Link>
+        <Link to="/admin-question-papers" className="nav-item">Question Papers</Link>
+        <Link to="/admin-notes" className="nav-item">Study Notes</Link>
+        <Link to="/admin-announcements" className="nav-item">Announcements</Link>
+        <Link to="/admin-settings" className="nav-item">Website Settings</Link>
+      </div>
+
+      <div className="dashboard-stats">
+        <div className="stat-card">
+          <div className="stat-icon"></div>
+          <div className="stat-content">
+            <h3>{stats?.statistics?.totalUsers || 0}</h3>
+            <p>Total Users</p>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-icon"></div>
+          <div className="stat-content">
+            <h3>{stats?.statistics?.totalPapers || 0}</h3>
+            <p>Question Papers</p>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-icon"></div>
+          <div className="stat-content">
+            <h3>{stats?.statistics?.totalNotes || 0}</h3>
+            <p>Study Notes</p>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-icon"></div>
+          <div className="stat-content">
+            <h3>{stats?.statistics?.totalAnnouncements || 0}</h3>
+            <p>Announcements</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="dashboard-sections">
+        <div className="dashboard-section">
+          <h2>Recent Users</h2>
+          <div className="recent-list">
+            {stats?.recentUsers?.length > 0 ? (
+              stats.recentUsers.map(user => (
+                <div key={user._id} className="recent-item">
+                  <div>
+                    <strong>{user.fullName}</strong>
+                    <span className="user-email">{user.email}</span>
+                  </div>
+                  <span className={`status-badge ${user.isActive ? 'active' : 'inactive'}`}>
+                    {user.isActive ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <p className="empty-state">No users yet</p>
+            )}
+          </div>
+        </div>
+
+        <div className="dashboard-section">
+          <h2>Recent Question Papers</h2>
+          <div className="recent-list">
+            {stats?.recentPapers?.length > 0 ? (
+              stats.recentPapers.map(paper => (
+                <div key={paper._id} className="recent-item">
+                  <div>
+                    <strong>{paper.title}</strong>
+                    <span className="paper-subject">{paper.subject}</span>
+                  </div>
+                  <span className={`visibility-badge ${paper.visibility}`}>
+                    {paper.visibility}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <p className="empty-state">No papers yet</p>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default AdminDashboard;

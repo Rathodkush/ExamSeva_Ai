@@ -1,0 +1,70 @@
+.App {
+  min-height: 100vh;
+  /* Keep global background pure white across all pages */
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex: 1;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.page-container h1 {
+  color: #1e3a5f;
+  font-size: 32px;
+  margin-bottom: 10px;
+}
+
+.page-container p {
+  color: #666;
+  font-size: 16px;
+}
+
+/* Danger styling for important actions */
+.enhance-button.danger {
+  background: #fee2e2 !important;
+  border-color: #fecaca !important;
+  color: #7f1d1d !important;
+}

@@ -1,0 +1,8 @@
+.pdf-viewer-container { padding: 20px; display:flex; justify-content:center; }
+.pdf-canvas-wrap { position: relative; display:inline-block; }
+.pdf-canvas { border: 1px solid #ddd; background: #fff; }
+.pdf-overlay { position: absolute; left: 0; top: 0; pointer-events: none; }
+.pdf-highlight { position: absolute; background: rgba(255, 235, 59, 0.5); border: 1px solid rgba(255,193,7,0.8); box-shadow: 0 0 6px rgba(0,0,0,0.1); }
+.pdf-loading { text-align: center; font-weight: 600; color: #333; }
+
+.pdf-answer-banner { font-size: 14px; color: #614700; }
