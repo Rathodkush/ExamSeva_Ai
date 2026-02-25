@@ -28,7 +28,7 @@ function AdminDashboard() {
   const fetchDashboardData = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:4000/api/admin/dashboard', {
+      const response = await axios.get('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/admin/dashboard', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setStats(response.data);

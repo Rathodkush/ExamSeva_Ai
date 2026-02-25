@@ -78,7 +78,7 @@ function QuestionPaper() {
       const headers = { 'Content-Type': 'multipart/form-data' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
 
-      const res = await axios.post('http://localhost:4000/api/quiz/generate_paper', fd, { headers, responseType: 'arraybuffer', timeout: 180000 });
+      const res = await axios.post('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/quiz/generate_paper', fd, { headers, responseType: 'arraybuffer', timeout: 180000 });
 
       // Treat very small responses as empty / no-results (likely OCR failed or no questions produced)
       const dataLen = (res.data && (res.data.byteLength || res.data.length)) || 0;
@@ -299,7 +299,7 @@ function QuestionPaper() {
                       const token = localStorage.getItem('token');
                       const headers = {};
                       if (token) headers['Authorization'] = `Bearer ${token}`;
-                      const resp = await axios.post('http://localhost:4000/api/exam/detect', f, { headers, timeout: 120000 });
+                      const resp = await axios.post('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/exam/detect', f, { headers, timeout: 120000 });
                       if (resp.data && resp.data.detected) {
                         const d = resp.data.detected;
                         if (d.mode) setFormData(f => ({ ...f, mode: d.mode }));

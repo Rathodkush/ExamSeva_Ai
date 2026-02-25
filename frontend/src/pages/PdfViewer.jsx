@@ -60,7 +60,7 @@ export default function PdfViewer() {
       try {
         setLoading(true);
         const token = localStorage.getItem('token');
-        const resp = await axios.get(`http://localhost:4000/api/studyhub/open?path=${encodeURIComponent(file)}`, {
+        const resp = await axios.get(``${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/studyhub/open?path=${encodeURIComponent(file)}`, {
           responseType: 'arraybuffer',
           headers: token ? { Authorization: `Bearer ${token}` } : {}
         });

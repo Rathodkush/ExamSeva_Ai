@@ -25,7 +25,7 @@ function AdminLogin() {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://127.0.0.1:4000/api/auth/login', credentials);
+      const response = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}`/api/auth/login', credentials);
 
       if (response.data.success && response.data.user.role === 'admin') {
         login(response.data.token, response.data.user);

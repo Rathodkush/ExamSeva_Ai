@@ -1,0 +1,42 @@
+services:
+  # 1. Python AI Service
+  - type: web
+    name: examseva-ai
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn app:app --bind 0.0.0.0:$PORT"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.13
+
+  # 2. Node.js Backend Service
+  - type: web
+    name: examseva-backend
+    env: node
+    buildCommand: "npm install"
+    startCommand: "node server.js"
+    envVars:
+      - key: MONGODB_URI
+        sync: false # User must set this in the Render dashboard
+      - key: PYTHON_URL_BASE
+        fromService:
+          type: web
+          name: examseva-ai
+          envVar: RENDER_EXTERNAL_URL
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+
+  # 3. React Frontend Static Site
+  - type: web
+    name: examseva-frontend
+    env: static
+    buildCommand: "npm install && npm run build"
+    staticPublishPath: "./build"
+    envVars:
+      - key: REACT_APP_API_URL
+        fromService:
+          type: web
+          name: examseva-backend
+          envVar: RENDER_EXTERNAL_URL

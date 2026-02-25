@@ -99,7 +99,7 @@ function Register() {
         role
       };
 
-      const response = await axios.post('http://localhost:4000/api/auth/register', registrationData);
+      const response = await axios.post('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/auth/register', registrationData);
 
       if (response.data.success) {
         // Store token in localStorage

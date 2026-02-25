@@ -39,7 +39,7 @@ function AdminAnnouncements() {
   const fetchAnnouncements = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:4000/api/admin/announcements', {
+      const response = await axios.get('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/admin/announcements', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setAnnouncements(response.data.announcements || []);
@@ -72,12 +72,12 @@ function AdminAnnouncements() {
       let response;
       if (editingAnnouncement) {
         response = await axios.put(
-          `http://localhost:4000/api/admin/announcements/${editingAnnouncement._id}`,
+          ``${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/admin/announcements/${editingAnnouncement._id}`,
           dataToSend,
           { headers: { Authorization: `Bearer ${token}` } }
         );
       } else {
-        response = await axios.post('http://localhost:4000/api/admin/announcements', dataToSend, {
+        response = await axios.post('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/admin/announcements', dataToSend, {
           headers: { Authorization: `Bearer ${token}` }
         });
       }
@@ -122,7 +122,7 @@ function AdminAnnouncements() {
     
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:4000/api/admin/announcements/${id}`, {
+      await axios.delete(``${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/admin/announcements/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchAnnouncements();

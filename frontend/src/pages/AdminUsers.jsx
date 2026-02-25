@@ -29,7 +29,7 @@ function AdminUsers() {
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:4000/api/admin/users', {
+      const response = await axios.get('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/admin/users', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setUsers(response.data.users || []);
@@ -44,7 +44,7 @@ function AdminUsers() {
     try {
       const token = localStorage.getItem('token');
       await axios.patch(
-        `http://localhost:4000/api/admin/users/${userId}/status`,
+        ``${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/admin/users/${userId}/status`,
         { isActive: !currentStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -59,7 +59,7 @@ function AdminUsers() {
     
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:4000/api/admin/users/${userId}`, {
+      await axios.delete(``${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/admin/users/${userId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchUsers();
@@ -71,7 +71,7 @@ function AdminUsers() {
   const exportUsers = async () => {
     try {
       const token = localStorage.getItem('token');
-      await axios.post('http://localhost:4000/api/admin/export-email/users', {}, {
+      await axios.post('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/admin/export-email/users', {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       alert('User data exported and sent to email successfully!');

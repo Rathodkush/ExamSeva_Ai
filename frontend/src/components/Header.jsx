@@ -26,7 +26,7 @@ function Header() {
 
     const fetchNotifications = async () => {
       try {
-        const res = await axios.get('http://localhost:4000/api/notifications', {
+        const res = await axios.get('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/notifications', {
           headers: { Authorization: `Bearer ${token}` }
         });
         setNotifications(res.data.notifications || []);
@@ -38,7 +38,7 @@ function Header() {
     fetchNotifications();
 
     try {
-      socket = io('http://localhost:4000', { auth: { token } });
+      socket = io('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`', { auth: { token } });
       socket.emit('join', user._id);
 
       const upsertNotification = (payload) => {
@@ -65,7 +65,7 @@ function Header() {
   const markAsRead = async (id) => {
     const token = localStorage.getItem('token');
     try {
-      await axios.patch(`http://localhost:4000/api/notifications/${id}/read`, {}, {
+      await axios.patch(``${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/notifications/${id}/read`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setNotifications(prev => prev.map(n => n._id === id ? { ...n, read: true } : n));

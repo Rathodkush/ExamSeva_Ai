@@ -46,7 +46,7 @@ function StudyHub() {
 
   const checkBackendConnection = async () => {
     try {
-      await axios.get('http://localhost:4000/api/health', { timeout: 3000 });
+      await axios.get('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/health', { timeout: 3000 });
     } catch (err) {
       console.error('Backend not reachable:', err);
       alert('⚠️ Backend server is not running! Please start the backend server on port 4000.');
@@ -55,12 +55,12 @@ function StudyHub() {
 
   const loadNotes = async () => {
     try {
-      const res = await axios.get('http://localhost:4000/api/notes', { timeout: 5000 });
+      const res = await axios.get('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/notes', { timeout: 5000 });
       setNotes(res.data.notes || []);
     } catch (err) {
       console.error('Error loading notes:', err);
       if (err.code === 'ECONNREFUSED' || err.response?.status === 404) {
-        alert('⚠️ Cannot connect to backend server. Please ensure the backend is running on http://localhost:4000');
+        alert('⚠️ Cannot connect to backend server. Please ensure the backend is running on `${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`');
       }
     } finally {
       setLoading(false);
@@ -88,7 +88,7 @@ function StudyHub() {
       formData.append('description', uploadData.description || '');
       formData.append('file', uploadData.file);
 
-      const res = await axios.post('http://localhost:4000/api/notes', formData, {
+      const res = await axios.post('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/notes', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         timeout: 30000
       });
@@ -115,7 +115,7 @@ function StudyHub() {
 
   const handleDownload = async (noteId) => {
     try {
-      const response = await axios.get(`http://localhost:4000/api/notes/${noteId}/download`, {
+      const response = await axios.get(``${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/notes/${noteId}/download`, {
         responseType: 'blob'
       });
       
@@ -160,7 +160,7 @@ function StudyHub() {
   const performDelete = async () => {
     const noteId = confirmDelete.noteId;
     try {
-      await axios.delete(`http://localhost:4000/api/notes/${noteId}?authorId=${currentUserId}`);
+      await axios.delete(``${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/notes/${noteId}?authorId=${currentUserId}`);
       setNotes(notes.filter(note => note._id !== noteId));
       setConfirmDelete({ open: false, noteId: null });
       alert('Note deleted successfully!');
@@ -183,7 +183,7 @@ function StudyHub() {
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
       const payload = { question: question.trim(), subject: note.subject || undefined, noteId: note._id };
-      const resp = await axios.post('http://localhost:4000/api/studyhub/search', payload, { headers, timeout: 30000 });
+      const resp = await axios.post('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/studyhub/search', payload, { headers, timeout: 30000 });
 
       const data = resp.data;
       if (!data || !data.success) {

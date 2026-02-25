@@ -34,7 +34,7 @@ function AdminNotes() {
 
   const fetchNotes = async () => {
     try {
-      const response = await axios.get('http://localhost:4000/api/notes');
+      const response = await axios.get('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/notes');
       setNotes(response.data.notes || []);
     } catch (err) {
       console.error('Error fetching notes:', err);
@@ -49,7 +49,7 @@ function AdminNotes() {
       const token = localStorage.getItem('token');
       if (editingNote) {
         await axios.put(
-          `http://localhost:4000/api/admin/notes/${editingNote._id}`,
+          ``${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/admin/notes/${editingNote._id}`,
           formData,
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -78,7 +78,7 @@ function AdminNotes() {
     
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:4000/api/admin/notes/${id}`, {
+      await axios.delete(``${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/admin/notes/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchNotes();

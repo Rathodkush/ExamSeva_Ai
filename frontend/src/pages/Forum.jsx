@@ -21,7 +21,7 @@ function Forum() {
 
   const checkBackendConnection = async () => {
     try {
-      await axios.get('http://localhost:4000/api/health', { timeout: 3000 });
+      await axios.get('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/health', { timeout: 3000 });
     } catch (err) {
       console.error('Backend not reachable:', err);
     }
@@ -29,12 +29,12 @@ function Forum() {
 
   const loadPosts = async () => {
     try {
-      const res = await axios.get('http://localhost:4000/api/forum/posts', { timeout: 5000 });
+      const res = await axios.get('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/forum/posts', { timeout: 5000 });
       setPosts(res.data.posts || []);
     } catch (err) {
       console.error('Error loading posts:', err);
       if (err.code === 'ECONNREFUSED' || err.response?.status === 404) {
-        alert('⚠️ Cannot connect to backend server. Please ensure the backend is running on http://localhost:4000');
+        alert('⚠️ Cannot connect to backend server. Please ensure the backend is running on `${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`');
       }
     } finally {
       setLoading(false);
@@ -50,7 +50,7 @@ function Forum() {
 
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post('http://localhost:4000/api/forum/posts', {
+      const res = await axios.post('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/forum/posts', {
         title: newPost.title,
         content: newPost.content,
         author: currentUserName,
@@ -88,7 +88,7 @@ function Forum() {
 
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post(`http://localhost:4000/api/forum/posts/${postId}/reply`, {
+      const res = await axios.post(``${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/forum/posts/${postId}/reply`, {
         content: replyContent,
         author: currentUserName,
         authorId: currentUserId
@@ -108,7 +108,7 @@ function Forum() {
   const handleLike = async (postId) => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post(`http://localhost:4000/api/forum/posts/${postId}/like`, {
+      const res = await axios.post(``${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/forum/posts/${postId}/like`, {
         authorId: currentUserId
       }, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
 

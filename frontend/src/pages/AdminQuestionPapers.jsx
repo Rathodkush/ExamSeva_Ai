@@ -38,7 +38,7 @@ function AdminQuestionPapers() {
   const fetchPapers = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:4000/api/admin/question-papers', {
+      const response = await axios.get('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/admin/question-papers', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setPapers(response.data.papers || []);
@@ -65,7 +65,7 @@ function AdminQuestionPapers() {
 
       if (editingPaper) {
         await axios.put(
-          `http://localhost:4000/api/admin/question-papers/${editingPaper._id}`,
+          ``${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/admin/question-papers/${editingPaper._id}`,
           {
             title: formData.title,
             subject: formData.subject,
@@ -76,7 +76,7 @@ function AdminQuestionPapers() {
           { headers: { Authorization: `Bearer ${token}` } }
         );
       } else {
-        await axios.post('http://localhost:4000/api/admin/question-papers', formDataToSend, {
+        await axios.post('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/admin/question-papers', formDataToSend, {
           headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
         });
       }
@@ -108,7 +108,7 @@ function AdminQuestionPapers() {
     
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:4000/api/admin/question-papers/${id}`, {
+      await axios.delete(``${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/admin/question-papers/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchPapers();

@@ -205,7 +205,7 @@ export default function Results({ results }) {
     try {
       const token = localStorage.getItem('token');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      const resp = await axios.post('http://localhost:4000/api/studyhub/search', { question: q.text }, { headers });
+      const resp = await axios.post('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/studyhub/search', { question: q.text }, { headers });
       if (resp.data && resp.data.success && resp.data.result) {
         const r = resp.data.result;
         if (r.found) {
@@ -354,7 +354,7 @@ export default function Results({ results }) {
               try {
                 const token = localStorage.getItem('token');
                 const payload = { groups, unique: validUnique, metadata: results.metadata || {} };
-                const res = await axios.post('http://localhost:4000/api/analysis/report', payload, {
+                const res = await axios.post('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/analysis/report', payload, {
                   responseType: 'blob',
                   headers: token ? { Authorization: `Bearer ${token}` } : {}
                 });
@@ -387,7 +387,7 @@ export default function Results({ results }) {
                 const token = localStorage.getItem('token');
                 const headers = token ? { Authorization: `Bearer ${token}` } : {};
                 const payload = { groups, unique: validUnique, metadata: results.metadata || {}, sections: ['repeated'], title: (results.metadata && results.metadata.subject) ? `${results.metadata.subject} - Repeated Questions` : 'Repeated Questions' };
-                const res = await axios.post('http://localhost:4000/api/analysis/report', payload, { responseType: 'blob', headers });
+                const res = await axios.post('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/analysis/report', payload, { responseType: 'blob', headers });
                 const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
                 const a = document.createElement('a'); a.href = url; a.download = 'repeated_questions.pdf'; document.body.appendChild(a); a.click(); a.remove(); window.URL.revokeObjectURL(url);
               } catch (err) {
@@ -401,7 +401,7 @@ export default function Results({ results }) {
                 const token = localStorage.getItem('token');
                 const headers = token ? { Authorization: `Bearer ${token}` } : {};
                 const payload = { groups, unique: validUnique, metadata: results.metadata || {}, sections: ['unique'], title: (results.metadata && results.metadata.subject) ? `${results.metadata.subject} - Unique Questions` : 'Unique Questions' };
-                const res = await axios.post('http://localhost:4000/api/analysis/report', payload, { responseType: 'blob', headers });
+                const res = await axios.post('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/analysis/report', payload, { responseType: 'blob', headers });
                 const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
                 const a = document.createElement('a'); a.href = url; a.download = 'unique_questions.pdf'; document.body.appendChild(a); a.click(); a.remove(); window.URL.revokeObjectURL(url);
               } catch (err) {

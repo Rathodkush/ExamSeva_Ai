@@ -36,7 +36,7 @@ function AdminSettings() {
   const fetchSettings = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:4000/api/admin/settings', {
+      const response = await axios.get('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/admin/settings', {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data.settings) {
@@ -61,7 +61,7 @@ function AdminSettings() {
     setSaving(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.put('http://localhost:4000/api/admin/settings', settings, {
+      await axios.put('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/admin/settings', settings, {
         headers: { Authorization: `Bearer ${token}` }
       });
       alert('Settings saved successfully!');
@@ -81,7 +81,7 @@ function AdminSettings() {
     
     try {
       const token = localStorage.getItem('token');
-      await axios.post('http://localhost:4000/api/admin/change-password', passwordData, {
+      await axios.post('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/admin/change-password', passwordData, {
         headers: { Authorization: `Bearer ${token}` }
       });
       alert('Password changed successfully!');

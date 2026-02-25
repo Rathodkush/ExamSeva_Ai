@@ -60,7 +60,7 @@ function Quize() {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const res = await axios.post('http://localhost:4000/api/quiz/generate', formData, {
+      const res = await axios.post('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/quiz/generate', formData, {
         headers: headers,
         timeout: 180000 // 3 minutes
       });
@@ -148,7 +148,7 @@ function Quize() {
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
     try {
-      const res = await axios.post('http://localhost:4000/api/quiz/generate_pdf', form, { headers, responseType: 'arraybuffer', timeout: 180000 });
+      const res = await axios.post('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/quiz/generate_pdf', form, { headers, responseType: 'arraybuffer', timeout: 180000 });
       // If server returns an empty/small PDF, show a clear message instead of downloading a blank file
       const dataLen = (res.data && (res.data.byteLength || res.data.length)) || 0;
       if (dataLen < 1000) {
@@ -212,7 +212,7 @@ function Quize() {
     const token = localStorage.getItem('token');
     if (token) {
       try {
-        await axios.post('http://localhost:4000/api/quiz/score', {
+        await axios.post('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/quiz/score', {
           quizId: generatedQuiz._id || null,
           score: correct,
           totalQuestions: total
@@ -338,7 +338,7 @@ function Quize() {
                     const headers = {};
                     if (token) headers['Authorization'] = `Bearer ${token}`;
 
-                    const resp = await axios.post('http://localhost:4000/api/quiz/extract-questions', form, { headers, timeout: 180000 });
+                    const resp = await axios.post('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/quiz/extract-questions', form, { headers, timeout: 180000 });
                     if (resp.data && resp.data.questions) {
                       setPreviewQuestions(resp.data.questions.slice(0, 50));
                     } else {
