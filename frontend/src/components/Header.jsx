@@ -82,10 +82,25 @@ function Header() {
   return (
     <header className="header">
       <div className="header-container">
-        <div className="logo">
-          <Link to="/" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <img src={settings.logoUrl || "/favicon.png"} alt={`${settings.websiteName} Logo`} style={{ height: '40px', width: 'auto' }} />
-            <h1 style={{ margin: 0, fontSize: '28px', color: 'white', fontWeight: 'bold' }}>{settings.websiteName}</h1>
+        <div className="logo" style={{ display: 'flex', alignItems: 'center' }}>
+          <Link to="/" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <img 
+              src={settings.logoUrl || "/favicon.png"} 
+              alt="ExamSeva Logo" 
+              style={{ 
+                height: '38px', 
+                width: 'auto', 
+                borderRadius: '4px',
+                display: 'block'
+              }} 
+            />
+            <h1 style={{ 
+              margin: 0, 
+              fontSize: '24px', 
+              color: 'white', 
+              fontWeight: '700',
+              lineHeight: '1'
+            }}>{settings.websiteName}</h1>
           </Link>
         </div>
 
