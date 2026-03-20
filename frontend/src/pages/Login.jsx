@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import '../styles/Auth.css';
@@ -6,10 +6,25 @@ import GoogleAuthButton from '../components/GoogleAuthButton';
 
 function Login() {
   const navigate = useNavigate();
+  const [settings, setSettings] = useState({ websiteName: 'ExamSeva' });
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/settings`);
+        if (response.data.settings) {
+          setSettings(response.data.settings);
+        }
+      } catch (err) {
+        console.error('Error fetching settings:', err);
+      }
+    };
+    fetchSettings();
+  }, []);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -27,7 +42,7 @@ function Login() {
     setLoading(true);
 
     try {
-      const response = await axios.post('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/auth/login', formData);
+      const response = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/auth/login`, formData);
       
       if (response.data.success) {
         // Store token in localStorage
@@ -48,8 +63,10 @@ function Login() {
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <h1 className="auth-title">Login to ExamSeva</h1>
-        <p className="auth-subtitle">Welcome back! Please login to your account.</p>
+        <div className="auth-header">
+          <h1 className="auth-title">Login to {settings.websiteName}</h1>
+          <p className="auth-subtitle">Welcome back! Please login to your account.</p>
+        </div>
         
         {error && <div className="error-message">{error}</div>}
         
@@ -93,10 +110,10 @@ function Login() {
           </button>
         </form>
 
-        <div style={{ marginTop: '10px', textAlign: 'center', color: '#6b7280', fontSize: '13px' }}>
-          or
+        <div className="google-auth-wrapper">
+          <div className="auth-divider">or continue with</div>
+          <GoogleAuthButton text="continue_with" />
         </div>
-        <GoogleAuthButton text="continue_with" />
 
         <div className="auth-footer">
           <p>Don't have an account? <Link to="/register">Register here</Link></p>

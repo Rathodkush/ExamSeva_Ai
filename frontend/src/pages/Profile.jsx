@@ -22,7 +22,7 @@ function UserStatistics() {
         return;
       }
 
-      const response = await axios.get('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/user/statistics', {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/user/statistics`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -159,7 +159,7 @@ function Profile() {
             return;
           }
 
-          const response = await axios.get('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/auth/me', {
+          const response = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/auth/me`, {
             headers: {
               Authorization: `Bearer ${token}`
             }
@@ -210,7 +210,7 @@ function Profile() {
         return;
       }
 
-      const response = await axios.put('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/auth/profile', profileData, {
+      const response = await axios.put(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/auth/profile`, profileData, {
         headers: {
           Authorization: `Bearer ${token}`
         }

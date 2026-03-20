@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import '../styles/AdminSettings.css';
+import '../styles/AdminShared.css';
 
 function AdminSettings() {
   const { user, isAuthenticated } = useAuth();
@@ -36,7 +37,7 @@ function AdminSettings() {
   const fetchSettings = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/admin/settings', {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/admin/settings`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data.settings) {
@@ -61,7 +62,7 @@ function AdminSettings() {
     setSaving(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.put('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/admin/settings', settings, {
+      await axios.put(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/admin/settings`, settings, {
         headers: { Authorization: `Bearer ${token}` }
       });
       alert('Settings saved successfully!');
@@ -81,7 +82,7 @@ function AdminSettings() {
     
     try {
       const token = localStorage.getItem('token');
-      await axios.post('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/admin/change-password', passwordData, {
+      await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/admin/change-password`, passwordData, {
         headers: { Authorization: `Bearer ${token}` }
       });
       alert('Password changed successfully!');
@@ -115,23 +116,23 @@ function AdminSettings() {
   }
 
   return (
-    <div className="admin-settings">
-      <div className="admin-header">
+    <div className="admin-page-container">
+      <div className="admin-header-flex">
         <h1>Website Settings</h1>
-        <div className="header-actions">
-          <button onClick={() => setShowPasswordModal(true)} className="password-btn">Change Password</button>
-          <Link to="/admin-dashboard" className="back-btn">← Dashboard</Link>
+        <div className="admin-header-actions">
+          <button onClick={() => setShowPasswordModal(true)} className="admin-btn btn-yellow">Change Password</button>
+          <Link to="/admin-dashboard" className="admin-btn btn-grey">← Dashboard</Link>
         </div>
       </div>
 
-      <div className="admin-nav">
-        <Link to="/admin-dashboard" className="nav-item">Dashboard</Link>
-        <Link to="/admin-users" className="nav-item">Users</Link>
-        <Link to="/admin-question-papers" className="nav-item">Question Papers</Link>
-        <Link to="/admin-notes" className="nav-item">Study Notes</Link>
-        <Link to="/admin-announcements" className="nav-item">Announcements</Link>
-        <Link to="/admin-settings" className="nav-item active">Website Settings</Link>
-      </div>
+      <nav className="admin-secondary-nav">
+        <Link to="/admin-dashboard" className="nav-item-link">Dashboard</Link>
+        <Link to="/admin-users" className="nav-item-link">Users</Link>
+        <Link to="/admin-question-papers" className="nav-item-link">Question Papers</Link>
+        <Link to="/admin-notes" className="nav-item-link">Study Notes</Link>
+        <Link to="/admin-announcements" className="nav-item-link">Announcements</Link>
+        <Link to="/admin-settings" className="nav-item-link active">Website Settings</Link>
+      </nav>
 
       <div className="settings-content">
         <div className="settings-section">

@@ -31,7 +31,7 @@ export default function FileUpload({ setResults }) {
     if (!token) return;
     (async () => {
       try {
-        const resp = await axios.get('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
+        const resp = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
         if (resp.data && resp.data.user) {
           const u = resp.data.user;
           if (u.institutionName) setInstitutionName(u.institutionName);
@@ -64,7 +64,7 @@ export default function FileUpload({ setResults }) {
         const headers = {};
         if (token) headers['Authorization'] = `Bearer ${token}`;
 
-        const resp = await axios.post('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/upload/preview', form, { headers, timeout: 30000 });
+        const resp = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/upload/preview`, form, { headers, timeout: 30000 });
         if (resp.data && resp.data.metadata) {
           setExtractedMeta(resp.data.metadata);
           // Autofill fields if empty
@@ -134,7 +134,7 @@ export default function FileUpload({ setResults }) {
       const headers = {};
       if (token) headers["Authorization"] = `Bearer ${token}`;
 
-      const res = await axios.post("`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/upload", form, {
+      const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/upload`, form, {
         headers: headers,
         timeout: 180000 // 3 minutes timeout to allow OCR processing
       });
@@ -287,7 +287,7 @@ export default function FileUpload({ setResults }) {
       } else if (err.response?.status === 500) {
         errorMessage = "Server error: " + (err.response.data?.detail || err.message);
       } else if (err.code === 'ECONNREFUSED' || err.code === 'ERR_NETWORK') {
-        errorMessage = "Cannot connect to server. Please make sure the backend server is running on `${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`";
+        errorMessage = `Cannot connect to server. Please make sure the backend server is running on ${process.env.REACT_APP_API_URL || "http://localhost:4000"}`;
       } else if (err.response?.data?.error) {
         errorMessage = err.response.data.error + (err.response.data.detail ? ': ' + err.response.data.detail : '');
         // If server said no text extracted, offer enhancement
@@ -478,7 +478,7 @@ export default function FileUpload({ setResults }) {
                 const token = localStorage.getItem('token');
                 const headers = {};
                 if (token) headers['Authorization'] = `Bearer ${token}`;
-                const resp = await axios.post('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/upload/enhance', form, { headers, timeout: 120000 });
+                const resp = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/upload/enhance`, form, { headers, timeout: 120000 });
                 if (resp.data) {
                   const groups = Array.isArray(resp.data.groups) ? resp.data.groups : [];
                   const unique = Array.isArray(resp.data.unique) ? resp.data.unique : [];

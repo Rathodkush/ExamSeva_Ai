@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import '../styles/AdminQuestionPapers.css';
+import '../styles/AdminShared.css';
 
 function AdminQuestionPapers() {
   const { user, isAuthenticated } = useAuth();
@@ -38,7 +39,7 @@ function AdminQuestionPapers() {
   const fetchPapers = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/admin/question-papers', {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/admin/question-papers`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setPapers(response.data.papers || []);
@@ -65,7 +66,7 @@ function AdminQuestionPapers() {
 
       if (editingPaper) {
         await axios.put(
-          ``${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/admin/question-papers/${editingPaper._id}`,
+          `${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/admin/question-papers/${editingPaper._id}`,
           {
             title: formData.title,
             subject: formData.subject,
@@ -76,7 +77,7 @@ function AdminQuestionPapers() {
           { headers: { Authorization: `Bearer ${token}` } }
         );
       } else {
-        await axios.post('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/admin/question-papers', formDataToSend, {
+        await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/admin/question-papers`, formDataToSend, {
           headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
         });
       }
@@ -108,7 +109,7 @@ function AdminQuestionPapers() {
     
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(``${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/admin/question-papers/${id}`, {
+      await axios.delete(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/admin/question-papers/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchPapers();
@@ -122,25 +123,25 @@ function AdminQuestionPapers() {
   }
 
   return (
-    <div className="admin-question-papers">
-      <div className="admin-header">
+    <div className="admin-page-container">
+      <div className="admin-header-flex">
         <h1>Question Paper Management</h1>
-        <div className="header-actions">
-          <button onClick={() => { setEditingPaper(null); setFormData({ title: '', subject: '', classLevel: '', examType: '', visibility: 'free', file: null }); setShowModal(true); }} className="add-btn">
+        <div className="admin-header-actions">
+          <button onClick={() => { setEditingPaper(null); setFormData({ title: '', subject: '', classLevel: '', examType: '', visibility: 'free', file: null }); setShowModal(true); }} className="admin-btn btn-green">
             + Add Paper
           </button>
-          <Link to="/admin-dashboard" className="back-btn">← Dashboard</Link>
+          <Link to="/admin-dashboard" className="admin-btn btn-grey">← Dashboard</Link>
         </div>
       </div>
 
-      <div className="admin-nav">
-        <Link to="/admin-dashboard" className="nav-item">Dashboard</Link>
-        <Link to="/admin-users" className="nav-item">Users</Link>
-        <Link to="/admin-question-papers" className="nav-item active">Question Papers</Link>
-        <Link to="/admin-notes" className="nav-item">Study Notes</Link>
-        <Link to="/admin-announcements" className="nav-item">Announcements</Link>
-        <Link to="/admin-settings" className="nav-item">Website Settings</Link>
-      </div>
+      <nav className="admin-secondary-nav">
+        <Link to="/admin-dashboard" className="nav-item-link">Dashboard</Link>
+        <Link to="/admin-users" className="nav-item-link">Users</Link>
+        <Link to="/admin-question-papers" className="nav-item-link active">Question Papers</Link>
+        <Link to="/admin-notes" className="nav-item-link">Study Notes</Link>
+        <Link to="/admin-announcements" className="nav-item-link">Announcements</Link>
+        <Link to="/admin-settings" className="nav-item-link">Website Settings</Link>
+      </nav>
 
       <div className="papers-grid">
         {papers.map(paper => (

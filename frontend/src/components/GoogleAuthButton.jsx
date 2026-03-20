@@ -35,7 +35,7 @@ export default function GoogleAuthButton({ text = 'continue_with' }) {
               callback: async (resp) => {
                 try {
                   setError('');
-                  const r = await axios.post('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/auth/google', { credential: resp.credential });
+                  const r = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/auth/google`, { credential: resp.credential });
                   if (r.data?.success) {
                     localStorage.setItem('token', r.data.token);
                     localStorage.setItem('user', JSON.stringify(r.data.user));
@@ -69,7 +69,7 @@ export default function GoogleAuthButton({ text = 'continue_with' }) {
         callback: async (resp) => {
           try {
             setError('');
-            const r = await axios.post('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/auth/google', { credential: resp.credential });
+            const r = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/auth/google`, { credential: resp.credential });
             if (r.data?.success) {
               localStorage.setItem('token', r.data.token);
               localStorage.setItem('user', JSON.stringify(r.data.user));

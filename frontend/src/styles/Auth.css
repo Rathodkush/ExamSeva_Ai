@@ -3,153 +3,161 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px 20px;
-  background: #ffffff;
+  padding: 20px;
+  background: #f8fafc;
 }
 
 .auth-card {
   background: white;
   border-radius: 12px;
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
-  padding: 25px;
-  max-width: 600px;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+  padding: 20px 25px;
+  max-width: 550px;
   width: 100%;
+}
+
+/* Compact Progress */
+.registration-progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  gap: 12px;
+}
+
+.progress-step {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  transition: all 0.3s ease;
+  border: 2px solid #e2e8f0;
+}
+
+.progress-step.active {
+  background: #1e3a5f;
+  color: white;
+  border-color: #1e3a5f;
+}
+
+.progress-line {
+  width: 30px;
+  height: 2px;
+  background: #e2e8f0;
+}
+
+/* Centered Google Button */
+.google-auth-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 10px 0 15px;
+}
+
+.auth-divider {
+  color: #64748b;
+  font-size: 12px;
+  margin: 8px 0;
+  position: relative;
+  text-align: center;
+  width: 100%;
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 15px;
 }
 
 .auth-title {
   color: #1e3a5f;
-  font-size: 22px;
-  font-weight: bold;
+  font-size: 20px;
+  font-weight: 700;
   margin-bottom: 2px;
   text-align: center;
 }
 
 .auth-subtitle {
-  color: #666;
-  font-size: 13px;
+  color: #64748b;
+  font-size: 12px;
+  margin-bottom: 12px;
   text-align: center;
-  margin-bottom: 15px;
 }
 
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .form-group label {
   color: #1e3a5f;
-  font-weight: 500;
-  font-size: 12px;
+  font-weight: 600;
+  font-size: 11px;
 }
 
 .form-group input,
 .form-group select {
-  padding: 8px 10px;
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
   font-size: 13px;
-  transition: border-color 0.3s ease;
+  outline: none;
 }
 
-.form-group input:focus,
-.form-group select:focus {
-  outline: none;
-  border-color: #667eea;
+.form-group input:focus {
+  border-color: #1e3a5f;
 }
 
 .form-row {
   display: flex;
-  gap: 20px;
-}
-
-.form-row .form-group {
-  flex: 1;
-}
-
-.form-options {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 14px;
-}
-
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #666;
-  cursor: pointer;
-}
-
-.forgot-link {
-  color: #667eea;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.forgot-link:hover {
-  text-decoration: underline;
+  gap: 15px;
 }
 
 .auth-button {
-  background: #667eea;
+  background: #1e3a5f;
   color: white;
-  border: none;
-  padding: 14px;
+  padding: 10px;
   border-radius: 8px;
-  font-size: 16px;
+  border: none;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  margin-top: 10px;
-}
-
-.auth-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
+  margin-top: 5px;
 }
 
 .auth-footer {
-  margin-top: 25px;
+  margin-top: 15px;
   text-align: center;
-  color: #666;
-  font-size: 14px;
+  font-size: 13px;
 }
 
-.auth-footer a {
-  color: #667eea;
-  text-decoration: none;
-  font-weight: 500;
+.error-message {
+  background: #fff1f2;
+  color: #e11d48;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 12px;
+  text-align: center;
+  border: 1px solid #fda4af;
 }
 
-.auth-footer a:hover {
-  text-decoration: underline;
+.step-animation {
+  animation: fadeIn 0.3s ease;
 }
 
-@media (max-width: 768px) {
-  .auth-card {
-    padding: 30px 20px;
-  }
-
-  .auth-title {
-    font-size: 28px;
-  }
-
-  .form-options {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-
-  .form-row {
-    flex-direction: column;
-    gap: 20px;
-  }
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }

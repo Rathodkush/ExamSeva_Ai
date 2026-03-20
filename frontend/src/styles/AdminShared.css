@@ -1,0 +1,153 @@
+/* Shared styles for all Admin Pages to match screenshots */
+
+.admin-page-container {
+  min-height: 100vh;
+  background: #f8fafc;
+  padding: 30px;
+}
+
+.admin-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.admin-header-flex h1 {
+  font-size: 28px;
+  font-weight: 800;
+  color: #2d3748;
+  margin: 0;
+}
+
+.admin-header-actions {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.admin-btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.btn-green {
+  background: #28a745;
+  color: white;
+}
+
+.btn-green:hover {
+  background: #218838;
+}
+
+.btn-grey {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-grey:hover {
+  background: #5a6268;
+}
+
+.btn-yellow {
+  background: #ffc107;
+  color: #000;
+}
+
+.btn-yellow:hover {
+  background: #e0a800;
+}
+
+.admin-secondary-nav {
+  background: white;
+  padding: 12px 25px;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+  border: 1px solid #edf2f7;
+}
+
+.nav-item-link {
+  padding: 10px 25px;
+  text-decoration: none;
+  color: #718096;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 15px;
+  transition: all 0.2s;
+}
+
+.nav-item-link:hover {
+  color: #4c51bf;
+  background: #f7fafc;
+}
+
+.nav-item-link.active {
+  background: #7c83fd;
+  color: white;
+}
+
+/* Common Card/Table Container */
+.admin-card-container {
+  background: white;
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border: 1px solid #edf2f7;
+}
+
+/* Responsiveness */
+@media (max-width: 968px) {
+  .admin-page-container {
+    padding: 15px;
+  }
+
+  .admin-header-flex {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .admin-header-actions {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .admin-btn {
+    flex: 1;
+    justify-content: center;
+    min-width: 140px;
+  }
+
+  .admin-secondary-nav {
+    overflow-x: auto;
+    white-space: nowrap;
+    padding: 8px 15px;
+    margin-bottom: 20px;
+  }
+
+  .nav-item-link {
+    padding: 8px 15px;
+    font-size: 14px;
+    display: inline-block;
+  }
+
+  .admin-card-container {
+    padding: 20px 15px;
+  }
+
+  .admin-header-flex h1 {
+    font-size: 22px;
+  }
+}

@@ -19,7 +19,7 @@ function Results() {
       const token = localStorage.getItem('token');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
       
-      const response = await axios.get('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/uploads', { headers });
+      const response = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/uploads`, { headers });
       
       if (response.data && response.data.uploads) {
         // Filter uploads that have analysis data

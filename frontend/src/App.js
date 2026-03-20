@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { SettingsProvider } from './context/SettingsContext';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import './App.css';
@@ -74,7 +75,11 @@ const PublicRoute = ({ children }) => {
 };
 
 function AppRoutes() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return <div style={{ padding: '20px', textAlign: 'center' }}>Loading application...</div>;
+  }
 
   return (
     <Routes>
@@ -200,15 +205,17 @@ function AppRoutes() {
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <div className="App">
-          <Header />
-          <main className="main-content">
-            <AppRoutes />
-          </main>
-          <Footer />
-        </div>
-      </Router>
+      <SettingsProvider>
+        <Router>
+          <div className="App">
+            <Header />
+            <main className="main-content">
+              <AppRoutes />
+            </main>
+            <Footer />
+          </div>
+        </Router>
+      </SettingsProvider>
     </AuthProvider>
   );
 }

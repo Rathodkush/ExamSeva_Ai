@@ -10,11 +10,24 @@ function Home() {
 
   useEffect(() => {
     fetchAnnouncements();
+
+    const sections = document.querySelectorAll('.content-section');
+    const observerOptions = { threshold: 0.1 };
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('revealed');
+        }
+      });
+    }, observerOptions);
+
+    sections.forEach(section => observer.observe(section));
+    return () => observer.disconnect();
   }, []);
 
   const fetchAnnouncements = async () => {
     try {
-      const response = await axios.get('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/announcements');
+      const response = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/announcements`);
       setAnnouncements(response.data.announcements || []);
     } catch (err) {
       console.error('Error fetching announcements:', err);

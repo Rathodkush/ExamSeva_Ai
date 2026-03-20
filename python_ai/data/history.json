@@ -4884,5 +4884,222 @@
     "firstSeen": "2026-02-24T17:38:47.593287Z",
     "lastSeen": "2026-02-24T17:38:47.593287Z",
     "count": 1
+  },
+  {
+    "text": "2. Unique Questions: - Define osmosis",
+    "normalized": "2 unique questions  define osmosis",
+    "firstSeen": "2026-03-18T08:34:04.126490+00:00Z",
+    "lastSeen": "2026-03-18T08:34:04.126490+00:00Z",
+    "count": 1
+  },
+  {
+    "text": "A. Unique Questions: -",
+    "normalized": "a unique questions ",
+    "firstSeen": "2026-03-18T08:34:04.126490+00:00Z",
+    "lastSeen": "2026-03-18T08:34:04.126490+00:00Z",
+    "count": 1
+  },
+  {
+    "text": "B. Related to Analysis Report",
+    "normalized": "b related to analysis report",
+    "firstSeen": "2026-03-18T08:34:04.126490+00:00Z",
+    "lastSeen": "2026-03-18T08:34:04.126490+00:00Z",
+    "count": 1
+  },
+  {
+    "text": "C. An alternative explanation",
+    "normalized": "c an alternative explanation",
+    "firstSeen": "2026-03-18T08:34:04.126490+00:00Z",
+    "lastSeen": "2026-03-18T08:34:04.126490+00:00Z",
+    "count": 1
+  },
+  {
+    "text": "D. Something different - What",
+    "normalized": "d something different  what",
+    "firstSeen": "2026-03-18T08:34:04.126490+00:00Z",
+    "lastSeen": "2026-03-18T08:34:04.126490+00:00Z",
+    "count": 1
+  },
+  {
+    "text": "SYLLABUS Details Thinking About Prototyping: Sketching, Familiarity, Costs versus Ease of Prototyping, Prototypes and Production, Changing Embedded Platform, Physical Prototypes and Mass Personalisation, climbing into the Cloud, Open Source versus Closed Source, Why Closed",
+    "normalized": "syllabus details thinking about prototyping sketching familiarity costs versus ease of prototyping prototypes and production changing embedded platform physical prototypes and mass personalisation climbing into the cloud open source versus closed source why closed",
+    "firstSeen": "2026-03-18T10:58:56.442988Z",
+    "lastSeen": "2026-03-18T10:58:56.442988Z",
+    "count": 1
+  },
+  {
+    "text": "Mixing Open and Closed Source, Closed Source for Mass Market Projects, Tapping into the Community. Prototyping Embedded Devices: Electronics, Sensors, Actuators, Scaling Electronics, Embedded Computing Basics, Microcontrollers, System-on-Chips, Choosing Your Platform, Arduino, developing on the Arduino, Some Notes on the Hardware, Openness, Raspberry Pi, Cases and Extension Boards, Developing on the Raspberry Pi, Some Notes on the Hardware, Openness. Books and References Title Author/s Publisher Edition Year Designing the Internet of Things Adrian McEwen, Hakim Cassimally WILEY First Internet of Things Architecture and Design Raj Kamal McGraw First Getting Started with the Internet of Things Cuno Pfister O’Reilly Sixth Getting Started with Raspberry Pi Matt Richardson and Shawn Wallace Third https://e-next.in Chapter 4 Thinking about Prototyping Prototyping is the most important process of product development. The core of prototyping is to test the product and usually used for demonstration, testing, communication and so on. Benefits of prototyping: One can come across problems in design that need to change and iterate. Doing this with a single object is trivial compared to modifying hundreds or thousands of products. Prototyping is optimized for ease and speed of development and also the ability to change and modify it. With the Internet of Things, we need to build three things in parallel: Physical Thing Electronics to make the Thing smart Internet service that we’ll connect to. At the end of this stage, you’ll have an object that works. And if you are planning to move to production, it’s a demonstrable product that you can use to convince yourself, your business partners, and your investors. Finally, the process of manufacture will iron out issues of scaling up and polish. The final product will be cheaper per unit and more professional but will be much more expensive to change. For one thing, your project has its own goals and re",
+    "normalized": "mixing open and closed source closed source for mass market projects tapping into the community prototyping embedded devices electronics sensors actuators scaling electronics embedded computing basics microcontrollers systemonchips choosing your platform arduino developing on the arduino some notes on the hardware openness raspberry pi cases and extension boards developing on the raspberry pi some notes on the hardware openness books and references title authors publisher edition year designing the internet of things adrian mcewen hakim cassimally wiley first internet of things architecture and design raj kamal mcgraw first getting started with the internet of things cuno pfister oreilly sixth getting started with raspberry pi matt richardson and shawn wallace third httpsenextin chapter 4 thinking about prototyping prototyping is the most important process of product development the core of prototyping is to test the product and usually used for demonstration testing communication and so on benefits of prototyping one can come across problems in design that need to change and iterate doing this with a single object is trivial compared to modifying hundreds or thousands of products prototyping is optimized for ease and speed of development and also the ability to change and modify it with the internet of things we need to build three things in parallel physical thing electronics to make the thing smart internet service that well connect to at the end of this stage youll have an object that works and if you are planning to move to production its a demonstrable product that you can use to convince yourself your business partners and your investors finally the process of manufacture will iron out issues of scaling up and polish the final product will be cheaper per unit and more professional but will be much more expensive to change for one thing your project has its own goals and re",
+    "firstSeen": "2026-03-18T10:58:56.442988Z",
+    "lastSeen": "2026-03-18T10:58:56.442988Z",
+    "count": 1
+  },
+  {
+    "text": "4.1 SKETCHING When you are working on your prototype, the first step you will be doing is to jot down some ideas or",
+    "normalized": "41 sketching when you are working on your prototype the first step you will be doing is to jot down some ideas or",
+    "firstSeen": "2026-03-18T10:58:56.442988Z",
+    "lastSeen": "2026-03-18T10:58:56.442988Z",
+    "count": 1
+  },
+  {
+    "text": "draw draw out some design ideas with pen and paper. Then extend it to also include sketching in hardware and software. With a sketch, the designer is able to communicate a potential solution that could be built on later to form a refined design. Sketching enables you to brainstorm, explore multiple ideas,?",
+    "normalized": "draw draw out some design ideas with pen and paper then extend it to also include sketching in hardware and software with a sketch the designer is able to communicate a potential solution that could be built on later to form a refined design sketching enables you to brainstorm explore multiple ideas",
+    "firstSeen": "2026-03-18T10:58:56.442988Z",
+    "lastSeen": "2026-03-18T10:58:56.442988Z",
+    "count": 1
+  },
+  {
+    "text": "define define flows, communicate with team members all why being?",
+    "normalized": "define define flows communicate with team members all why being",
+    "firstSeen": "2026-03-18T10:58:56.442988Z",
+    "lastSeen": "2026-03-18T10:58:56.442988Z",
+    "count": 1
+  },
+  {
+    "text": "4.3 COSTS VERSUS EASE OF PROTOTYPING It is worth considering the relationship between the costs (of prototyping and mass producing) of a platform against the development effort that the platform demands. This trade-off is not hard and fast, but it is beneficial if you can choose a prototyping platform based on performance/capabilities. For the first prototype, the cost is probably not the most important issue: the smartphone or computer options are particularly convenient if you already have one available, at which point they are effectively zero-cost. Of course, if your device has physical interactions (blowing bubbles, turning a clock’s hands, taking input from a dial), you will find that a PC is not optimize for this kind of work. Electronics prototyping board, is better suited to this kind of work. An important factor to be aware of is that the hardware and programming choices you make will depend on your skill set. For many beginners to hardware development, the Arduino toolkit is a surprisingly good choice. Yes, the input/output choices are basic and re",
+    "normalized": "43 costs versus ease of prototyping it is worth considering the relationship between the costs of prototyping and mass producing of a platform against the development effort that the platform demands this tradeoff is not hard and fast but it is beneficial if you can choose a prototyping platform based on performancecapabilities for the first prototype the cost is probably not the most important issue the smartphone or computer options are particularly convenient if you already have one available at which point they are effectively zerocost of course if your device has physical interactions blowing bubbles turning a clocks hands taking input from a dial you will find that a pc is not optimize for this kind of work electronics prototyping board is better suited to this kind of work an important factor to be aware of is that the hardware and programming choices you make will depend on your skill set for many beginners to hardware development the arduino toolkit is a surprisingly good choice yes the inputoutput choices are basic and re",
+    "firstSeen": "2026-03-18T10:58:56.442988Z",
+    "lastSeen": "2026-03-18T10:58:56.442988Z",
+    "count": 1
+  },
+  {
+    "text": "4.4.1 CHANGING EMBEDDED PLATFORM When you scale up, you may well have to think about moving to a different platform, for cost or size reasons. If you’ve started with a free-form, powerful programming platform, you may find that porting the code to a more restricted, cheaper, and smaller device will bring many challenges. Of course, if you’ve used a constrained platform in prototyping, you may find that you have to make choices and limitations in your code. Dynamic memory allocation on the 2K that the Arduino provides may not be especially efficient, so how should that make you think about using strings or complex data structures",
+    "normalized": "441 changing embedded platform when you scale up you may well have to think about moving to a different platform for cost or size reasons if youve started with a freeform powerful programming platform you may find that porting the code to a more restricted cheaper and smaller device will bring many challenges of course if youve used a constrained platform in prototyping you may find that you have to make choices and limitations in your code dynamic memory allocation on the 2k that the arduino provides may not be especially efficient so how should that make you think about using strings or complex data structures",
+    "firstSeen": "2026-03-18T10:58:56.442988Z",
+    "lastSeen": "2026-03-18T10:58:56.442988Z",
+    "count": 1
+  },
+  {
+    "text": "If you port to a more powerful platform, you may be able to re",
+    "normalized": "if you port to a more powerful platform you may be able to re",
+    "firstSeen": "2026-03-18T10:58:56.442988Z",
+    "lastSeen": "2026-03-18T10:58:56.442988Z",
+    "count": 1
+  },
+  {
+    "text": "write write your code in a more modern, high-level way or simply take advantage of faster processor speed and more RAM. But will the new platform have the same I/O capabilities?",
+    "normalized": "write write your code in a more modern highlevel way or simply take advantage of faster processor speed and more ram but will the new platform have the same io capabilities",
+    "firstSeen": "2026-03-18T10:58:56.442988Z",
+    "lastSeen": "2026-03-18T10:58:56.442988Z",
+    "count": 1
+  },
+  {
+    "text": "And you have to consider the ramping-up time to learn new technologies and languages. In practice, you will often find that you don’t need to change platforms. https://e-next.in 4.4.2 PHYSICAL PROTOTYPES AND MASS PERSONALISATION Chances are that the production techni",
+    "normalized": "and you have to consider the rampingup time to learn new technologies and languages in practice you will often find that you dont need to change platforms httpsenextin 442 physical prototypes and mass personalisation chances are that the production techni",
+    "firstSeen": "2026-03-18T10:58:56.442988Z",
+    "lastSeen": "2026-03-18T10:58:56.442988Z",
+    "count": 1
+  },
+  {
+    "text": "4.4.3 CLIMBING INTO THE CLOUD The server software is the easiest component to take from prototype into production. As we saw earlier, it might involve switching from a basic web framework to something more involved but you will be able to find an e",
+    "normalized": "443 climbing into the cloud the server software is the easiest component to take from prototype into production as we saw earlier it might involve switching from a basic web framework to something more involved but you will be able to find an e",
+    "firstSeen": "2026-03-18T10:58:56.442988Z",
+    "lastSeen": "2026-03-18T10:58:56.442988Z",
+    "count": 1
+  },
+  {
+    "text": "4.5 OPEN SOURCE VERSUS CLOSED SOURCE Open Source Closed Source Provides the original source code so that advanced user can modify it to make it work better No one can duplicate or distribute without permission of the company Open Source software available to all free of cost Closed source software is protected by copyrights Any individual can develop or modify Development is centralised, undertaken by expert developers",
+    "normalized": "45 open source versus closed source open source closed source provides the original source code so that advanced user can modify it to make it work better no one can duplicate or distribute without permission of the company open source software available to all free of cost closed source software is protected by copyrights any individual can develop or modify development is centralised undertaken by expert developers",
+    "firstSeen": "2026-03-18T10:58:56.442988Z",
+    "lastSeen": "2026-03-18T10:58:56.442988Z",
+    "count": 1
+  },
+  {
+    "text": "■ If you declared copyright on some source code or a design, someone who wants to market the same project cannot do so by simply reading your instructions and following ■ You might also be able to protect distinctive elements of the visual design with trademarks and of the software and hardware with patents ■ Starting a project as closed source doesn’t prevent you from later releasing it as open source ■ Closed-source software is built with users in mind. ■ Closed-source software offers ongoing technical support for its users. ■ Closed-source software is usually 1 or 2 steps ahead of open-source software https://e-next.in Figure 4.2: Closed Source Products",
+    "normalized": " if you declared copyright on some source code or a design someone who wants to market the same project cannot do so by simply reading your instructions and following  you might also be able to protect distinctive elements of the visual design with trademarks and of the software and hardware with patents  starting a project as closed source doesnt prevent you from later releasing it as open source  closedsource software is built with users in mind  closedsource software offers ongoing technical support for its users  closedsource software is usually 1 or 2 steps ahead of opensource software httpsenextin figure 42 closed source products",
+    "firstSeen": "2026-03-18T10:58:56.442988Z",
+    "lastSeen": "2026-03-18T10:58:56.442988Z",
+    "count": 1
+  },
+  {
+    "text": "■ You may gain positive comments from people who liked it. ■ It acts as a public showcase of your work, which may affect your reputation and lead to new opportunities. ■ People who used your work may suggest or implement features or fix bugs. ■ By generating early interest in your project, you may get support and mindshare of a",
+    "normalized": " you may gain positive comments from people who liked it  it acts as a public showcase of your work which may affect your reputation and lead to new opportunities  people who used your work may suggest or implement features or fix bugs  by generating early interest in your project you may get support and mindshare of a",
+    "firstSeen": "2026-03-18T10:58:56.442988Z",
+    "lastSeen": "2026-03-18T10:58:56.442988Z",
+    "count": 1
+  },
+  {
+    "text": "4.5.4 Open Source as a Competitive Advantage Using open source work is often a no-risk way of getting software that has been tested, improved, and debugged by many eyes Commercial e",
+    "normalized": "454 open source as a competitive advantage using open source work is often a norisk way of getting software that has been tested improved and debugged by many eyes commercial e",
+    "firstSeen": "2026-03-18T10:58:56.442988Z",
+    "lastSeen": "2026-03-18T10:58:56.442988Z",
+    "count": 1
+  },
+  {
+    "text": "4.5.5 MIXING OPEN AND CLOSED SOURCE Software companies are taking a \"best of both worlds\" approach by creating products that use a combination of OS and proprietary software code. Open sourcing many of libraries and keeping core business closed",
+    "normalized": "455 mixing open and closed source software companies are taking a best of both worlds approach by creating products that use a combination of os and proprietary software code open sourcing many of libraries and keeping core business closed",
+    "firstSeen": "2026-03-18T10:58:56.442988Z",
+    "lastSeen": "2026-03-18T10:58:56.442988Z",
+    "count": 1
+  },
+  {
+    "text": "4.5.6 CLOSED SOURCE FOR MASS MARKET PROJECTS One edge case for preferring closed source when choosing a licence may be when you can realistically expect that a project might be not just successful but huge, that is, a mass market commodity.",
+    "normalized": "456 closed source for mass market projects one edge case for preferring closed source when choosing a licence may be when you can realistically expect that a project might be not just successful but huge that is a mass market commodity",
+    "firstSeen": "2026-03-18T10:58:56.442988Z",
+    "lastSeen": "2026-03-18T10:58:56.442988Z",
+    "count": 1
+  },
+  {
+    "text": "2. Differentiate between open source and closed source",
+    "normalized": "2 differentiate between open source and closed source",
+    "firstSeen": "2026-03-18T10:58:56.442988Z",
+    "lastSeen": "2026-03-18T10:58:56.442988Z",
+    "count": 1
+  },
+  {
+    "text": "3. What are the advantages of open source softwares?",
+    "normalized": "3 what are the advantages of open source softwares",
+    "firstSeen": "2026-03-18T10:58:56.442988Z",
+    "lastSeen": "2026-03-18T10:58:56.442988Z",
+    "count": 1
+  },
+  {
+    "text": "Why should you mix open and closed source for the Internet of Things",
+    "normalized": "why should you mix open and closed source for the internet of things",
+    "firstSeen": "2026-03-18T10:58:56.442988Z",
+    "lastSeen": "2026-03-18T10:58:56.442988Z",
+    "count": 1
+  },
+  {
+    "text": "https://e-next.in Chapter 5 Prototyping Embedded Devices To create an IoT product, we should study electronics because whatever platform we choose, the rest of the circuitry that we will build to connect it to will be pretty much the same.",
+    "normalized": "httpsenextin chapter 5 prototyping embedded devices to create an iot product we should study electronics because whatever platform we choose the rest of the circuitry that we will build to connect it to will be pretty much the same",
+    "firstSeen": "2026-03-18T10:58:56.442988Z",
+    "lastSeen": "2026-03-18T10:58:56.442988Z",
+    "count": 1
+  },
+  {
+    "text": "5.1 ELECTRONICS Most of the prototyping can be done on what are called solderless breadboards. They enable you to build components together into a circuit with just a push-fit connection. When it comes to thinking about the electronics, it’s useful to split them into two main categories: ◾ Sensors: A sensor is a device that detects and responds to some type of input from the physical environment. The specific input could be light, heat, motion, moisture, pressure etc. Pushbuttons and switches, which are probably the simplest sensors, allow some user input. Potentiometers (both rotary and linear) and rotaryencoders enable you to measure movement. Sensing the environment is another easy option. Light-dependent resistors (LDRs) allow measurement of ambient light levels, thermistors and other temperature sensors allow you to know how warm it is, and sensors to measure humidity or moisture levels are easy to build. Microphones obviously let you monitor sounds and audio, but piezo elements (used in certain types of microphones) can also be used to respond to vibration. Distance-sensing modules, which work by bouncing either an infrared or ultrasonic signal off objects, are readily available and as easy to interface to as a potentiometer. Figure 5.1: Sensors ◾ Actuators: An actuator is a machine or part of a machine which moves or controls another part in response to an input—the motors, lights, and so on. One of the simplest and yet most useful actuators is light, because it is easy to create electronically and gives an obvious output. More complicated visual outputs also are available, such as LCD screens to display text or even simple graphics. Piezo elements, as well as responding to vibration, can be used to create it, so you can use a piezo buzzer to create simple sounds and music. Alternatively, you can wire up outputs to speakers to create more complicated synthesised sounds. More complicated again are motors. Stepper motors can be moved in steps, as the name implies. Usually, a fixed number of steps perform a full rotation. DC motors simply move at a given speed when told to. Both types of motor can be one-directional or move in both directions. Alternatively, if you want a motor that will turn to a given angle, you would need a servo. Although a servo is more controllable, it tends to have a shorter range of motion, often 180 or fewer degrees (whereas steppers and DC motors turn indefinitely). For all the kinds of motors that we’ve mentioned, https://e-next.in you typically want to connect the motors to gears to alter the range of motion or convert circular movement to linear, and so on. ◾ Analog to Digital converter: It is a device that converts analog signals (usually voltage) obtained from environmental (physical) phenomena into digital format. It can be expressed as A/D or A-to-D or A-D or ADC. Figure 5.2: Analog to Digital ◾ Digital to analog convertor: It is an electronics device in form of IC, which converts digital signal to its e",
+    "normalized": "51 electronics most of the prototyping can be done on what are called solderless breadboards they enable you to build components together into a circuit with just a pushfit connection when it comes to thinking about the electronics its useful to split them into two main categories  sensors a sensor is a device that detects and responds to some type of input from the physical environment the specific input could be light heat motion moisture pressure etc pushbuttons and switches which are probably the simplest sensors allow some user input potentiometers both rotary and linear and rotaryencoders enable you to measure movement sensing the environment is another easy option lightdependent resistors ldrs allow measurement of ambient light levels thermistors and other temperature sensors allow you to know how warm it is and sensors to measure humidity or moisture levels are easy to build microphones obviously let you monitor sounds and audio but piezo elements used in certain types of microphones can also be used to respond to vibration distancesensing modules which work by bouncing either an infrared or ultrasonic signal off objects are readily available and as easy to interface to as a potentiometer figure 51 sensors  actuators an actuator is a machine or part of a machine which moves or controls another part in response to an inputthe motors lights and so on one of the simplest and yet most useful actuators is light because it is easy to create electronically and gives an obvious output more complicated visual outputs also are available such as lcd screens to display text or even simple graphics piezo elements as well as responding to vibration can be used to create it so you can use a piezo buzzer to create simple sounds and music alternatively you can wire up outputs to speakers to create more complicated synthesised sounds more complicated again are motors stepper motors can be moved in steps as the name implies usually a fixed number of steps perform a full rotation dc motors simply move at a given speed when told to both types of motor can be onedirectional or move in both directions alternatively if you want a motor that will turn to a given angle you would need a servo although a servo is more controllable it tends to have a shorter range of motion often 180 or fewer degrees whereas steppers and dc motors turn indefinitely for all the kinds of motors that weve mentioned httpsenextin you typically want to connect the motors to gears to alter the range of motion or convert circular movement to linear and so on  analog to digital converter it is a device that converts analog signals usually voltage obtained from environmental physical phenomena into digital format it can be expressed as ad or atod or ad or adc figure 52 analog to digital  digital to analog convertor it is an electronics device in form of ic which converts digital signal to its e",
+    "firstSeen": "2026-03-18T10:58:56.442988Z",
+    "lastSeen": "2026-03-18T10:58:56.442988Z",
+    "count": 1
+  },
+  {
+    "text": "5.2 SCALING UP THE ELECTRONICS From the perspective of the electronics, the starting point for prototyping is usually a “breadboard”. This lets you push-fit components and wires to make up circuits without re",
+    "normalized": "52 scaling up the electronics from the perspective of the electronics the starting point for prototyping is usually a breadboard this lets you pushfit components and wires to make up circuits without re",
+    "firstSeen": "2026-03-18T10:58:56.442988Z",
+    "lastSeen": "2026-03-18T10:58:56.442988Z",
+    "count": 1
+  },
+  {
+    "text": "5.3.1 MICROCONTROLLERS A microcontroller is a single chip microcomputer made through VLSI fabrication. A microcontroller also called an embedded controller because the microcontroller and its support circuits are often built into, or embedded in, the devices they control. A microcontroller is available in different word lengths like microprocessors (4bit,8bit,16bit,32bit,64bit and 128- bit microcontrollers are available today). Figure 5.3: Microcontrollers",
+    "normalized": "531 microcontrollers a microcontroller is a single chip microcomputer made through vlsi fabrication a microcontroller also called an embedded controller because the microcontroller and its support circuits are often built into or embedded in the devices they control a microcontroller is available in different word lengths like microprocessors 4bit8bit16bit32bit64bit and 128 bit microcontrollers are available today figure 53 microcontrollers",
+    "firstSeen": "2026-03-18T10:58:56.442988Z",
+    "lastSeen": "2026-03-18T10:58:56.442988Z",
+    "count": 1
+  },
+  {
+    "text": "5.3.2 SYSTEM-ON-CHIPS In between the low-end microcontroller and a full-blown PC sits the SoC (for example, the BeagleBone or the Raspberry Pi). Like the microcontroller, these SoCs combine a processor and a number of peripherals onto a single chip but usually have more capabilities. The processors usually range from a few hundred megahertz, nudging into the gigahertz and include RAM measured in megabytes rather than kilobytes. Storage for SoC modules tends not to be included on the chip, with SD cards being a popular solution. The greater capabilities of SoC mean that they need some sort of operating system to marshal their resources. A wide selection of embedded operating systems, both closed and open source, is available and from both specialised embedded providers and the big OS players, such as Microsoft and Linux. Figure 5.4: System-on-Chip https://e-next.in 5.4 CHOOSING YOUR PLATFORM Choosing the right platform for Internet of Things device is based on following parameters. ▪ Processor Speed : The processor speed decides how fast it can process the individual instructions. A faster processor speed means that it can execute instructions more quickly. Microcontrollers tend to be clocked at speeds in the tens of MHz, whereas SoCs run at hundreds of MHz or possibly low GHz. ▪ RAM The overall performance of system is determined by how well processor and RAM work together. RAM provides the working memory for the system. More RAM means more flexibility. The amount of RAM needed is vary from project to project. ▪ Networking Wired Ethernet is often the simplest for the user—generally plug and play—and cheapest, but it requires a physical cable. Wireless solutions required more complicated configuration. WiFi is the most widely deployed to provide an existing infrastructure for connections, but it can be more expensive and less optimized for power consumption than some of its competitors. ZigBee is one technology, aimed particularly at sensor networks and scenarios such as home automation. The recent Bluetooth LE protocol (also known as Bluetooth 4.0) has a very low power-consumption profile similar to ZigBee’s and could see more rapid adoption due to its inclusion into standard Bluetooth chips included in phones and laptops. SMS can be used for low-bandwidth, higher-latency communication; for higher data rates, you will use the same data connections, like 3G, as a smartphone. ▪ USB USB can provide both power and networking. Some of the microcontrollers have inbuilt support for USB, so choosing one of them reduces the need for an extra chip in your circuit. Instead of the microcontroller presenting itself as a device, some can also act as the USB “host”. This configuration lets you connect—devices such as phones, WiFi dongles. Devices such as WiFi dongles often depend on additional software on the host system, such as networking stacks. Power Consumption Faster processors, more power consumption. For portable devices rely on an unconventional power supply (batteries, solar power) depending on where they are installed, power consumption may be an issue. However, processors may have a minimal power-consumption sleep mode. In this mode, power consumption is less. Therefore, a more powerful processor may not be a disadvantage even in a low-power embedded device. Interfacing with Sensors and other Circuitry Devices needs to interact with—either sensors to gather data about its environment; or motors, LEDs, screens, and so on, to provide output. These devices could connect to the circuitry through some sort of peripheral bus—SPI and I2C being common ones. The circuitry may involve ADC or DAC modules to read or",
+    "normalized": "532 systemonchips in between the lowend microcontroller and a fullblown pc sits the soc for example the beaglebone or the raspberry pi like the microcontroller these socs combine a processor and a number of peripherals onto a single chip but usually have more capabilities the processors usually range from a few hundred megahertz nudging into the gigahertz and include ram measured in megabytes rather than kilobytes storage for soc modules tends not to be included on the chip with sd cards being a popular solution the greater capabilities of soc mean that they need some sort of operating system to marshal their resources a wide selection of embedded operating systems both closed and open source is available and from both specialised embedded providers and the big os players such as microsoft and linux figure 54 systemonchip httpsenextin 54 choosing your platform choosing the right platform for internet of things device is based on following parameters  processor speed  the processor speed decides how fast it can process the individual instructions a faster processor speed means that it can execute instructions more quickly microcontrollers tend to be clocked at speeds in the tens of mhz whereas socs run at hundreds of mhz or possibly low ghz  ram the overall performance of system is determined by how well processor and ram work together ram provides the working memory for the system more ram means more flexibility the amount of ram needed is vary from project to project  networking wired ethernet is often the simplest for the usergenerally plug and playand cheapest but it requires a physical cable wireless solutions required more complicated configuration wifi is the most widely deployed to provide an existing infrastructure for connections but it can be more expensive and less optimized for power consumption than some of its competitors zigbee is one technology aimed particularly at sensor networks and scenarios such as home automation the recent bluetooth le protocol also known as bluetooth 40 has a very low powerconsumption profile similar to zigbees and could see more rapid adoption due to its inclusion into standard bluetooth chips included in phones and laptops sms can be used for lowbandwidth higherlatency communication for higher data rates you will use the same data connections like 3g as a smartphone  usb usb can provide both power and networking some of the microcontrollers have inbuilt support for usb so choosing one of them reduces the need for an extra chip in your circuit instead of the microcontroller presenting itself as a device some can also act as the usb host this configuration lets you connectdevices such as phones wifi dongles devices such as wifi dongles often depend on additional software on the host system such as networking stacks power consumption faster processors more power consumption for portable devices rely on an unconventional power supply batteries solar power depending on where they are installed power consumption may be an issue however processors may have a minimal powerconsumption sleep mode in this mode power consumption is less therefore a more powerful processor may not be a disadvantage even in a lowpower embedded device interfacing with sensors and other circuitry devices needs to interact witheither sensors to gather data about its environment or motors leds screens and so on to provide output these devices could connect to the circuitry through some sort of peripheral busspi and i2c being common ones the circuitry may involve adc or dac modules to read or",
+    "firstSeen": "2026-03-18T10:58:56.442988Z",
+    "lastSeen": "2026-03-18T10:58:56.442988Z",
+    "count": 1
+  },
+  {
+    "text": "write write varying voltages. Generic GPIO pins, which provide digital on/off inputs or outputs. https://e-next.in?",
+    "normalized": "write write varying voltages generic gpio pins which provide digital onoff inputs or outputs httpsenextin",
+    "firstSeen": "2026-03-18T10:58:56.442988Z",
+    "lastSeen": "2026-03-18T10:58:56.442988Z",
+    "count": 1
   }
 ]

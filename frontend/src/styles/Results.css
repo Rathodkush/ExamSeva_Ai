@@ -20,9 +20,9 @@
 }
 
 .papers-list {
-  background: white;
+  /* background: white; */
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); */
   padding: 20px;
   height: fit-content;
 }
@@ -75,7 +75,7 @@
 }
 
 .results-display {
-  background: white;
+  /* background: white; */
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   padding: 30px;
@@ -96,12 +96,12 @@
   font-size: 22px;
   margin-bottom: 20px;
   padding-bottom: 10px;
-  border-bottom: 2px solid #212121;
+  /* border-bottom: 2px solid #212121; */
 }
 
 .group-card {
   background: #fff5f5;
-  border-left: 4px solid #fbf6f6;
+  /* border-left: 4px solid #fbf6f6; */
   border-radius: 8px;
   padding: 20px;
   margin-bottom: 20px;
@@ -170,5 +170,3 @@
     font-size: 20px;
   }
 }
-
-

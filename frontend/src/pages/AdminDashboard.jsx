@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import '../styles/AdminDashboard.css';
+import '../styles/AdminShared.css';
 
 function AdminDashboard() {
   const { user, isAuthenticated } = useAuth();
@@ -28,7 +29,7 @@ function AdminDashboard() {
   const fetchDashboardData = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/admin/dashboard', {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/admin/dashboard`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setStats(response.data);
@@ -44,27 +45,27 @@ function AdminDashboard() {
   }
 
   return (
-    <div className="admin-dashboard">
-      <div className="admin-header">
+    <div className="admin-page-container">
+      <div className="admin-header-flex">
         <h1>Admin Dashboard</h1>
-        <div className="admin-user-info">
-          <span>Welcome, {user?.fullName}</span>
-          <Link to="/admin-settings" className="settings-link">⚙️ Settings</Link>
+        <div className="admin-header-actions">
+          <Link to="/profile" className="admin-btn btn-grey">Profile</Link>
+          <Link to="/admin-settings" className="admin-btn btn-yellow">Settings</Link>
         </div>
       </div>
 
-      <div className="admin-nav">
-        <Link to="/admin-dashboard" className="nav-item active">Dashboard</Link>
-        <Link to="/admin-users" className="nav-item">Users</Link>
-        <Link to="/admin-question-papers" className="nav-item">Question Papers</Link>
-        <Link to="/admin-notes" className="nav-item">Study Notes</Link>
-        <Link to="/admin-announcements" className="nav-item">Announcements</Link>
-        <Link to="/admin-settings" className="nav-item">Website Settings</Link>
-      </div>
+      <nav className="admin-secondary-nav">
+        <Link to="/admin-dashboard" className="nav-item-link active">Dashboard</Link>
+        <Link to="/admin-users" className="nav-item-link">Users</Link>
+        <Link to="/admin-question-papers" className="nav-item-link">Question Papers</Link>
+        <Link to="/admin-notes" className="nav-item-link">Study Notes</Link>
+        <Link to="/admin-announcements" className="nav-item-link">Announcements</Link>
+        <Link to="/admin-settings" className="nav-item-link">Website Settings</Link>
+      </nav>
 
       <div className="dashboard-stats">
         <div className="stat-card">
-          <div className="stat-icon"></div>
+          <div className="stat-icon">👥</div>
           <div className="stat-content">
             <h3>{stats?.statistics?.totalUsers || 0}</h3>
             <p>Total Users</p>
@@ -72,7 +73,7 @@ function AdminDashboard() {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon"></div>
+          <div className="stat-icon">📄</div>
           <div className="stat-content">
             <h3>{stats?.statistics?.totalPapers || 0}</h3>
             <p>Question Papers</p>
@@ -80,7 +81,7 @@ function AdminDashboard() {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon"></div>
+          <div className="stat-icon">📚</div>
           <div className="stat-content">
             <h3>{stats?.statistics?.totalNotes || 0}</h3>
             <p>Study Notes</p>
@@ -88,7 +89,7 @@ function AdminDashboard() {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon"></div>
+          <div className="stat-icon">📢</div>
           <div className="stat-content">
             <h3>{stats?.statistics?.totalAnnouncements || 0}</h3>
             <p>Announcements</p>

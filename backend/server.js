@@ -24,6 +24,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Global error handlers to surface crashes during startup
 process.on('uncaughtException', (err) => {
@@ -221,6 +222,22 @@ const MessageSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 const MessageModel = mongoose.model('Message', MessageSchema);
+
+// Website Settings Schema
+const SettingsSchema = new mongoose.Schema({
+  websiteName: { type: String, default: 'ExamSeva' },
+  logoUrl: { type: String, default: '' },
+  contactEmail: { type: String, default: 'support@examseva.com' },
+  contactPhone: { type: String, default: '022-05200' },
+  contactAddress: { type: String, default: '123 Education Street, Mumbai City, 400005' },
+  aboutUs: { type: String, default: '' },
+  footerLinks: [{
+    title: String,
+    url: String
+  }],
+  updatedAt: { type: Date, default: Date.now }
+});
+const SettingsModel = mongoose.model('Settings', SettingsSchema);
 
 // JWT Secret
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
@@ -2103,9 +2120,9 @@ app.post('/api/forum/posts', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Only students can create forum posts
-    if (user.role !== 'student') {
-      return res.status(403).json({ error: 'Only students can create forum posts' });
+    // Only students and admins can create forum posts
+    if (user.role !== 'student' && user.role !== 'admin') {
+      return res.status(403).json({ error: 'Only authorized users can create forum posts' });
     }
 
     const post = await PostModel.create({
@@ -2378,6 +2395,30 @@ app.get('/api/announcements', async (req, res) => {
   }
 });
 
+// Public Question Papers Route for Study Hub
+app.get('/api/question-papers', async (req, res) => {
+  try {
+    const papers = await UploadModel.find({ 
+      // Assuming papers created via admin have specific markers or we just show all Uploads that are "papers"
+      // For now, let's treat all records in UploadModel as papers, or filter by those with levelType/classLevel
+      levelType: { $ne: null } 
+    })
+      .sort({ createdAt: -1 })
+      .lean()
+      .then(papers => papers.map(paper => ({
+        _id: paper._id,
+        title: paper.levelType || 'Official Paper',
+        subject: paper.classLevel || 'General',
+        fileName: paper.files && paper.files.length > 0 ? path.basename(paper.files[0]) : '',
+        createdAt: paper.createdAt
+      })));
+    res.json({ success: true, papers });
+  } catch (err) {
+    console.error('Error fetching public question papers:', err);
+    res.status(500).json({ error: 'Failed to fetch question papers' });
+  }
+});
+
 // Admin Question Papers Routes
 app.get('/api/admin/question-papers', authenticateToken, requireAdmin, async (req, res) => {
   try {
@@ -2626,14 +2667,12 @@ app.put('/api/admin/users/:id', authenticateToken, requireAdmin, async (req, res
   }
 });
 
-// Get website settings (Admin only)
-app.get('/api/admin/settings', authenticateToken, requireAdmin, async (req, res) => {
+// Get website settings (Public)
+app.get('/api/settings', async (req, res) => {
   try {
-    // In a real app, this would fetch from a Settings model
-    // For now, return default settings
-    res.json({
-      success: true,
-      settings: {
+    let settings = await SettingsModel.findOne().lean();
+    if (!settings) {
+      settings = {
         websiteName: 'ExamSeva',
         logoUrl: '',
         contactEmail: 'support@examseva.com',
@@ -2641,8 +2680,31 @@ app.get('/api/admin/settings', authenticateToken, requireAdmin, async (req, res)
         contactAddress: '123 Education Street, Mumbai City, 400005',
         aboutUs: '',
         footerLinks: []
-      }
-    });
+      };
+    }
+    res.json({ success: true, settings });
+  } catch (err) {
+    console.error('Error fetching public settings:', err);
+    res.status(500).json({ error: 'Failed to fetch settings' });
+  }
+});
+
+// Get website settings (Admin only)
+app.get('/api/admin/settings', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    let settings = await SettingsModel.findOne().lean();
+    if (!settings) {
+      settings = {
+        websiteName: 'ExamSeva',
+        logoUrl: '',
+        contactEmail: 'support@examseva.com',
+        contactPhone: '022-05200',
+        contactAddress: '123 Education Street, Mumbai City, 400005',
+        aboutUs: '',
+        footerLinks: []
+      };
+    }
+    res.json({ success: true, settings });
   } catch (err) {
     console.error('Error fetching settings:', err);
     res.status(500).json({ error: 'Failed to fetch settings' });
@@ -2652,10 +2714,15 @@ app.get('/api/admin/settings', authenticateToken, requireAdmin, async (req, res)
 // Update website settings (Admin only)
 app.put('/api/admin/settings', authenticateToken, requireAdmin, async (req, res) => {
   try {
-    const settings = req.body;
+    const updateData = req.body;
+    updateData.updatedAt = new Date();
 
-    // In a real app, this would save to a Settings model
-    // For now, just return success
+    const settings = await SettingsModel.findOneAndUpdate(
+      {}, // Match the first/only settings document
+      updateData,
+      { new: true, upsert: true, runValidators: true }
+    );
+
     res.json({
       success: true,
       message: 'Settings updated successfully',

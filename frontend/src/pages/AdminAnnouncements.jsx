@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import '../styles/AdminAnnouncements.css';
+import '../styles/AdminShared.css';
 
 const isDev = process.env.NODE_ENV === 'development';
 const debug = (...args) => { if (isDev) console.log(...args); };
@@ -39,7 +40,7 @@ function AdminAnnouncements() {
   const fetchAnnouncements = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/admin/announcements', {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/admin/announcements`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setAnnouncements(response.data.announcements || []);
@@ -72,12 +73,12 @@ function AdminAnnouncements() {
       let response;
       if (editingAnnouncement) {
         response = await axios.put(
-          ``${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/admin/announcements/${editingAnnouncement._id}`,
+          `${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/admin/announcements/${editingAnnouncement._id}`,
           dataToSend,
           { headers: { Authorization: `Bearer ${token}` } }
         );
       } else {
-        response = await axios.post('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/admin/announcements', dataToSend, {
+        response = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/admin/announcements`, dataToSend, {
           headers: { Authorization: `Bearer ${token}` }
         });
       }
@@ -122,7 +123,7 @@ function AdminAnnouncements() {
     
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(``${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/admin/announcements/${id}`, {
+      await axios.delete(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/admin/announcements/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchAnnouncements();
@@ -136,25 +137,25 @@ function AdminAnnouncements() {
   }
 
   return (
-    <div className="admin-announcements">
-      <div className="admin-header">
+    <div className="admin-page-container">
+      <div className="admin-header-flex">
         <h1>Announcements Management</h1>
-        <div className="header-actions">
-          <button onClick={() => { setEditingAnnouncement(null); setFormData({ title: '', content: '', type: 'general', isVisible: true }); setShowModal(true); }} className="add-btn">
+        <div className="admin-header-actions">
+          <button onClick={() => { setEditingAnnouncement(null); setFormData({ title: '', content: '', type: 'general', isVisible: true }); setShowModal(true); }} className="admin-btn btn-green">
             + Add Announcement
           </button>
-          <Link to="/admin-dashboard" className="back-btn">← Dashboard</Link>
+          <Link to="/admin-dashboard" className="admin-btn btn-grey">← Dashboard</Link>
         </div>
       </div>
 
-      <div className="admin-nav">
-        <Link to="/admin-dashboard" className="nav-item">Dashboard</Link>
-        <Link to="/admin-users" className="nav-item">Users</Link>
-        <Link to="/admin-question-papers" className="nav-item">Question Papers</Link>
-        <Link to="/admin-notes" className="nav-item">Study Notes</Link>
-        <Link to="/admin-announcements" className="nav-item active">Announcements</Link>
-        <Link to="/admin-settings" className="nav-item">Website Settings</Link>
-      </div>
+      <nav className="admin-secondary-nav">
+        <Link to="/admin-dashboard" className="nav-item-link">Dashboard</Link>
+        <Link to="/admin-users" className="nav-item-link">Users</Link>
+        <Link to="/admin-question-papers" className="nav-item-link">Question Papers</Link>
+        <Link to="/admin-notes" className="nav-item-link">Study Notes</Link>
+        <Link to="/admin-announcements" className="nav-item-link active">Announcements</Link>
+        <Link to="/admin-settings" className="nav-item-link">Website Settings</Link>
+      </nav>
 
       <div className="announcements-list">
         {announcements.map(announcement => (

@@ -1,8 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/Footer.css';
+import { useSettings } from '../context/SettingsContext';
 
 function Footer() {
+  const { settings } = useSettings();
   return (
     <footer className="footer">
       <div className="footer-container">
@@ -11,10 +13,10 @@ function Footer() {
             <h3>ExamSeva</h3>
             <p>Your intelligent exam preparation companion. Identify patterns, focus on high-probability questions, and maximize your exam success.</p>
             <div className="social-links">
-              <a href="#" aria-label="Facebook">Facebook</a>
-              <a href="#" aria-label="Twitter">Twitter</a>
-              <a href="#" aria-label="LinkedIn">LinkedIn</a>
-              <a href="#" aria-label="Instagram">Instagram</a>
+              <a href="#" className="social-link" aria-label="Facebook">f</a>
+              <a href="#" className="social-link" aria-label="Twitter">t</a>
+              <a href="#" className="social-link" aria-label="LinkedIn">in</a>
+              <a href="#" className="social-link" aria-label="Instagram">ig</a>
             </div>
           </div>
 
@@ -44,14 +46,18 @@ function Footer() {
             <ul>
               <li><Link to="/about">FAQ</Link></li>
               <li><Link to="/contact">Help Center</Link></li>
-              <li><a href="mailto:support@examseva.com">support@examseva.com</a></li>
-              <li><a href="tel:+022-05200">022-05200</a></li>
+              <li><a href={`mailto:${settings.contactEmail}`}>{settings.contactEmail}</a></li>
+              <li><a href={`tel:${settings.contactPhone}`}>{settings.contactPhone}</a></li>
+              <li>{settings.contactAddress}</li>
             </ul>
+            <div className="secure-badge">
+                <button className="secure-btn">Secure & Private</button>
+            </div>
           </div>
         </div>
 
         <div className="footer-bottom">
-          <p>&copy; {new Date().getFullYear()} ExamSeva. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} {settings.websiteName}. All rights reserved.</p>
           <div className="footer-links">
             <Link to="/about">Privacy Policy</Link>
             <span>|</span>

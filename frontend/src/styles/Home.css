@@ -6,9 +6,16 @@
   overflow: hidden;
 }
 
-.home-container::before {
-  /* Keep pure white background for home; decorative gradients removed as requested */
-  content: none;
+/* Section Reveal Animation */
+.content-section {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.8s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.content-section.revealed {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .home-header {
@@ -49,49 +56,62 @@
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #00acc1 0%, #00bcd4 100%);
+  background: #00bcd4;
   color: white;
-  box-shadow: 0 4px 15px rgba(0, 172, 193, 0.4);
+  border-radius: 6px;
+  border: none;
 }
 
 .btn-primary:hover {
-  background: linear-gradient(135deg, #00bcd4 0%, #00acc1 100%);
+  background: #00acc1;
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 172, 193, 0.6);
 }
 
 .btn-secondary {
-  background: transparent;
-  color: #00acc1;
-  border: 2px solid white;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.18);
+  background: white;
+  color: #00bcd4;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
 }
 
 .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: #00acc1;
-  color: #00acc1;
+  background: #f8f9fa;
   transform: translateY(-2px);
 }
 
 .announcements-banner {
   max-width: 1200px;
-  margin: 0 auto 40px;
-  background: linear-gradient(90deg, #1a237e, #00acc1);
-  padding: 14px 0;
-  border-radius: 999px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  margin: 0 auto 50px;
+  background: linear-gradient(90deg, #1e3a8a, #0d9488);
+  padding: 18px 0;
+  border-radius: 40px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
   color: #fff;
   position: relative;
-  z-index: 1;
+  z-index: 10;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  animation: fadeIn 1.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .announcements-banner h2 {
   margin: 0;
-  font-size: 1rem;
-  padding-left: 28px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  padding-left: 35px;
   white-space: nowrap;
 }
 
@@ -109,16 +129,16 @@
   align-items: center;
   height: 100%;
   white-space: nowrap;
-  animation: announcements-scroll 30s linear infinite;
+  animation: announcements-scroll 35s linear infinite;
 }
 
 .announcement-item {
   display: inline-flex;
   flex-direction: row;
   align-items: baseline;
-  gap: 6px;
-  padding: 0 32px;
-  border-right: 1px solid rgba(255, 255, 255, 0.3);
+  gap: 12px;
+  padding: 0 80px;
+  border-right: 1px solid rgba(255, 255, 255, 0.4);
 }
 
 .announcement-item:last-child {
@@ -141,6 +161,7 @@
   0% {
     transform: translateX(0);
   }
+
   100% {
     transform: translateX(-50%);
   }
@@ -151,9 +172,9 @@
   margin: 0 auto 60px;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
-  border-radius: 20px;
+  /* border-radius: 20px; */
   padding: 50px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  /* box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); */
   position: relative;
   z-index: 1;
   border: 1px solid rgba(255, 255, 255, 0.3);
@@ -210,9 +231,12 @@
 }
 
 @keyframes float {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0px);
   }
+
   50% {
     transform: translateY(-10px);
   }
@@ -287,17 +311,20 @@
 }
 
 .main-title {
-  font-size: 48px;
-  font-weight: bold;
-  margin-bottom: 15px;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 800;
+  color: #1e3a8a;
+  margin-bottom: 20px;
+  line-height: 1.2;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.05);
   animation: slideDown 0.8s ease-out;
 }
 
 .subtitle {
-  font-size: 20px;
+  font-size: clamp(1rem, 2vw, 1.25rem);
   opacity: 0.9;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
+  color: #4b5563;
 }
 
 .features-section {
@@ -362,6 +389,7 @@
     opacity: 0;
     transform: translateY(-30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

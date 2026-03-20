@@ -78,7 +78,7 @@ function QuestionPaper() {
       const headers = { 'Content-Type': 'multipart/form-data' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
 
-      const res = await axios.post('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/quiz/generate_paper', fd, { headers, responseType: 'arraybuffer', timeout: 180000 });
+      const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/quiz/generate_paper`, fd, { headers, responseType: 'arraybuffer', timeout: 180000 });
 
       // Treat very small responses as empty / no-results (likely OCR failed or no questions produced)
       const dataLen = (res.data && (res.data.byteLength || res.data.length)) || 0;
@@ -115,164 +115,12 @@ function QuestionPaper() {
   return (
     <div className="quize-container">
       <div className="page-container">
-        <h1>Question Paper Generator</h1>
-        <p className="page-subtitle">Upload your notes and generate a professionally formatted question paper PDF.</p>
+        <h1 className="page-title">Question Paper Generator</h1>
+        <p className="page-subtitle">Upload your notes and generate a professionally formatted question paper PDF automatically.</p>
 
         <div className="quiz-upload-section">
-          <h2>Generate Question Paper from Notes</h2>
+          <h2 className="section-title">Generate Question Paper from Notes</h2>
           <div className="quiz-upload-form">
-            <div className="form-row">
-              <div className="form-group">
-                <label>Subject/Topic</label>
-                <input
-                  type="text"
-                  value={formData.subject}
-                  onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                  placeholder="e.g., Mathematics, Biology"
-                />
-              </div>
-              <div className="form-group">
-                <label>Number of Questions</label>
-                <select
-                  value={formData.numberOfQuestions}
-                  onChange={(e) => setFormData({ ...formData, numberOfQuestions: parseInt(e.target.value) })}
-                >
-                  <option value={5}>5 Questions</option>
-                  <option value={10}>10 Questions</option>
-                  <option value={15}>15 Questions</option>
-                  <option value={20}>20 Questions</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label>Order by difficulty</label>
-                <select
-                  value={formData.difficultyOrder}
-                  onChange={(e) => setFormData({ ...formData, difficultyOrder: e.target.value })}
-                >
-                  <option value="low-to-high">Low → High (Easy to Hard)</option>
-                  <option value="high-to-low">High → Low (Hard to Easy)</option>
-                  <option value="mixed">Mixed / Balanced</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label>Mode</label>
-                <select value={formData.mode} onChange={(e) => setFormData({ ...formData, mode: e.target.value })}>
-                  <option value="school">School (Class 1-12)</option>
-                  <option value="university">University</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label>Class Level (if School)</label>
-                <select value={formData.classLevel} onChange={(e) => setFormData({ ...formData, classLevel: e.target.value })}>
-                  {Array.from({ length: 12 }, (_, i) => (i + 1)).map(n => (
-                    <option key={n} value={String(n)}>{`Class ${n}`}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label>Template</label>
-                <select
-                  value={formData.paperTemplate}
-                  onChange={(e) => {
-                    const tpl = e.target.value;
-                    if (tpl === 'school_class8_science_50') {
-                      setFormData(f => ({
-                        ...f,
-                        paperTemplate: tpl,
-                        mode: 'school',
-                        classLevel: '8',
-                        totalMarks: '50',
-                        examDuration: '2 Hours',
-                        includeAnswerKey: true,
-                        includeMarkingScheme: true
-                      }));
-                      return;
-                    }
-                    if (tpl === 'university_dbms_70') {
-                      setFormData(f => ({
-                        ...f,
-                        paperTemplate: tpl,
-                        mode: 'university',
-                        totalMarks: '70',
-                        examDuration: '3 Hours',
-                        includeAnswerKey: true,
-                        includeMarkingScheme: true
-                      }));
-                      return;
-                    }
-                    if (tpl === 'university_os_70') {
-                      setFormData(f => ({
-                        ...f,
-                        paperTemplate: tpl,
-                        mode: 'university',
-                        totalMarks: '70',
-                        examDuration: '3 Hours',
-                        includeAnswerKey: true,
-                        includeMarkingScheme: true
-                      }));
-                      return;
-                    }
-                    setFormData(f => ({ ...f, paperTemplate: 'auto' }));
-                  }}
-                >
-                  <option value="auto">Auto (current format)</option>
-                  <option value="school_class8_science_50">School: Class 8 Science (50 marks)</option>
-                  <option value="university_dbms_70">University: DBMS (70 marks)</option>
-                  <option value="university_os_70">University: Operating System (70 marks)</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label>Total Marks (optional)</label>
-                <input
-                  type="number"
-                  value={formData.totalMarks}
-                  onChange={(e) => setFormData({ ...formData, totalMarks: e.target.value })}
-                  placeholder="e.g., 50"
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Exam Duration (optional)</label>
-                <input
-                  type="text"
-                  value={formData.examDuration}
-                  onChange={(e) => setFormData({ ...formData, examDuration: e.target.value })}
-                  placeholder="e.g., 3 Hours"
-                />
-              </div>
-
-              <div className="form-group" style={{ display: 'flex', alignItems: 'flex-end' }}>
-                <label style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                  <input
-                    type="checkbox"
-                    checked={formData.includeAnswerKey}
-                    onChange={(e) => setFormData({ ...formData, includeAnswerKey: e.target.checked })}
-                  />
-                  Include Answer Key
-                </label>
-              </div>
-
-              <div className="form-group" style={{ display: 'flex', alignItems: 'flex-end' }}>
-                <label style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                  <input
-                    type="checkbox"
-                    checked={formData.includeMarkingScheme}
-                    onChange={(e) => setFormData({ ...formData, includeMarkingScheme: e.target.checked })}
-                  />
-                  Include Marking Scheme
-                </label>
-              </div>
-            </div>
-
             <div className="form-group">
               <label>Upload Notes / Study Material *</label>
               <div className="file-upload-area">
@@ -287,56 +135,25 @@ function QuestionPaper() {
                 </label>
               </div>
               <p className="file-hint">Supported: PDF, DOCX, EPUB, Images (JPG/PNG)</p>
-
-              <div style={{ marginTop: 8 }}>
-                <button
-                  className="detect-btn"
-                  onClick={async () => {
-                    if (!formData.file) return alert('Please upload a file first');
-                    try {
-                      const f = new FormData();
-                      f.append('file', formData.file);
-                      const token = localStorage.getItem('token');
-                      const headers = {};
-                      if (token) headers['Authorization'] = `Bearer ${token}`;
-                      const resp = await axios.post('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/exam/detect', f, { headers, timeout: 120000 });
-                      if (resp.data && resp.data.detected) {
-                        const d = resp.data.detected;
-                        if (d.mode) setFormData(f => ({ ...f, mode: d.mode }));
-                        if (d.classLevel) setFormData(f => ({ ...f, classLevel: String(d.classLevel) }));
-                        alert('Auto-detection completed');
-                      } else {
-                        alert('Auto-detection did not return results');
-                      }
-                    } catch (err) {
-                      console.error('Auto-detect failed:', err);
-                      let msg = 'Auto-detection failed.';
-                      if (err.code === 'ECONNREFUSED' || err.response?.status === 404) {
-                        msg += ' The backend/Python service may not be running (127.0.0.1:5000).';
-                      }
-                      const detail = err.response?.data?.error || err.message;
-                      if (detail) msg += ' Detail: ' + detail;
-                      alert(msg);
-                    }
-                  }}
-                  disabled={!formData.file}
-                >
-                  Auto-detect Class/Mode from Notes
-                </button>
-              </div>
             </div>
 
-            <button className="generate-btn" onClick={generateAndDownload} disabled={isGenerating}>
-              {isGenerating ? 'Generating...' : 'Generate & Download Question Paper (PDF)'}
+            <button className="generate-btn-primary" onClick={generateAndDownload} disabled={isGenerating}>
+              {isGenerating ? 'Generating...' : 'Generate Question Paper (PDF)'}
             </button>
           </div>
         </div>
 
-        <div className="quiz-info-section">
-          <div className="info-card">
-            <h3>What this does</h3>
-            <p>Parses your notes, identifies key concepts and important questions, and arranges them into a printable question paper PDF with metadata header.</p>
-          </div>
+        <div className="how-it-works">
+          <h3>How it works</h3>
+          <ol>
+            <li>
+              <strong>Upload your study material</strong>
+              <p>(PDF, Images, etc.)</p>
+            </li>
+            <li>
+              <strong>We automatically detect the Subject, Class, and Mode.</strong>
+            </li>
+          </ol>
         </div>
       </div>
     </div>

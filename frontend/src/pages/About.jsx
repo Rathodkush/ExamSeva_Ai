@@ -1,8 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import '../styles/About.css';
 
 function About() {
   const [openFAQ, setOpenFAQ] = useState(null);
+  const [settings, setSettings] = useState({ aboutUs: '' });
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/settings`);
+        if (response.data.settings) {
+          setSettings(response.data.settings);
+        }
+      } catch (err) {
+        console.error('Error fetching settings:', err);
+      }
+    };
+    fetchSettings();
+  }, []);
 
   const faqs = [
     {
@@ -47,9 +63,7 @@ function About() {
         <section className="about-section intro-section">
           <h2>Welcome to ExamSeva</h2>
           <p className="intro-text">
-            ExamSeva is a revolutionary platform designed to transform how students prepare for exams. 
-            We combine advanced AI technology with practical study tools to help you identify patterns, 
-            focus on high-probability questions, and maximize your exam success.
+            {settings.aboutUs || "ExamSeva is a revolutionary platform designed to transform how students prepare for exams. We combine advanced AI technology with practical study tools to help you identify patterns, focus on high-probability questions, and maximize your exam success."}
           </p>
         </section>
 

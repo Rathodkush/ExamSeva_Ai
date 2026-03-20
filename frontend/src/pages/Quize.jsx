@@ -60,7 +60,7 @@ function Quize() {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const res = await axios.post('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/quiz/generate', formData, {
+      const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/quiz/generate`, formData, {
         headers: headers,
         timeout: 180000 // 3 minutes
       });
@@ -148,7 +148,7 @@ function Quize() {
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
     try {
-      const res = await axios.post('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/quiz/generate_pdf', form, { headers, responseType: 'arraybuffer', timeout: 180000 });
+      const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/quiz/generate_pdf`, form, { headers, responseType: 'arraybuffer', timeout: 180000 });
       // If server returns an empty/small PDF, show a clear message instead of downloading a blank file
       const dataLen = (res.data && (res.data.byteLength || res.data.length)) || 0;
       if (dataLen < 1000) {
@@ -212,7 +212,7 @@ function Quize() {
     const token = localStorage.getItem('token');
     if (token) {
       try {
-        await axios.post('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/quiz/score', {
+        await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/quiz/score`, {
           quizId: generatedQuiz._id || null,
           score: correct,
           totalQuestions: total
@@ -237,55 +237,13 @@ function Quize() {
   return (
     <div className="quize-container">
       <div className="page-container">
-        <h1>Quiz Generator</h1>
+        <h1 className="page-title">Quiz Generator</h1>
         <p className="page-subtitle">Upload e-books, PDFs, Word docs, or images to generate interactive quizzes</p>
         
         <div className="quiz-upload-section">
-          <h2>Generate Quiz from Material</h2>
+          <h2 className="section-title">Generate Quiz from Material</h2>
 
-          <form onSubmit={(e) => { e.preventDefault(); handleGenerateQuiz(e); }} className="quiz-upload-form">
-            <div className="form-row">
-              <div className="form-group">
-                <label>Subject/Topic</label>
-                <input
-                  type="text"
-                  value={uploadData.subject}
-                  onChange={(e) => setUploadData({ ...uploadData, subject: e.target.value })}
-                  placeholder="e.g., Mathematics, Science"
-                />
-              </div>
-              <div className="form-group">
-                <label>Number of Questions</label>
-                <select
-                  value={uploadData.numberOfQuestions}
-                  onChange={(e) => setUploadData({ ...uploadData, numberOfQuestions: parseInt(e.target.value) })}
-                >
-                  <option value={5}>5 Questions</option>
-                  <option value={10}>10 Questions</option>
-                  <option value={15}>15 Questions</option>
-                  <option value={20}>20 Questions</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label>Order by difficulty</label>
-                <select
-                  value={uploadData.difficultyOrder}
-                  onChange={(e) => setUploadData({ ...uploadData, difficultyOrder: e.target.value })}
-                >
-                  <option value="low-to-high">Low → High (Easy to Hard)</option>
-                  <option value="high-to-low">High → Low (Hard to Easy)</option>
-                  <option value="mixed">Mixed / Balanced</option>
-                </select>
-              </div>
-              <div className="form-group" style={{ display: 'flex', alignItems: 'flex-end' }}>
-                <div style={{ fontSize: 12, color: '#666' }}>
-                  Tip: Use Preview to check extracted questions before generating the quiz.
-                </div>
-              </div>
-            </div>
+          <div className="quiz-upload-form">
             <div className="form-group">
               <label>Upload Material *</label>
               <div className="file-upload-area">
@@ -293,7 +251,6 @@ function Quize() {
                   type="file"
                   onChange={handleFileChange}
                   accept=".pdf,.epub,.mobi,.jpg,.jpeg,.png,.doc,.docx"
-                  required
                   id="quiz-file-input"
                 />
                 <label htmlFor="quiz-file-input" className="file-upload-label">
@@ -301,231 +258,85 @@ function Quize() {
                 </label>
               </div>
               <p className="file-hint">Supported: PDF, e-books (EPUB, MOBI), Images (JPG, PNG), Word documents (DOC, DOCX)</p>
-              <div style={{ marginTop: 8 }}>
-                <label style={{ display: 'flex', gap: 10, alignItems: 'center', fontSize: 13, color: '#374151' }}>
-                  <input
-                    type="checkbox"
-                    checked={uploadData.autoGenerateOnUpload}
-                    onChange={(e) => setUploadData({ ...uploadData, autoGenerateOnUpload: e.target.checked })}
-                  />
-                  Auto-generate quiz immediately after upload
-                </label>
-              </div>
-            </div>
-            <div className="advanced-options">
-              <div style={{ marginTop: 10 }}>
-                <label><input type="checkbox" checked={uploadData.includeOptions} onChange={(e) => setUploadData({ ...uploadData, includeOptions: e.target.checked })} /> Include options (A, B, C) in generated content</label>
-                <div style={{ fontSize: 12, color: '#666', marginTop: 6 }}>
-                  Include options in quiz questions when available.
-                </div>
-              </div>
-
-              <div style={{ marginTop: 12 }}>
-                <button type="button" className="mode-btn" onClick={async () => {
-                  // Preview questions
-                  setIsPreviewing(true);
-                  setPreviewError(null);
-                  setPreviewQuestions(null);
-                  try {
-                    const form = new FormData();
-                    form.append('file', uploadData.file);
-                    form.append('numberOfQuestions', uploadData.numberOfQuestions);
-                    form.append('includeOptions', uploadData.includeOptions ? 'true' : 'false');
-                    form.append('difficultyOrder', uploadData.difficultyOrder);
-                    if (uploadData.subject) form.append('subject', uploadData.subject);
-
-                    const token = localStorage.getItem('token');
-                    const headers = {};
-                    if (token) headers['Authorization'] = `Bearer ${token}`;
-
-                    const resp = await axios.post('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/quiz/extract-questions', form, { headers, timeout: 180000 });
-                    if (resp.data && resp.data.questions) {
-                      setPreviewQuestions(resp.data.questions.slice(0, 50));
-                    } else {
-                      setPreviewError('No questions returned');
-                    }
-                  } catch (err) {
-                    console.error('Preview error', err);
-                    if (err.response && err.response.data && err.response.data.error) setPreviewError(err.response.data.error)
-                    else setPreviewError(err.message || 'Failed to get preview');
-                  } finally {
-                    setIsPreviewing(false);
-                  }
-                }}>Preview Questions</button>
-              </div>
-
-              {isPreviewing && <div style={{ marginTop: 10 }}>Generating preview...</div>}
-              {previewError && <div style={{ marginTop: 10, color: 'red' }}>{previewError}</div>}
-              {previewQuestions && (
-                <div style={{ marginTop: 12, maxHeight: 300, overflow: 'auto', background: '#fff', padding: 12, borderRadius: 8, border: '1px solid #e6e9ff' }}>
-                  <h4>Preview (first {previewQuestions.length} extracted questions)</h4>
-                  <ol>
-                    {previewQuestions.map((q, i) => (
-                      <li key={i} style={{ marginBottom: 8 }}>
-                        <div style={{ fontWeight: 600 }}>{q.text}</div>
-                        {uploadData.includeOptions && q.options && q.options.length > 0 && (
-                          <ul style={{ marginTop: 6 }}>
-                            {q.options.map((opt, idx) => <li key={idx}>{opt}</li>)}
-                          </ul>
-                        )}
-                      </li>
-                    ))}
-                  </ol>
-                </div>
-              )}
-
             </div>
 
-            <button type="submit" className="generate-btn" disabled={isGenerating}>
+            <button 
+              className="generate-btn-purple" 
+              onClick={handleGenerateQuiz} 
+              disabled={isGenerating}
+            >
               {isGenerating ? 'Generating Quiz...' : 'Generate Quiz'}
             </button>  
-          </form>
+          </div>
         </div>
 
         {generatedQuiz && (
           <div className="generated-quiz-section">
-            <h2>Generated Quiz: {generatedQuiz.subject}</h2>
-            {generatedQuiz.metadata && (
-              <div className="quiz-metadata">
-                {generatedQuiz.metadata.institutionName && <div><strong>Institution:</strong> {generatedQuiz.metadata.institutionName}</div>}
-                {generatedQuiz.metadata.state && <div><strong>State:</strong> {generatedQuiz.metadata.state}</div>}
-                {generatedQuiz.metadata.semester && <div><strong>Semester:</strong> {generatedQuiz.metadata.semester}</div>}
-                {generatedQuiz.metadata.year && <div><strong>Year:</strong> {generatedQuiz.metadata.year}</div>}
-                {generatedQuiz.metadata.difficultyOrder && <div><strong>Difficulty:</strong> {generatedQuiz.metadata.difficultyOrder}</div>}
-
+            <div className="quiz-header-row">
+              <h2>Generated Quiz: {generatedQuiz.subject}</h2>
+              <div className="quiz-actions-small">
+                <button className="download-small-btn" onClick={downloadQuizPdf}>Download PDF</button>
+                <button className="reset-small-btn" onClick={() => {
+                   setGeneratedQuiz(null);
+                   setAnswers({});
+                   setSubmitted(false);
+                   setResults(null);
+                }}>New Quiz</button>
               </div>
-            )}
+            </div>
 
             {!submitted ? (
-              <>
-                <div className="quiz-questions">
-                  {generatedQuiz.questions.map((q, idx) => (
-                    <div key={q._id || idx} className="quiz-question-card">
-                      <div className="question-number">Question {idx + 1}</div>
-                      <div className="question-text">{q.question}</div>
-                      <div className="question-options">
-                        {q.options.map((opt, optIdx) => (
-                          <label 
-                            key={optIdx} 
-                            className={`option-label ${answers[q._id || idx] === optIdx ? 'selected' : ''}`}
-                          >
-                            <input 
-                              type="radio" 
-                              name={`question-${q._id || idx}`} 
-                              value={optIdx}
-                              checked={answers[q._id || idx] === optIdx}
-                              onChange={() => handleAnswerChange(q._id || idx, optIdx)}
-                            />
-                            <span>{opt}</span>
-                          </label>
-                        ))}
-                      </div>
+              <div className="quiz-questions">
+                {generatedQuiz.questions.map((q, idx) => (
+                  <div key={q._id || idx} className="quiz-question-card">
+                    <div className="question-number">Question {idx + 1}</div>
+                    <div className="question-text">{q.question}</div>
+                    <div className="question-options">
+                      {q.options.map((opt, optIdx) => (
+                        <label 
+                          key={optIdx} 
+                          className={`option-label ${answers[q._id || idx] === optIdx ? 'selected' : ''}`}
+                        >
+                          <input 
+                            type="radio" 
+                            name={`question-${q._id || idx}`} 
+                            value={optIdx}
+                            checked={answers[q._id || idx] === optIdx}
+                            onChange={() => handleAnswerChange(q._id || idx, optIdx)}
+                          />
+                          <span>{opt}</span>
+                        </label>
+                      ))}
                     </div>
-                  ))}
-                </div>
-                <div className="quiz-actions">
-                  <button 
-                    className="submit-quiz-btn" 
-                    onClick={handleSubmitQuiz}
-                    disabled={generatedQuiz.questions.length === 0 || Object.keys(answers).length === 0}
-                  >
-                    Submit Quiz
-                  </button>
-
-                  <button className="download-pdf-btn" onClick={async () => {
-                    try {
-                      await downloadQuizPdf();
-                    } catch (e) {
-                      alert('Failed to download PDF: ' + (e.message || e));
-                    }
-                  }}>
-                    Download Quiz (PDF)
-                  </button>
-
-
-
-                  <button className="reset-quiz-btn" onClick={() => {
-                    setGeneratedQuiz(null);
-                    setAnswers({});
-                    setSubmitted(false);
-                    setResults(null);
-                  }}>
-                    Generate New Quiz
-                  </button>
-                </div>
-              </>
+                  </div>
+                ))}
+                <button className="submit-quiz-btn" onClick={handleSubmitQuiz}>Submit Quiz</button>
+              </div>
             ) : (
               <div className="quiz-results">
                 <div className="results-summary">
-                  <h3>Quiz Results</h3>
-                  <div className="results-stats">
-                    <div className="stat-card correct">
-                      <div className="stat-number">{results.correct}</div>
-                      <div className="stat-label">Correct</div>
-                    </div>
-                    <div className="stat-card wrong">
-                      <div className="stat-number">{results.wrong}</div>
-                      <div className="stat-label">Wrong</div>
-                    </div>
-                    <div className="stat-card total">
-                      <div className="stat-number">{results.total}</div>
-                      <div className="stat-label">Total</div>
-                    </div>
-                    <div className="stat-card percentage">
-                      <div className="stat-number">{results.percentage || Math.round((results.correct / results.total) * 100)}%</div>
-                      <div className="stat-label">Score</div>
-                    </div>
+                  <h3>Quiz Results: {results.percentage}%</h3>
+                  <div className="results-stats-row">
+                    <span>Correct: {results.correct}</span>
+                    <span>Wrong: {results.wrong}</span>
+                    <span>Total: {results.total}</span>
                   </div>
-                </div>
-                
-                <div className="detailed-results">
-                  <h3>Detailed Results</h3>
-                  {results.questionResults.map((result, idx) => (
-                    <div key={idx} className={`result-item ${result.isCorrect ? 'correct' : 'wrong'}`}>
-                      <div className="result-question">
-                        <strong>Question {idx + 1}:</strong> {result.question}
-                      </div>
-                      <div className="result-answer">
-                        <span className={result.isCorrect ? 'correct-answer' : 'wrong-answer'}>
-                          Your Answer: {result.options[result.userAnswer] || 'Not answered'}
-                        </span>
-                        {!result.isCorrect && (
-                          <span className="correct-answer">
-                            Correct Answer: {result.options[result.correctAnswer]}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                
-                <div className="quiz-actions">
-                  <button className="reset-quiz-btn" onClick={() => {
-                    setGeneratedQuiz(null);
-                    setAnswers({});
-                    setSubmitted(false);
-                    setResults(null);
-                  }}>
-                    Generate New Quiz
-                  </button>
                 </div>
               </div>
             )}
           </div>
         )}
 
-        {!generatedQuiz && (
-          <div className="quiz-info-section">
-            <div className="info-card">
-              <h3>How It Works</h3>
-              <p>Upload your study material and our AI will automatically generate quiz questions based on the content.</p>
-            </div>
-            <div className="info-card">
-              <h3>Track Progress</h3>
-              <p>Monitor your performance and improve over time with detailed analytics.</p>
-            </div>
+        <div className="quiz-footer-grid">
+          <div className="footer-info-box">
+            <h4>Fast & Accurate</h4>
+            <p>Wait just a few seconds and get a customized quiz based strictly on your documents.</p>
           </div>
-        )}
+          <div className="footer-info-box">
+            <h4>Practice Anywhere</h4>
+            <p>Take quizzes online or download them as PDF for offline study sessions.</p>
+          </div>
+        </div>
       </div>
     </div>
   );

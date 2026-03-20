@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import '../styles/Auth.css';
@@ -6,25 +6,37 @@ import GoogleAuthButton from '../components/GoogleAuthButton';
 
 function Register() {
   const navigate = useNavigate();
+  const [settings, setSettings] = useState({ websiteName: 'ExamSeva' });
   const [role, setRole] = useState('student'); // fixed to student for public registration
+  const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
     phone: '',
-    // Student fields
     classStandard: '',
     courseType: '',
     year: '',
-    // Additional profile fields
     institutionName: '',
     boardName: '',
     state: '',
     semester: '',
-    // (no mentor fields)
-    // Common
     password: '',
     confirmPassword: ''
   });
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/settings`);
+        if (response.data.settings) {
+          setSettings(response.data.settings);
+        }
+      } catch (err) {
+        console.error('Error fetching settings:', err);
+      }
+    };
+    fetchSettings();
+  }, []);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -50,30 +62,55 @@ function Register() {
     setError('');
   };
 
-  const validateForm = () => {
-    // Email validation
+  const validateStep1 = () => {
+    if (!formData.fullName || !formData.email || !formData.phone) {
+      setError('Please fill all basic details');
+      return false;
+    }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       setError('Please enter a valid email address');
       return false;
     }
-
-    // Phone validation
-    const cleanPhone = formData.phone.replace(/\D/g, '');
-    if (cleanPhone.length !== 10) {
-      setError('Phone number must be exactly 10 digits');
+    if (formData.phone.replace(/\D/g, '').length !== 10) {
+      setError('Phone number must be 10 digits');
       return false;
     }
+    return true;
+  };
 
-    // Role-specific validation
+  const validateForm = () => {
+    if (!formData.password || !formData.confirmPassword) {
+      setError('Please set a password');
+      return false;
+    }
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      return false;
+    }
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return false;
+    }
     if (role === 'student') {
       if (!formData.classStandard || !formData.courseType || !formData.year) {
-        setError('Class/Standard, Course Type, and Year are required for students');
+        setError('Educational details are required');
         return false;
       }
     }
-
     return true;
+  };
+
+  const nextStep = () => {
+    if (validateStep1()) {
+      setStep(2);
+      setError('');
+    }
+  };
+
+  const prevStep = () => {
+    setStep(1);
+    setError('');
   };
 
   const handleSubmit = async (e) => {
@@ -99,7 +136,7 @@ function Register() {
         role
       };
 
-      const response = await axios.post('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/auth/register', registrationData);
+      const response = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/auth/register`, registrationData);
 
       if (response.data.success) {
         // Store token in localStorage
@@ -120,86 +157,103 @@ function Register() {
   return (
     <div className="auth-container">
       <div className="auth-card" style={{ maxWidth: '600px' }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '15px', marginBottom: '25px', flexWrap: 'wrap' }}>
-          <h1 className="auth-title" style={{ marginBottom: 0, textAlign: 'left' }}>Create Account</h1>
-          <p className="auth-subtitle" style={{ marginBottom: 0, textAlign: 'right' }}>Join ExamSeva and start your journey.</p>
+        <div className="auth-header">
+          <h1 className="auth-title">Create Account</h1>
+          <p className="auth-subtitle">Join {settings.websiteName} and start your journey.</p>
         </div>
 
-        <GoogleAuthButton text="signup_with" />
-        <div style={{ marginTop: '10px', textAlign: 'center', color: '#6b7280', fontSize: '13px' }}>
-          or create an account with email
+        <div className="registration-progress">
+          <div className={`progress-step ${step >= 1 ? 'active' : ''}`}>1</div>
+          <div className="progress-line"></div>
+          <div className={`progress-step ${step >= 2 ? 'active' : ''}`}>2</div>
         </div>
 
         {error && <div className="error-message">{error}</div>}
 
         <form onSubmit={handleSubmit} className="auth-form">
-          {/* Role and Phone in one row */}
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="role">I am a</label>
-              <input
-                id="role"
-                name="role"
-                value="Student"
-                readOnly
-                className="role-select"
-                style={{ backgroundColor: '#f3f4f6', cursor: 'not-allowed' }}
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="phone">Phone Number (10 digits)</label>
-              <input
-                type="tel"
-                id="phone"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                required
-                maxLength="10"
-                pattern="[0-9]{10}"
-                placeholder="Enter 10 digit phone number"
-              />
-              {formData.phone && formData.phone.replace(/\D/g, '').length !== 10 && (
-                <span style={{ color: '#c33', fontSize: '12px' }}>
-                  Phone number must be exactly 10 digits
-                </span>
-              )}
-            </div>
-          </div>
+          {step === 1 && (
+            <div className="step-animation">
+        <div className="google-auth-wrapper">
+          <GoogleAuthButton text="signup_with" />
+          <div className="auth-divider">or fill your details below</div>
+        </div>
 
-          {/* Common Fields */}
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="fullName">Full Name</label>
-              <input
-                type="text"
-                id="fullName"
-                name="fullName"
-                value={formData.fullName}
-                onChange={handleChange}
-                required
-                placeholder="Enter your Name"
-              />
-            </div>
+              <div className="form-group">
+                <label htmlFor="fullName">Full Name</label>
+                <input
+                  type="text"
+                  id="fullName"
+                  name="fullName"
+                  value={formData.fullName}
+                  onChange={handleChange}
+                  required
+                  placeholder="Enter your Name"
+                />
+              </div>
 
-            <div className="form-group">
-              <label htmlFor="email">Email Address</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
-                placeholder="Enter your email (e.g., user@example.com)"
-              />
-            </div>
-          </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="email">Email Address</label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    placeholder="user@example.com"
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="phone">Phone Number</label>
+                  <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    required
+                    placeholder="10 digit number"
+                  />
+                </div>
+              </div>
 
-          {/* Student Fields */}
-          {role === 'student' && (
-            <>
+              <button type="button" onClick={nextStep} className="auth-button">
+                Next Step →
+              </button>
+            </div>
+          )}
+
+          {step === 2 && (
+            <div className="step-animation">
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="password">Set Password</label>
+                  <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    minLength="6"
+                    placeholder="Min 6 char"
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="confirmPassword">Confirm Password</label>
+                  <input
+                    type="password"
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    required
+                    placeholder="Repeat password"
+                  />
+                </div>
+              </div>
+
               <div className="form-row">
                 <div className="form-group">
                   <label htmlFor="classStandard">Class/Standard</label>
@@ -210,25 +264,17 @@ function Register() {
                     value={formData.classStandard}
                     onChange={handleChange}
                     required
-                    placeholder="e.g., 10th, 12th, B.Tech 1st Year"
+                    placeholder="e.g., 10th, 12th"
                   />
                 </div>
-
                 <div className="form-group">
                   <label htmlFor="courseType">Course Type</label>
-                  <select
-                    id="courseType"
-                    name="courseType"
-                    value={formData.courseType}
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value="">Select Course Type</option>
+                  <select id="courseType" name="courseType" value={formData.courseType} onChange={handleChange} required>
+                    <option value="">Select</option>
                     <option value="School">School</option>
                     <option value="High School">High School</option>
                     <option value="Undergraduate">Undergraduate</option>
                     <option value="Postgraduate">Postgraduate</option>
-                    <option value="Diploma">Diploma</option>
                     <option value="Other">Other</option>
                   </select>
                 </div>
@@ -243,38 +289,11 @@ function Register() {
                     name="institutionName"
                     value={formData.institutionName}
                     onChange={handleChange}
-                    placeholder="e.g., Mumbai University or HSC"
+                    placeholder="e.g., Mumbai University"
                   />
                 </div>
-
                 <div className="form-group">
-                  <label htmlFor="boardName">State Board (optional)</label>
-                  <input
-                    type="text"
-                    id="boardName"
-                    name="boardName"
-                    value={formData.boardName}
-                    onChange={handleChange}
-                    placeholder="e.g., Gujarat Board"
-                  />
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="semester">Semester</label>
-                  <input
-                    type="text"
-                    id="semester"
-                    name="semester"
-                    value={formData.semester}
-                    onChange={handleChange}
-                    placeholder="e.g., 1, 2, 5"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="year">Year</label>
+                  <label htmlFor="year">Current Year</label>
                   <input
                     type="text"
                     id="year"
@@ -282,55 +301,28 @@ function Register() {
                     value={formData.year}
                     onChange={handleChange}
                     required
-                    placeholder="e.g., 2024, 1st Year, 2nd Year"
+                    placeholder="e.g., 2024 or 2nd Year"
                   />
                 </div>
               </div>
-            </>
+
+              <div className="form-options">
+                <label className="checkbox-label">
+                  <input type="checkbox" required />
+                  I agree to the Terms & Conditions
+                </label>
+              </div>
+
+              <div className="form-row" style={{ gap: '10px' }}>
+                <button type="button" onClick={prevStep} className="auth-button secondary" style={{ background: '#f1f5f9', color: '#475569' }}>
+                  ← Back
+                </button>
+                <button type="submit" className="auth-button" disabled={loading}>
+                  {loading ? 'Creating Account...' : 'Finish & Register'}
+                </button>
+              </div>
+            </div>
           )}
-
-          {/* No mentor-specific fields; registration only supports Student/Admin */}
-
-          {/* Password Fields */}
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="password">Password</label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                minLength="6"
-                placeholder="Create a password (min 6 characters)"
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="confirmPassword">Confirm Password</label>
-              <input
-                type="password"
-                id="confirmPassword"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                required
-                placeholder="Confirm your password"
-              />
-            </div>
-          </div>
-
-          <div className="form-options">
-            <label className="checkbox-label">
-              <input type="checkbox" required />
-              I agree to the Terms and Conditions
-            </label>
-          </div>
-
-          <button type="submit" className="auth-button" disabled={loading}>
-            {loading ? 'Creating Account...' : 'Register'}
-          </button>
         </form>
 
         <div className="auth-footer">

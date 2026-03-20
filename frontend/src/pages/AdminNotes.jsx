@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import '../styles/AdminNotes.css';
+import '../styles/AdminShared.css';
 
 function AdminNotes() {
   const { user, isAuthenticated } = useAuth();
@@ -34,7 +35,7 @@ function AdminNotes() {
 
   const fetchNotes = async () => {
     try {
-      const response = await axios.get('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/notes');
+      const response = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/notes`);
       setNotes(response.data.notes || []);
     } catch (err) {
       console.error('Error fetching notes:', err);
@@ -49,7 +50,7 @@ function AdminNotes() {
       const token = localStorage.getItem('token');
       if (editingNote) {
         await axios.put(
-          ``${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/admin/notes/${editingNote._id}`,
+          `${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/admin/notes/${editingNote._id}`,
           formData,
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -78,7 +79,7 @@ function AdminNotes() {
     
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(``${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/admin/notes/${id}`, {
+      await axios.delete(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/admin/notes/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchNotes();
@@ -92,20 +93,22 @@ function AdminNotes() {
   }
 
   return (
-    <div className="admin-notes">
-      <div className="admin-header">
+    <div className="admin-page-container">
+      <div className="admin-header-flex">
         <h1>Study Notes Management</h1>
-        <Link to="/admin-dashboard" className="back-btn">← Dashboard</Link>
+        <div className="admin-header-actions">
+           <Link to="/admin-dashboard" className="admin-btn btn-grey">← Dashboard</Link>
+        </div>
       </div>
 
-      <div className="admin-nav">
-        <Link to="/admin-dashboard" className="nav-item">Dashboard</Link>
-        <Link to="/admin-users" className="nav-item">Users</Link>
-        <Link to="/admin-question-papers" className="nav-item">Question Papers</Link>
-        <Link to="/admin-notes" className="nav-item active">Study Notes</Link>
-        <Link to="/admin-announcements" className="nav-item">Announcements</Link>
-        <Link to="/admin-settings" className="nav-item">Website Settings</Link>
-      </div>
+      <nav className="admin-secondary-nav">
+        <Link to="/admin-dashboard" className="nav-item-link">Dashboard</Link>
+        <Link to="/admin-users" className="nav-item-link">Users</Link>
+        <Link to="/admin-question-papers" className="nav-item-link">Question Papers</Link>
+        <Link to="/admin-notes" className="nav-item-link active">Study Notes</Link>
+        <Link to="/admin-announcements" className="nav-item-link">Announcements</Link>
+        <Link to="/admin-settings" className="nav-item-link">Website Settings</Link>
+      </nav>
 
       <div className="notes-grid">
         {notes.map(note => (

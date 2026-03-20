@@ -13,26 +13,28 @@
 }
 
 .profile-header h1 {
-  color: #1e3a5f;
-  font-size: 36px;
+  color: #1a365d;
+  font-size: 32px;
+  font-weight: 800;
   margin: 0;
 }
 
 .edit-button {
-  background: #667eea;
+  background: #7c83fd;
   color: white;
   border: none;
-  padding: 12px 24px;
+  padding: 10px 24px;
   border-radius: 8px;
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 700;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(124, 131, 253, 0.2);
 }
 
 .edit-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
+  background: #6a71e0;
+  transform: translateY(-1px);
 }
 
 .profile-content {
@@ -51,26 +53,25 @@
 }
 
 .profile-tab {
-  border-radius: 999px;
-  border: 1px solid #e0e0e0;
-  background: #ffffff;
-  padding: 8px 18px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #4b5563;
+  border-radius: 20px;
+  border: 1px solid transparent;
+  background: #f1f5f9;
+  padding: 6px 30px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #4a5568;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s;
 }
 
 .profile-tab.active {
-  background: linear-gradient(135deg, #667eea 0%, #4f46e5 100%);
-  color: #ffffff;
-  border-color: transparent;
-  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.35);
+  background: #6670ee;
+  color: white;
+  box-shadow: 0 4px 15px rgba(102, 112, 238, 0.3);
 }
 
 .profile-tab:hover:not(.active) {
-  background: #f3f4ff;
+  background: #e2e8f0;
 }
 
 .profile-card {
@@ -90,17 +91,18 @@
 }
 
 .avatar-circle {
-  width: 80px;
-  height: 80px;
+  width: 90px;
+  height: 90px;
   border-radius: 50%;
-  background: #667eea;
+  background: #6376eb;
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 32px;
+  font-size: 38px;
   font-weight: bold;
-  margin: 0 auto 10px;
+  margin: 0 auto 15px;
+  box-shadow: 0 4px 12px rgba(99, 118, 235, 0.3);
 }
 
 .profile-avatar h2 {
@@ -128,12 +130,13 @@
 }
 
 .detail-group p {
-  color: #1e3a5f;
-  font-size: 16px;
+  color: #2d3748;
+  font-size: 15px;
   margin: 0;
-  padding: 10px;
-  background-color: #f8f8f8;
-  border-radius: 6px;
+  padding: 12px 18px;
+  background-color: #f7f9fc;
+  border-radius: 8px;
+  border: 1px solid #edf2f7;
 }
 
 .profile-input {
@@ -184,70 +187,37 @@
 .profile-stat-card {
   background: white;
   border-radius: 16px;
-  box-shadow: 0 10px 26px rgba(102, 126, 234, 0.25);
-  padding: 22px 18px;
-  text-align: left;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  position: relative;
-  overflow: hidden;
-  min-height: 120px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+  padding: 30px 20px;
+  text-align: center;
+  transition: transform 0.3s ease;
+  border: 1px solid #f0f0f0;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-}
-
-.profile-stat-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 10% 10%, rgba(255, 255, 255, 0.20) 0%, transparent 55%);
-  pointer-events: none;
+  align-items: center;
+  gap: 15px;
 }
 
 .profile-stat-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 14px 30px rgba(102, 126, 234, 0.35);
-}
-
-.profile-stat-top {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  position: relative;
-  z-index: 1;
-}
-
-.profile-stat-icon {
-  width: 38px;
-  height: 38px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.18);
-  color: white;
-  font-size: 18px;
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
 }
 
 .profile-stat-top h4 {
-  color: rgba(27, 27, 27, 0.92);
-  font-size: 13px;
+  color: #2d3748;
+  font-size: 11px;
   margin: 0;
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.8px;
+  letter-spacing: 1px;
 }
 
 .profile-stat-number {
-  position: relative;
-  z-index: 1;
-  color: rgba(27, 27, 27, 0.92);
-
-  font-size: 38px;
-  font-weight: 800;
+  color: #1a202c;
+  font-size: 48px;
+  font-weight: 900;
   line-height: 1;
-  margin-top: 14px;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+  margin: 0;
 }
 
 @media (max-width: 968px) {

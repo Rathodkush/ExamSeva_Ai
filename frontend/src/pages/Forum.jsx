@@ -21,7 +21,7 @@ function Forum() {
 
   const checkBackendConnection = async () => {
     try {
-      await axios.get('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/health', { timeout: 3000 });
+      await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/health`, { timeout: 3000 });
     } catch (err) {
       console.error('Backend not reachable:', err);
     }
@@ -29,7 +29,7 @@ function Forum() {
 
   const loadPosts = async () => {
     try {
-      const res = await axios.get('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/forum/posts', { timeout: 5000 });
+      const res = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/forum/posts`, { timeout: 5000 });
       setPosts(res.data.posts || []);
     } catch (err) {
       console.error('Error loading posts:', err);
@@ -50,7 +50,7 @@ function Forum() {
 
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/forum/posts', {
+      const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/forum/posts`, {
         title: newPost.title,
         content: newPost.content,
         author: currentUserName,
@@ -88,7 +88,7 @@ function Forum() {
 
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post(``${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/forum/posts/${postId}/reply`, {
+      const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/forum/posts/${postId}/reply`, {
         content: replyContent,
         author: currentUserName,
         authorId: currentUserId
@@ -108,7 +108,7 @@ function Forum() {
   const handleLike = async (postId) => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post(``${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/forum/posts/${postId}/like`, {
+      const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/forum/posts/${postId}/like`, {
         authorId: currentUserId
       }, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
 
@@ -134,66 +134,54 @@ function Forum() {
   };
 
   return (
-    <div className="forum-container whatsapp-style">
-      <div className="forum-chat-wrapper">
-        {/* Chat Header */}
-        <div className="chat-header">
-          <div className="chat-header-content">
-            <div className="chat-title">
-            <h1>Study Forum</h1>
-              <p className="chat-subtitle">Chat with fellow students</p>
-          </div>
+    <div className="forum-container">
+      <div className="forum-hero">
+        <div className="hero-content">
+          <h1>Community Forum</h1>
+          <p>Ask questions, share knowledge, and learn with fellow students.</p>
+          <div className="forum-controls">
+            <div className="search-box">
+              <input type="text" placeholder="Search discussions..." />
+            </div>
             <button 
+              className="ask-btn"
               onClick={() => {
-            if (!isAuthenticated) {
-              alert('Please log in to create a post');
-              return;
-            }
-            setShowPostForm(!showPostForm);
-              }} 
-              className="new-post-btn-chat"
+                if (!isAuthenticated) {
+                  alert('Please log in to create a post');
+                  return;
+                }
+                setShowPostForm(!showPostForm);
+              }}
             >
-              {showPostForm ? '✕' : '+ New'}
-          </button>
+              {showPostForm ? '✕ Close Form' : '+ Ask a Question'}
+            </button>
           </div>
         </div>
+      </div>
 
-        {/* New Post Form (WhatsApp style) */}
+      <div className="forum-main">
         {showPostForm && (
-          <div className="new-post-chat">
-              <form onSubmit={handlePostSubmit} className="chat-input-container">
-                <input
-                  type="text"
-                  value={newPost.title}
-                  onChange={(e) => setNewPost({ ...newPost, title: e.target.value })}
-                placeholder="Post title..."
-                className="chat-title-input"
-                  required
-                />
-                <textarea
-                  value={newPost.content}
-                  onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
-                placeholder="Type your message..."
-                rows="3"
-                className="chat-message-input"
-                  required
-                />
-              <div className="chat-send-container">
-                <button 
-                  type="submit"
-                  className="chat-send-btn"
-                  disabled={!newPost.title || !newPost.content}
-                >
-                  Send
+          <div className="post-form-card">
+            <h3>Create New Discussion</h3>
+            <form onSubmit={handlePostSubmit}>
+              <input
+                type="text"
+                value={newPost.title}
+                onChange={(e) => setNewPost({ ...newPost, title: e.target.value })}
+                placeholder="What is your question about?"
+                required
+              />
+              <textarea
+                value={newPost.content}
+                onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
+                placeholder="Describe your question or share your thoughts..."
+                required
+              />
+              <div className="form-actions">
+                <button type="submit" className="submit-btn" disabled={loading}>
+                  {loading ? 'Posting...' : 'Post Discussion'}
                 </button>
-                <button 
-                  type="button"
-                  onClick={() => {
-                    setShowPostForm(false);
-                    setNewPost({ title: '', content: '' });
-                  }} 
-                  className="chat-cancel-btn"
-                >
+                <button type="button" className="cancel-btn" onClick={() => setShowPostForm(false)}>
                   Cancel
                 </button>
               </div>
@@ -201,110 +189,56 @@ function Forum() {
           </div>
         )}
 
-        {/* Chat Messages */}
-        <div className="chat-messages">
+        <div className="posts-list">
           {loading ? (
-            <div className="chat-loading">Loading messages...</div>
+            <div className="loading-state">Loading discussions...</div>
           ) : (
-            <>
-              {posts.map(post => (
-                <div key={post._id} className="chat-message-wrapper">
-                  {/* Main Post Message */}
-                  <div className={`chat-message ${post.authorId === currentUserId ? 'sent' : 'received'}`}>
-                    <div className="message-avatar">
-                      {post.author.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="message-content">
-                      <div className="message-header">
-                        <span className="message-author">{post.author}</span>
-                        <span className="message-time">
-                          {new Date(post.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                      </div>
-                      {post.title && (
-                        <div className="message-title">{post.title}</div>
-                      )}
-                      <div className="message-text">{post.content}</div>
-                      <div className="message-actions">
-                        <button 
-                          className="message-action-btn"
-                          onClick={() => setReplyingTo(replyingTo === post._id ? null : post._id)}
-                        >
-                          Reply
-                        </button>
-                        <button 
-                          className="message-action-btn"
-                          onClick={() => handleLike(post._id)}
-                        >
-                          👍 {post.likes || 0}
-                        </button>
-                      </div>
-                    </div>
+            posts.map(post => (
+              <div key={post._id} className="post-card">
+                <div className="post-header">
+                  <div className="author-avatar">{post.author.charAt(0).toUpperCase()}</div>
+                  <div className="author-info">
+                    <h4>{post.author}</h4>
+                    <span>{new Date(post.createdAt).toLocaleDateString()}</span>
                   </div>
-                  
-                  {/* Replies */}
-                  {post.replies && post.replies.length > 0 && (
-                    <div className="replies-container">
-                      {post.replies.map((reply, idx) => (
-                        <div 
-                          key={idx} 
-                          className={`chat-message reply-message ${reply.authorId === currentUserId ? 'sent' : 'received'}`}
-                        >
-                          <div className="message-avatar small">
-                            {reply.author.charAt(0).toUpperCase()}
-                          </div>
-                          <div className="message-content">
-                            <div className="message-header">
-                              <span className="message-author">{reply.author}</span>
-                              <span className="message-time">
-                                {new Date(reply.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </span>
-                            </div>
-                            <div className="message-text">{reply.content}</div>
-                          </div>
+                </div>
+                <div className="post-body">
+                  <h3>{post.title}</h3>
+                  <p>{post.content}</p>
+                </div>
+                <div className="post-footer">
+                  <div className="post-stats">
+                    <button onClick={() => handleLike(post._id)} className="stat-btn">
+                      👍 {post.likes || 0}
+                    </button>
+                    <button onClick={() => setReplyingTo(replyingTo === post._id ? null : post._id)} className="stat-btn">
+                      💬 {post.replies?.length || 0}
+                    </button>
+                  </div>
+                  <button className="share-btn" onClick={handleShare}>Share</button>
+                </div>
+
+                {replyingTo === post._id && (
+                  <div className="reply-section">
+                    <div className="existing-replies">
+                      {post.replies?.map((reply, i) => (
+                        <div key={i} className="reply-item">
+                          <strong>{reply.author}:</strong> {reply.content}
                         </div>
                       ))}
                     </div>
-                  )}
-
-                  {/* Reply Input */}
-                  {replyingTo === post._id && (
-                    <div className="reply-input-container">
+                    <div className="reply-input">
                       <textarea
                         value={replyContent}
                         onChange={(e) => setReplyContent(e.target.value)}
-                        placeholder="Type a reply..."
-                        rows="2"
-                        className="chat-message-input"
+                        placeholder="Write a reply..."
                       />
-                      <div className="chat-send-container">
-                        <button 
-                          onClick={() => handleReply(post._id)} 
-                          className="chat-send-btn"
-                          disabled={!replyContent.trim()}
-                        >
-                          Send
-                        </button>
-                        <button 
-                          onClick={() => {
-                          setReplyingTo(null);
-                          setReplyContent('');
-                          }} 
-                          className="chat-cancel-btn"
-                        >
-                          Cancel
-                        </button>
-                      </div>
+                      <button onClick={() => handleReply(post._id)}>Reply</button>
                     </div>
-                  )}
-                </div>
-              ))}
-              {posts.length === 0 && (
-                <div className="chat-empty">
-                  <p>No messages yet. Start the conversation!</p>
-                </div>
-              )}
-            </>
+                  </div>
+                )}
+              </div>
+            ))
           )}
         </div>
       </div>

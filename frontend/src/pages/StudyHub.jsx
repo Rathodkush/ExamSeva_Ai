@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import '../styles/StudyHub.css';
 import ConfirmModal from '../components/ConfirmModal';
+import { useAuth } from '../context/AuthContext';
 
 function StudyHub() {
-  const [userRole, setUserRole] = useState('student');
-  const [currentUserId] = useState('user-' + Date.now()); // In real app, get from auth
+  const { user } = useAuth();
   const [showUpload, setShowUpload] = useState(false);
   const [uploadData, setUploadData] = useState({
     name: '',
@@ -14,12 +14,17 @@ function StudyHub() {
     description: ''
   });
   const [notes, setNotes] = useState([]);
+  const [papers, setPapers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('notes'); // 'notes' | 'papers'
 
   useEffect(() => {
     checkBackendConnection();
     loadNotes();
-  }, []);
+    if (user && user.fullName) {
+      setUploadData(prev => ({ ...prev, name: user.fullName }));
+    }
+  }, [user]);
 
   // If StudyHub opened with file/page params, auto-open PDF
   useEffect(() => {
@@ -46,7 +51,7 @@ function StudyHub() {
 
   const checkBackendConnection = async () => {
     try {
-      await axios.get('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/health', { timeout: 3000 });
+      await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/health`, { timeout: 3000 });
     } catch (err) {
       console.error('Backend not reachable:', err);
       alert('⚠️ Backend server is not running! Please start the backend server on port 4000.');
@@ -55,13 +60,19 @@ function StudyHub() {
 
   const loadNotes = async () => {
     try {
-      const res = await axios.get('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/notes', { timeout: 5000 });
-      setNotes(res.data.notes || []);
+      const token = localStorage.getItem('token');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      
+      // Load public notes and official papers
+      const [notesRes, papersRes] = await Promise.all([
+        axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/notes`, { headers }),
+        axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/question-papers`, { headers }).catch(e => ({ data: { papers: [] } }))
+      ]);
+      
+      setNotes(notesRes.data.notes || []);
+      setPapers(papersRes.data.papers || []);
     } catch (err) {
-      console.error('Error loading notes:', err);
-      if (err.code === 'ECONNREFUSED' || err.response?.status === 404) {
-        alert('⚠️ Cannot connect to backend server. Please ensure the backend is running on `${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`');
-      }
+      console.error('Error loading data:', err);
     } finally {
       setLoading(false);
     }
@@ -81,14 +92,14 @@ function StudyHub() {
     try {
       const formData = new FormData();
       formData.append('name', uploadData.name);
-      formData.append('author', uploadData.name);
-      formData.append('authorId', currentUserId);
-      formData.append('role', userRole);
-      formData.append('subject', uploadData.subject || 'General');
-      formData.append('description', uploadData.description || '');
+      formData.append('author', user?.fullName || uploadData.name);
+      formData.append('authorId', user?._id || user?.id);
+      formData.append('role', user?.role || 'student');
+      formData.append('subject', uploadData.subject);
+      formData.append('description', uploadData.description);
       formData.append('file', uploadData.file);
 
-      const res = await axios.post('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/notes', formData, {
+      const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/notes`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         timeout: 30000
       });
@@ -115,7 +126,7 @@ function StudyHub() {
 
   const handleDownload = async (noteId) => {
     try {
-      const response = await axios.get(``${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/notes/${noteId}/download`, {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/notes/${noteId}/download`, {
         responseType: 'blob'
       });
       
@@ -148,7 +159,8 @@ function StudyHub() {
   const [confirmDelete, setConfirmDelete] = useState({ open: false, noteId: null });
 
   const handleDelete = async (noteId, authorId) => {
-    if (authorId !== currentUserId) {
+    const currentUserId = user?._id || user?.id;
+    if (authorId !== currentUserId && user?.role !== 'admin') {
       alert('You can only delete your own notes');
       return;
     }
@@ -159,8 +171,9 @@ function StudyHub() {
 
   const performDelete = async () => {
     const noteId = confirmDelete.noteId;
+    const currentUserId = user?._id || user?.id;
     try {
-      await axios.delete(``${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/notes/${noteId}?authorId=${currentUserId}`);
+      await axios.delete(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/notes/${noteId}?authorId=${currentUserId}`);
       setNotes(notes.filter(note => note._id !== noteId));
       setConfirmDelete({ open: false, noteId: null });
       alert('Note deleted successfully!');
@@ -183,7 +196,7 @@ function StudyHub() {
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
       const payload = { question: question.trim(), subject: note.subject || undefined, noteId: note._id };
-      const resp = await axios.post('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/studyhub/search', payload, { headers, timeout: 30000 });
+      const resp = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/studyhub/search`, payload, { headers, timeout: 30000 });
 
       const data = resp.data;
       if (!data || !data.success) {
@@ -237,13 +250,11 @@ function StudyHub() {
             <p className="page-subtitle">Access comprehensive study materials and resources</p>
           </div>
           <div className="upload-controls">
-            <select value={userRole} onChange={(e) => setUserRole(e.target.value)} className="role-select">
-              <option value="student">Student</option>
-              <option value="admin">Admin</option>
-            </select>
-            <button onClick={() => setShowUpload(!showUpload)} className="upload-btn">
-              {showUpload ? 'Cancel' : '+ Upload Notes'}
-            </button>
+            {(user?.role === 'student' || user?.role === 'admin') && (
+              <button onClick={() => setShowUpload(!showUpload)} className="upload-btn">
+                {showUpload ? 'Cancel' : '+ Upload Notes'}
+              </button>
+            )}
           </div>
         </div>
 
@@ -295,63 +306,86 @@ function StudyHub() {
           </div>
         )}
 
-        <div className="notes-list">
-          <h2>Available Study Notes</h2>
-          {loading ? (
-            <p>Loading notes...</p>
-          ) : (
-            <div className="notes-grid">
-              {notes.map(note => (
-                <div key={note._id} className="note-card">
-                  <div className="note-header">
-                    <div className="note-icon">📄</div>
-                    <div className="note-badge" data-role={note.role}>
-                      {note.role}
+        <div className="studyhub-tabs">
+          <button 
+            className={`tab-btn ${activeTab === 'notes' ? 'active' : ''}`}
+            onClick={() => setActiveTab('notes')}
+          >
+            Study Notes
+          </button>
+          <button 
+            className={`tab-btn ${activeTab === 'papers' ? 'active' : ''}`}
+            onClick={() => setActiveTab('papers')}
+          >
+            Question Papers
+          </button>
+        </div>
+
+        <div className="studyhub-content">
+          {activeTab === 'notes' ? (
+            <div className="notes-list">
+              <h2>Available Study Notes</h2>
+              {loading ? (
+                <div className="loading-state">Loading notes...</div>
+              ) : (
+                <div className="notes-grid">
+                  {notes.map(note => (
+                    <div key={note._id} className="note-card">
+                      <div className="note-header">
+                        <span className={`note-badge ${note.role || 'student'}`}>{(note.role || 'student').toUpperCase()}</span>
+                        <span className="note-subject-tag">{note.subject || 'General'}</span>
+                      </div>
+                      <div className="note-body">
+                        <h3>{note.name}</h3>
+                        <p className="note-author">By: {note.author}</p>
+                        <div className="note-description-box">
+                          {note.description || 'No description provided'}
+                        </div>
+                      </div>
+                      <div className="note-footer">
+                        <span className="note-date">{new Date(note.createdAt).toLocaleDateString()}</span>
+                        <div className="note-actions">
+                          <button className="download-btn-pill" onClick={() => handleDownload(note._id)}>Download</button>
+                          <button className="answer-btn-pill" onClick={() => handleAsk(note)}>ANSWER</button>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <h3>{note.name}</h3>
-                  <div className="note-meta">
-                    <span className="note-author">By: {note.author}</span>
-                    <span className="note-subject">{note.subject}</span>
-                  </div>
-                  {note.description && <p className="note-description">{note.description}</p>}
-                  <div className="note-footer">
-                    <span className="note-date">{new Date(note.createdAt).toLocaleDateString()}</span>
-                    <div className="note-actions">
-                      {note.filePath && (
-                        <>
-                          <button 
-                            className="download-btn"
-                            onClick={() => handleDownload(note._id)}
-                          >
-                            Download
-                          </button>
-                          <button
-                            className="answer-btn"
-                            onClick={() => handleAsk(note)}
-                            title="Ask a question about this note"
-                            disabled={askLoading}
-                          >
-                            {askLoading ? 'Searching...' : 'ANSWER'}
-                          </button>
-                        </>
-                      )}
-                      {note.authorId === currentUserId && (
-                        <button 
-                          className="delete-btn"
-                          onClick={() => handleDelete(note._id, note.authorId)}
-                        >
-                          Delete
-                        </button>
-                      )}
-                    </div>
-                  </div>
+                  ))}
+                  {notes.length === 0 && (
+                    <p className="empty-msg">No notes available yet.</p>
+                  )}
                 </div>
-              ))}
-              {notes.length === 0 && (
-                <p style={{ gridColumn: '1/-1', textAlign: 'center', padding: '40px', color: '#666' }}>
-                  No notes available. Be the first to upload!
-                </p>
+              )}
+            </div>
+          ) : (
+            <div className="papers-list">
+              <h2 className="section-title">Official Question Papers</h2>
+              {loading ? (
+                <div className="loading-state">Loading papers...</div>
+              ) : (
+                <div className="notes-grid">
+                  {papers.map(paper => (
+                    <div key={paper._id} className="note-card">
+                      <div className="note-header">
+                        <span className="note-badge free">FREE</span>
+                        <span className="note-subject-tag">{paper.subject || 'General'}</span>
+                      </div>
+                      <div className="note-body">
+                        <h3>{paper.title}</h3>
+                        <p className="note-author">Official Resource</p>
+                      </div>
+                      <div className="note-footer">
+                        <span className="note-date">{new Date(paper.createdAt).toLocaleDateString()}</span>
+                        <div className="note-actions">
+                          <button className="download-paper-btn" onClick={() => window.open(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/uploads/${paper.fileName}`, '_blank')}>Download Paper</button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {papers.length === 0 && (
+                    <p className="empty-msg">No official question papers available yet.</p>
+                  )}
+                </div>
               )}
             </div>
           )}

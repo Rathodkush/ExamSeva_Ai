@@ -22,7 +22,7 @@ function ForgotPassword() {
     setLoading(true);
 
     try {
-      const response = await axios.post('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/auth/forgot-password', { email });
+      const response = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/auth/forgot-password`, { email });
       
       if (response.data.success) {
         setMessage(response.data.message);
@@ -52,7 +52,7 @@ function ForgotPassword() {
     setLoading(true);
 
     try {
-      const response = await axios.post('`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`/api/auth/reset-password', {
+      const response = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/auth/reset-password`, {
         token: resetToken,
         newPassword: resetData.newPassword,
         confirmPassword: resetData.confirmPassword

@@ -7,15 +7,25 @@
 
 .papers-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 25px;
+  margin-top: 10px;
 }
 
 .paper-card {
   background: white;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 25px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  border: 1px solid #edf2f7;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.paper-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  border-color: #667eea;
 }
 
 .paper-header {
@@ -32,20 +42,23 @@
 }
 
 .visibility-badge {
-  padding: 5px 12px;
+  padding: 4px 10px;
   border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 500;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
 .visibility-badge.free {
-  background: #d1ecf1;
-  color: #0c5460;
+  background: #e6fffa;
+  color: #0d9488;
+  border: 1px solid #b2f5ea;
 }
 
 .visibility-badge.login {
-  background: #fff3cd;
-  color: #856404;
+  background: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #dbeafe;
 }
 
 .paper-details {
@@ -93,16 +106,32 @@
 .add-btn {
   background: #28a745;
   color: white;
-  padding: 10px 20px;
+  padding: 10px 24px;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
-  font-weight: 500;
-  transition: all 0.3s;
+  font-weight: 600;
+  transition: all 0.2s;
 }
 
 .add-btn:hover {
   background: #218838;
+}
+
+.back-btn {
+  background: #4a5568 !important;
+  color: white !important;
+  padding: 10px 24px;
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+.back-btn:hover {
+  background: #2d3748 !important;
 }
 
 .modal-overlay {
