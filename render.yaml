@@ -21,7 +21,7 @@ services:
     startCommand: "node server.js"
     envVars:
       - key: MONGODB_URI
-        sync: false # Set in Render dashboard
+        value: mongodb+srv://examseva:examseva@cluster0.s2jwqdu.mongodb.net/?appName=Cluster0
       - key: PYTHON_URL_BASE
         fromService:
           type: web
