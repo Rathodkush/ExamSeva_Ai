@@ -2,10 +2,9 @@ services:
   # 1. Python AI Service
   - type: web
     name: examseva-ai
-    env: python
+    env: docker
     rootDirectory: python_ai
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: "gunicorn app:app --bind 0.0.0.0:$PORT"
+    # Build and start commands are defined in the Dockerfile
     envVars:
       - key: PYTHON_VERSION
         value: 3.10.13
@@ -21,7 +20,7 @@ services:
     startCommand: "node server.js"
     envVars:
       - key: MONGODB_URI
-        value: mongodb+srv://examseva:examseva@cluster0.s2jwqdu.mongodb.net/?appName=Cluster0
+        value: mongodb+srv://examseva:examseva@cluster0.s2jwqdu.mongodb.net/examsevaDB?appName=Cluster0
       - key: PYTHON_URL_BASE
         fromService:
           type: web

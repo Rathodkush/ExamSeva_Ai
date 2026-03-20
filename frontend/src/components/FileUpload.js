@@ -64,7 +64,7 @@ export default function FileUpload({ setResults }) {
         const headers = {};
         if (token) headers['Authorization'] = `Bearer ${token}`;
 
-        const resp = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/upload/preview`, form, { headers, timeout: 30000 });
+        const resp = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/upload/preview`, form, { headers, timeout: 60000 });
         if (resp.data && resp.data.metadata) {
           setExtractedMeta(resp.data.metadata);
           // Autofill fields if empty

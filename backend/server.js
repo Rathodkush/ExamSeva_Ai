@@ -64,7 +64,7 @@ const UploadSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   createdAt: { type: Date, default: Date.now }
 });
-const UploadModel = mongoose.model('Upload', UploadSchema);
+const UploadModel = mongoose.models.Upload || mongoose.model('Upload', UploadSchema);
 
 // Study Notes Schema
 const NoteSchema = new mongoose.Schema({
@@ -78,7 +78,7 @@ const NoteSchema = new mongoose.Schema({
   filePath: String,
   createdAt: { type: Date, default: Date.now }
 });
-const NoteModel = mongoose.model('Note', NoteSchema);
+const NoteModel = mongoose.models.Note || mongoose.model('Note', NoteSchema);
 
 // Forum Post Schema
 const PostSchema = new mongoose.Schema({
@@ -98,7 +98,7 @@ const PostSchema = new mongoose.Schema({
   }],
   createdAt: { type: Date, default: Date.now }
 });
-const PostModel = mongoose.model('Post', PostSchema);
+const PostModel = mongoose.models.Post || mongoose.model('Post', PostSchema);
 
 // Quiz Schema
 const QuizSchema = new mongoose.Schema({
@@ -113,7 +113,7 @@ const QuizSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   createdAt: { type: Date, default: Date.now }
 });
-const QuizModel = mongoose.model('Quiz', QuizSchema);
+const QuizModel = mongoose.models.Quiz || mongoose.model('Quiz', QuizSchema);
 
 // Quiz Score Schema - Track user quiz attempts and scores
 const QuizScoreSchema = new mongoose.Schema({
@@ -124,7 +124,7 @@ const QuizScoreSchema = new mongoose.Schema({
   percentage: { type: Number, required: true },
   createdAt: { type: Date, default: Date.now }
 });
-const QuizScoreModel = mongoose.model('QuizScore', QuizScoreSchema);
+const QuizScoreModel = mongoose.models.QuizScore || mongoose.model('QuizScore', QuizScoreSchema);
 
 // User Schema
 const UserSchema = new mongoose.Schema({
@@ -149,7 +149,7 @@ const UserSchema = new mongoose.Schema({
   isActive: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now }
 });
-const UserModel = mongoose.model('User', UserSchema);
+const UserModel = mongoose.models.User || mongoose.model('User', UserSchema);
 
 // Ensure there is at least one admin user if ADMIN_EMAIL / ADMIN_PASSWORD are provided
 const ensureInitialAdmin = async () => {
@@ -221,7 +221,7 @@ const MessageSchema = new mongoose.Schema({
   meta: mongoose.Schema.Types.Mixed,
   createdAt: { type: Date, default: Date.now }
 });
-const MessageModel = mongoose.model('Message', MessageSchema);
+const MessageModel = mongoose.models.Message || mongoose.model('Message', MessageSchema);
 
 // Website Settings Schema
 const SettingsSchema = new mongoose.Schema({
@@ -237,12 +237,14 @@ const SettingsSchema = new mongoose.Schema({
   }],
   updatedAt: { type: Date, default: Date.now }
 });
-const SettingsModel = mongoose.model('Settings', SettingsSchema);
+const SettingsModel = mongoose.models.Settings || mongoose.model('Settings', SettingsSchema);
 
 // JWT Secret
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || process.env.REACT_APP_GOOGLE_CLIENT_ID || '';
 const googleClient = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : null;
+const pythonBaseUrl = process.env.PYTHON_URL_BASE || process.env.PYTHON_URL || 'http://127.0.0.1:5000';
+console.log('Python AI service URL:', pythonBaseUrl);
 
 // Authentication Middleware
 const authenticateToken = (req, res, next) => {
@@ -326,7 +328,7 @@ app.get('/api/health', async (req, res) => {
     // Check Python service health
     let pythonHealth = { status: 'unknown', model_status: 'unknown' };
     try {
-      const pythonUrl = process.env.PYTHON_URL_BASE ? `${process.env.PYTHON_URL_BASE}/health` : 'http://127.0.0.1:5000/health';
+      const pythonUrl = `${pythonBaseUrl}/health`;
       const pythonResponse = await axios.get(pythonUrl, { timeout: 5000 });
       pythonHealth = pythonResponse.data || pythonHealth;
     } catch (err) {
@@ -914,8 +916,9 @@ app.post('/api/upload', upload.array('files'), async (req, res) => {
     let analysisData = { groups: [], unique: [] };
 
     try {
-      // Set timeout to 3 minutes for heavy jobs; but python will respond faster for metadata-only requests
-      response = await axios.post('http://127.0.0.1:5000/process', form, {
+      // Set timeout to 3 minutes for heavy jobs
+      const pythonProcessUrl = `${pythonBaseUrl}/process`;
+      response = await axios.post(pythonProcessUrl, form, {
         headers: form.getHeaders(),
         maxContentLength: Infinity,
         maxBodyLength: Infinity,
@@ -938,7 +941,7 @@ app.post('/api/upload', upload.array('files'), async (req, res) => {
 
       // If Python service is not available, return empty results with helpful message
       if (axiosErr.code === 'ECONNREFUSED' || axiosErr.code === 'ETIMEDOUT' || axiosErr.code === 'ENOTFOUND') {
-        console.log('⚠️ Python service unavailable at http://127.0.0.1:5000');
+        console.log(`⚠️ Python service unavailable at ${pythonBaseUrl}`);
         return res.status(503).json({
           error: 'Analysis service unavailable',
           detail: 'The Python AI analysis service is not running. Please ensure the Python service is started on port 5000.',
@@ -1151,7 +1154,7 @@ app.post('/api/uploads/:uploadId/reanalyze', authenticateToken, async (req, res)
     form.append('metadata', JSON.stringify(metadata));
 
     // Send to Python service for processing
-    const pythonUrl = process.env.PYTHON_URL_BASE ? `${process.env.PYTHON_URL_BASE}/process` : 'http://127.0.0.1:5000/process';
+    const pythonUrl = `${pythonBaseUrl}/process`;
     const response = await axios.post(pythonUrl, form, {
       headers: form.getHeaders(),
       timeout: 180000
@@ -1223,11 +1226,12 @@ app.post('/api/upload/preview', upload.array('files'), async (req, res) => {
 
     let response;
     try {
-      response = await axios.post(process.env.PYTHON_URL_BASE ? `${process.env.PYTHON_URL_BASE}/process` : 'http://127.0.0.1:5000/process', form, {
+      const pythonProcessUrl = `${pythonBaseUrl}/process`;
+      response = await axios.post(pythonProcessUrl, form, {
         headers: form.getHeaders(),
         maxContentLength: Infinity,
         maxBodyLength: Infinity,
-        timeout: 30000 // 30s for preview
+        timeout: 60000 // Increased to 60s for preview on Render
       });
     } catch (err) {
       // Cleanup files
@@ -1307,7 +1311,8 @@ app.post('/api/upload/enhance', upload.array('files'), async (req, res) => {
 
     let response;
     try {
-      response = await axios.post(process.env.PYTHON_URL_BASE ? `${process.env.PYTHON_URL_BASE}/enhance_and_process` : 'http://127.0.0.1:5000/enhance_and_process', form, {
+      const pythonUrl = `${pythonBaseUrl}/enhance_and_process`;
+      response = await axios.post(pythonUrl, form, {
         headers: form.getHeaders(),
         maxContentLength: Infinity,
         maxBodyLength: Infinity,
@@ -1416,7 +1421,7 @@ app.post('/api/notes', notesUpload.single('file'), async (req, res) => {
         form.append('files', fs.createReadStream(req.file.path), req.file.originalname);
         form.append('metadata', JSON.stringify({ uploadedBy: author || name }));
 
-        const pythonUrl = process.env.PYTHON_URL_BASE ? `${process.env.PYTHON_URL_BASE}/process` : 'http://127.0.0.1:5000/process';
+        const pythonUrl = `${pythonBaseUrl}/process`;
         const resp = await axios.post(pythonUrl, form, { headers: form.getHeaders(), timeout: 120000 });
         const data = resp.data || {};
 
@@ -1550,7 +1555,8 @@ app.post('/api/quiz/generate', quizUpload.single('file'), async (req, res) => {
 
     let response;
     try {
-      response = await axios.post('http://127.0.0.1:5000/generate-quiz', form, {
+      const pythonUrl = `${pythonBaseUrl}/generate-quiz`;
+      response = await axios.post(pythonUrl, form, {
         headers: form.getHeaders(),
         timeout: 180000 // 3 minutes
       });
@@ -1919,7 +1925,7 @@ app.post('/api/analysis/report', async (req, res) => {
   try {
     // Expect body with { groups, unique, metadata }
     const payload = req.body || {};
-    const pythonUrl = process.env.PYTHON_URL || 'http://127.0.0.1:5000/generate_report';
+    const pythonUrl = `${pythonBaseUrl}/generate_report`;
     const response = await axios.post(pythonUrl, payload, { responseType: 'arraybuffer', timeout: 60000 });
     // Forward content headers from Python service when available
     if (response.headers && response.headers['content-type']) {
@@ -1958,7 +1964,7 @@ app.post('/api/studyhub/search', authenticateToken, async (req, res) => {
       }
     }
 
-    const pythonUrl = process.env.PYTHON_URL_BASE ? `${process.env.PYTHON_URL_BASE}/search_pdf` : 'http://127.0.0.1:5000/search_pdf';
+    const pythonUrl = `${pythonBaseUrl}/search_pdf`;
     const response = await axios.post(pythonUrl, payload, { timeout: 30000 });
     res.json({ success: true, result: response.data });
   } catch (err) {
@@ -1971,7 +1977,7 @@ app.post('/api/studyhub/search', authenticateToken, async (req, res) => {
 app.post('/api/analysis/docx', authenticateToken, async (req, res) => {
   try {
     const payload = req.body || {};
-    const pythonUrl = process.env.PYTHON_URL_BASE ? `${process.env.PYTHON_URL_BASE}/generate_docx` : 'http://127.0.0.1:5000/generate_docx';
+    const pythonUrl = `${pythonBaseUrl}/generate_docx`;
     const response = await axios.post(pythonUrl, payload, { responseType: 'arraybuffer', timeout: 60000 });
     res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
     res.set('Content-Disposition', 'attachment; filename="analysis_questions.docx"');
