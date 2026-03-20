@@ -15,13 +15,12 @@ def _get_model():
     if _model is None:
         try:
             from sentence_transformers import SentenceTransformer, util
-            # Use a more accurate model for educational content
+            # Use 'all-MiniLM-L6-v2' - it's faster and uses less memory than paraphrase models
             _model = {
-                "model": SentenceTransformer('paraphrase-MiniLM-L6-v2'),
+                "model": SentenceTransformer('all-MiniLM-L6-v2'),
                 "util": util
             }
         except Exception as e:
-            # If model cannot be loaded, raise to notify caller
             raise RuntimeError(f"Failed to load sentence-transformers model: {e}")
     return _model
 
@@ -33,12 +32,12 @@ STOPWORDS = set(
 )
 
 # Prefilter and embedding tuning constants
-MAX_CANDIDATES_FOR_EMBED = int(os.environ.get("MAX_CANDIDATES_FOR_EMBED", "500"))  # Increased for better coverage
-EMBED_BATCH_SIZE = int(os.environ.get("EMBED_BATCH_SIZE", "64"))
-SIMILARITY_THRESHOLD = float(os.environ.get("SIMILARITY_THRESHOLD", "0.35"))  # VERY LOW for maximum detection
-MIN_GROUP_SIZE = int(os.environ.get("MIN_GROUP_SIZE", "1"))  # Allow single-item groups to merge
-FUZZY_THRESHOLD = int(os.environ.get("FUZZY_THRESHOLD", "60"))  # VERY LOW for near-duplicate detection
-KEYWORD_MATCH_THRESHOLD = float(os.environ.get("KEYWORD_MATCH_THRESHOLD", "0.4"))  # For keyword-based grouping
+MAX_CANDIDATES_FOR_EMBED = int(os.environ.get("MAX_CANDIDATES_FOR_EMBED", "200"))  # Reduced for speed on 512MB RAM
+EMBED_BATCH_SIZE = int(os.environ.get("EMBED_BATCH_SIZE", "32"))
+SIMILARITY_THRESHOLD = float(os.environ.get("SIMILARITY_THRESHOLD", "0.45"))  # Balanced
+MIN_GROUP_SIZE = int(os.environ.get("MIN_GROUP_SIZE", "2"))
+FUZZY_THRESHOLD = int(os.environ.get("FUZZY_THRESHOLD", "80"))  # Higher for precision
+KEYWORD_MATCH_THRESHOLD = float(os.environ.get("KEYWORD_MATCH_THRESHOLD", "0.6"))
 VERBOSE = bool(os.environ.get("OCR_NLP_VERBOSE", "") == "1")
 
 # Common synonyms dictionary for better matching - expanded for educational content
@@ -108,39 +107,13 @@ def semantic_keyword_match(keywords1: set, keywords2: set) -> float:
         return 0.0
     
     try:
-        # Try to use embeddings for semantic similarity
-        model_bundle = _get_model()
-        model = model_bundle['model']
-        util = model_bundle['util']
-        
-        # Convert sets to lists for embedding
-        kw1_list = list(keywords1)
-        kw2_list = list(keywords2)
-        
-        if not kw1_list or not kw2_list:
-            return 0.0
-        
-        # Get embeddings
-        emb1 = model.encode(kw1_list, convert_to_tensor=True)
-        emb2 = model.encode(kw2_list, convert_to_tensor=True)
-        
-        # Calculate pairwise similarities
-        sim_matrix = util.cos_sim(emb1, emb2).cpu().numpy()
-        
-        # Find best matches for each keyword
-        total_sim = 0.0
-        for i in range(len(kw1_list)):
-            best_sim = float(max(sim_matrix[i]))
-            total_sim += best_sim
-        
-        # Average similarity, but boost if many keywords match well
-        avg_sim = total_sim / len(kw1_list)
-        
-        # Bonus for having multiple similar keywords
-        overlap_count = sum(1 for sim in sim_matrix.flatten() if sim > 0.7)
-        overlap_bonus = min(overlap_count * 0.1, 0.5)  # Max 0.5 bonus
-        
-        return min(avg_sim + overlap_bonus, 1.0)
+        # Fallback to optimized keyword matching (direct + fuzzy ratio)
+        # Avoid model.encode inside loops for individual keywords
+        direct_match = len(keywords1 & keywords2)
+        total = len(keywords1 | keywords2) or 1
+        return direct_match / total
+    except Exception:
+        return 0.0
         
     except Exception as e:
         # Fallback to simple keyword matching if embeddings fail

@@ -13,87 +13,68 @@ export default function GoogleAuthButton({ text = 'continue_with' }) {
   const [enabled, setEnabled] = useState(true);
 
   useEffect(() => {
-    const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+    // Fallback Client ID from your .env in case Render deployment missed it
+    const FALLBACK_ID = '196060547910-ebktcqsbq88vj13bua60qdec733lq9f5.apps.googleusercontent.com';
+    const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID || FALLBACK_ID;
+    
     if (!clientId) {
-      // Not configured: don't show warning to end users; just don't render the button.
       setEnabled(false);
-      setError('');
       return;
     }
 
     setEnabled(true);
 
-    const g = window.google;
-    if (!g || !g.accounts || !g.accounts.id) {
-      // script not yet loaded; retry once shortly
-      const t = setTimeout(() => {
-        try {
-          const gg = window.google;
-          if (gg?.accounts?.id && btnRef.current) {
-            gg.accounts.id.initialize({
-              client_id: clientId,
-              callback: async (resp) => {
-                try {
-                  setError('');
-                  const r = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/auth/google`, { credential: resp.credential });
-                  if (r.data?.success) {
-                    localStorage.setItem('token', r.data.token);
-                    localStorage.setItem('user', JSON.stringify(r.data.user));
-                    navigate('/profile');
-                    window.location.reload();
-                  } else {
-                    setError(r.data?.error || 'Google sign-in failed');
-                  }
-                } catch (e) {
-                  setError(e.response?.data?.error || e.message || 'Google sign-in failed');
+    const initializeGoogle = () => {
+      try {
+        const g = window.google;
+        if (g?.accounts?.id && btnRef.current) {
+          g.accounts.id.initialize({
+            client_id: clientId,
+            callback: async (resp) => {
+              try {
+                setError('');
+                const r = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/auth/google`, { credential: resp.credential });
+                if (r.data?.success) {
+                  localStorage.setItem('token', r.data.token);
+                  localStorage.setItem('user', JSON.stringify(r.data.user));
+                  navigate('/profile');
+                  window.location.reload();
+                } else {
+                  setError(r.data?.error || 'Google sign-in failed');
                 }
+              } catch (e) {
+                setError(e.response?.data?.error || e.message || 'Google sign-in failed');
               }
-            });
-            gg.accounts.id.renderButton(btnRef.current, {
-              theme: 'outline',
-              size: 'large',
-              width: 360,
-              text
-            });
-          }
-        } catch (e) {
-          setError('Google sign-in failed to initialize.');
-        }
-      }, 600);
-      return () => clearTimeout(t);
-    }
-
-    try {
-      g.accounts.id.initialize({
-        client_id: clientId,
-        callback: async (resp) => {
-          try {
-            setError('');
-            const r = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/auth/google`, { credential: resp.credential });
-            if (r.data?.success) {
-              localStorage.setItem('token', r.data.token);
-              localStorage.setItem('user', JSON.stringify(r.data.user));
-              navigate('/profile');
-              window.location.reload();
-            } else {
-              setError(r.data?.error || 'Google sign-in failed');
             }
-          } catch (e) {
-            setError(e.response?.data?.error || e.message || 'Google sign-in failed');
-          }
+          });
+          
+          g.accounts.id.renderButton(btnRef.current, {
+            theme: 'outline',
+            size: 'large',
+            width: 300, // Balanced width
+            text
+          });
+          return true; // Success
         }
-      });
-      if (btnRef.current) {
-        g.accounts.id.renderButton(btnRef.current, {
-          theme: 'outline',
-          size: 'large',
-          width: 360,
-          text
-        });
+      } catch (e) {
+        console.error('Google Auth Init Error:', e);
       }
-    } catch (e) {
-      setError('Google sign-in failed to initialize.');
-    }
+      return false;
+    };
+
+    // Try immediately
+    if (initializeGoogle()) return;
+
+    // If not ready, poll every 500ms (up to 10 times)
+    let attempts = 0;
+    const interval = setInterval(() => {
+      attempts++;
+      if (initializeGoogle() || attempts > 10) {
+        clearInterval(interval);
+      }
+    }, 500);
+
+    return () => clearInterval(interval);
   }, [navigate, text]);
 
   if (!enabled) return null;
