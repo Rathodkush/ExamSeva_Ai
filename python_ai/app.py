@@ -1557,41 +1557,19 @@ def enhance_and_process():
                     max_pages = min(len(doc), 10)
                     for page_num in range(max_pages):
                         page = doc[page_num]
+                        
+                        # Optimization: Try direct text extraction first
+                        extracted_text = page.get_text().strip()
+                        if len(extracted_text) > 100:
+                            texts.append(extracted_text)
+                            continue
+                        
+                        # Fallback to OCR if no selectable text
                         pix = page.get_pixmap(dpi=150)
                         img = Image.frombytes('RGB', [pix.width, pix.height], pix.samples)
-                        # Optionally apply super-resolution first (if requested)
-                        use_sr = False
-                        try:
-                            use_sr = bool(request.form.get('useSR') == '1' or metadata.get('useSR'))
-                        except Exception:
-                            use_sr = False
-
-                        if use_sr:
-                            try:
-                                # use_model flag allows attempting a real SR model if available
-                                img = apply_sr_image(img, scale=2, use_model=bool(metadata.get('useSRModel', False)))
-                                enhanced_pages.append({'file': filename, 'page': page_num, 'sr_applied': True})
-                            except Exception as se:
-                                errors.append(f"SR failed for {filename} page {page_num}: {se}")
-
-                        try:
-                            blurry = is_blurry_pil(img)
-                        except Exception:
-                            blurry = False
-
-                        if blurry:
-                            enhanced_img = enhance_pil_image(img, do_binarize=True)
-                            txt = pytesseract.image_to_string(enhanced_img, config='--psm 6')
-                            enhanced_pages.append({'file': filename, 'page': page_num, 'enhanced': True})
-                        else:
-                            # Also OCR non-blurry but enhancement may still help; do a quick check
-                            txt = pytesseract.image_to_string(img, config='--psm 6')
-                            if not txt or len(txt.strip()) < 50:
-                                enhanced_img = enhance_pil_image(img, do_binarize=True)
-                                txt = pytesseract.image_to_string(enhanced_img, config='--psm 6')
-                                enhanced_pages.append({'file': filename, 'page': page_num, 'enhanced': True})
-
-                        if txt and len(txt.strip()) > 10 and not is_garbage_text(txt):
+                        
+                        txt = pytesseract.image_to_string(img, config='--psm 6')
+                        if txt and len(txt.strip()) > 10:
                             texts.append(txt.strip())
                     doc.close()
                 except Exception as e:
