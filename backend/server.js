@@ -241,7 +241,7 @@ const SettingsModel = mongoose.models.Settings || mongoose.model('Settings', Set
 
 // JWT Secret
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || process.env.REACT_APP_GOOGLE_CLIENT_ID || '196060547910-ebktcqsbq88vj13bua60qdec733lq9f5.apps.googleusercontent.com';
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || process.env.REACT_APP_GOOGLE_CLIENT_ID || '';
 const googleClient = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : null;
 const pythonBaseUrl = (process.env.PYTHON_URL_BASE || process.env.PYTHON_URL || 'http://127.0.0.1:5000').replace(/\/$/, '');
 console.log(' Python AI service URL:', pythonBaseUrl);
@@ -2408,10 +2408,10 @@ app.get('/api/announcements', async (req, res) => {
 // Public Question Papers Route for Study Hub
 app.get('/api/question-papers', async (req, res) => {
   try {
-    const papers = await UploadModel.find({ 
+    const papers = await UploadModel.find({
       // Assuming papers created via admin have specific markers or we just show all Uploads that are "papers"
       // For now, let's treat all records in UploadModel as papers, or filter by those with levelType/classLevel
-      levelType: { $ne: null } 
+      levelType: { $ne: null }
     })
       .sort({ createdAt: -1 })
       .lean()
