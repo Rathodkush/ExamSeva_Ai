@@ -76,7 +76,7 @@ function AdminDashboard() {
 
       <div className="dashboard-stats">
         <div className="stat-card">
-          <div className="stat-icon">👥</div>
+          <div className="stat-icon"></div>
           <div className="stat-content">
             <h3>{stats?.statistics?.totalUsers || 0}</h3>
             <p>Total Users</p>
@@ -84,7 +84,7 @@ function AdminDashboard() {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon">📄</div>
+          <div className="stat-icon"></div>
           <div className="stat-content">
             <h3>{stats?.statistics?.totalPapers || 0}</h3>
             <p>Question Papers</p>
@@ -92,7 +92,7 @@ function AdminDashboard() {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon">📚</div>
+          <div className="stat-icon"></div>
           <div className="stat-content">
             <h3>{stats?.statistics?.totalNotes || 0}</h3>
             <p>Study Notes</p>
@@ -100,7 +100,7 @@ function AdminDashboard() {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon">📢</div>
+          <div className="stat-icon"></div>
           <div className="stat-content">
             <h3>{stats?.statistics?.totalAnnouncements || 0}</h3>
             <p>Announcements</p>
@@ -108,7 +108,7 @@ function AdminDashboard() {
         </div>
 
         <div className="stat-card" style={{ background: '#f0f9ff', borderColor: '#bae6fd' }}>
-          <div className="stat-icon">🔑</div>
+          <div className="stat-icon"></div>
           <div className="stat-content">
             <h3>{stats?.analytics?.totalLifetimeLogins || 0}</h3>
             <p>Total Logins</p>
@@ -116,7 +116,7 @@ function AdminDashboard() {
         </div>
 
         <div className="stat-card" style={{ background: '#f0fdf4', borderColor: '#bbf7d0' }}>
-          <div className="stat-icon">🌐</div>
+          <div className="stat-icon"></div>
           <div className="stat-content">
             <h3>{stats?.analytics?.todayUniqueVisitors || 0}</h3>
             <p>Today's Traffic</p>

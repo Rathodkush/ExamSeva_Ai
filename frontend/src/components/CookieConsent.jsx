@@ -37,7 +37,7 @@ const CookieConsent = () => {
       animation: 'slideUp 0.5s ease-out'
     }}>
       <div style={{ flex: 1, marginRight: '20px' }}>
-        <h4 style={{ margin: '0 0 5px 0', color: '#1e3a5f', fontSize: '16px' }}>Cookie Settings 🍪</h4>
+        <h4 style={{ margin: '0 0 5px 0', color: '#1e3a5f', fontSize: '16px' }}>Cookie Settings</h4>
         <p style={{ margin: 0, color: '#64748b', fontSize: '13px', lineHeight: '1.4' }}>
           We use cookies to enhance your experience, analyze site traffic, and for personalization. By clicking "Accept", you agree to our use of cookies.
         </p>
