@@ -29,22 +29,23 @@ function AdminDashboard() {
   const fetchDashboardData = async () => {
     try {
       const token = localStorage.getItem('token');
+      const baseApi = process.env.REACT_APP_API_URL || ""; // Default to relative
+      
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      
       // Fetch both generic and analytics data
       const [genericResp, statsResp] = await Promise.all([
-        axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/admin/dashboard`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/admin/stats-overview`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
+        axios.get(`${baseApi}/api/admin/dashboard`, config),
+        axios.get(`${baseApi}/api/admin/stats-overview`, config)
       ]);
       
       setStats({
         ...genericResp.data,
-        analytics: statsResp.data.stats
+        analytics: statsResp.data?.stats || {}
       });
     } catch (err) {
       console.error('Error fetching dashboard:', err);
+      // If error occurs, still try to use whatever data we might have had
     } finally {
       setLoading(false);
     }
