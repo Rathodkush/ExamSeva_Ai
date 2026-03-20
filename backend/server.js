@@ -799,6 +799,10 @@ app.post('/api/auth/reset-password', async (req, res) => {
     res.status(500).json({ error: 'Failed to reset password', detail: err.message });
   }
 });
+// Diagnostic check for upload route registration
+app.get('/api/upload', (req, res) => {
+  res.json({ status: 'ok', msg: 'POST version exists next' });
+});
 
 app.post('/api/upload', upload.array('files'), async (req, res) => {
   const startTime = Date.now();
