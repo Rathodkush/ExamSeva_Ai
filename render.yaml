@@ -34,7 +34,7 @@ services:
   # 3. React Frontend Static Site
   - type: static
     name: examseva-frontend
-    buildCommand: "npm install && npm run build"
+    buildCommand: "npm install && GENERATE_SOURCEMAP=false npm run build"
     publishPath: "./build"
     rootDirectory: frontend
     routes:
