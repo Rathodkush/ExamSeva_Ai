@@ -243,8 +243,8 @@ const SettingsModel = mongoose.models.Settings || mongoose.model('Settings', Set
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || process.env.REACT_APP_GOOGLE_CLIENT_ID || '';
 const googleClient = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : null;
-const pythonBaseUrl = process.env.PYTHON_URL_BASE || process.env.PYTHON_URL || 'http://127.0.0.1:5000';
-console.log('Python AI service URL:', pythonBaseUrl);
+const pythonBaseUrl = (process.env.PYTHON_URL_BASE || process.env.PYTHON_URL || 'http://127.0.0.1:5000').replace(/\/$/, '');
+console.log(' Python AI service URL:', pythonBaseUrl);
 
 // Authentication Middleware
 const authenticateToken = (req, res, next) => {
