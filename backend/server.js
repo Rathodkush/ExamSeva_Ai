@@ -150,6 +150,7 @@ const UserSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 const UserModel = mongoose.models.User || mongoose.model('User', UserSchema);
+const NotificationModel = require('./models/Notification');
 
 // Ensure there is at least one admin user if ADMIN_EMAIL / ADMIN_PASSWORD are provided
 const ensureInitialAdmin = async () => {
@@ -245,6 +246,48 @@ const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || process.env.REACT_APP_G
 const googleClient = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : null;
 const pythonBaseUrl = (process.env.PYTHON_URL_BASE || process.env.PYTHON_URL || 'http://127.0.0.1:5000').replace(/\/$/, '');
 console.log(' Python AI service URL:', pythonBaseUrl);
+
+// Global IO instance for accessibility
+let ioInstance = null;
+
+// Helper to create and emit notifications
+const createNotification = async (recipientId, message, type = 'system', senderId = null) => {
+  try {
+    const notif = await NotificationModel.create({
+      recipient: recipientId,
+      sender: senderId,
+      message,
+      type
+    });
+    if (ioInstance) {
+      ioInstance.to(recipientId.toString()).emit('new_notification', notif);
+    }
+    return notif;
+  } catch (err) {
+    console.error(' Error creating notification:', err);
+  }
+};
+
+// Global IO instance for accessibility
+let ioInstance = null;
+
+// Helper to create and emit notifications
+const createNotification = async (recipientId, message, type = 'system', senderId = null) => {
+  try {
+    const notif = await NotificationModel.create({
+      recipient: recipientId,
+      sender: senderId,
+      message,
+      type
+    });
+    if (ioInstance) {
+      ioInstance.to(recipientId.toString()).emit('new_notification', notif);
+    }
+    return notif;
+  } catch (err) {
+    console.error(' Error creating notification:', err);
+  }
+};
 
 // Authentication Middleware
 const authenticateToken = (req, res, next) => {
@@ -535,6 +578,10 @@ app.post('/api/auth/login', async (req, res) => {
       token,
       user: userData
     });
+
+    // Send Welcome Back Notification
+    createNotification(user._id, `Welcome back, ${user.fullName.split(' ')[0]}!`, 'login');
+
   } catch (err) {
     console.error(' Login error:', err);
     res.status(500).json({ error: 'Login failed', detail: err.message });
@@ -577,11 +624,15 @@ app.post('/api/auth/google', async (req, res) => {
         password: hashedPassword,
         googleSub
       });
+      // New Google User Welcome
+      createNotification(user._id, `Welcome to ExamSeva! You've successfully signed up via Google.`, 'welcome');
     } else {
       // Update name if missing
       if (!user.fullName && fullName) user.fullName = fullName;
       if (!user.googleSub && googleSub) user.googleSub = googleSub;
       await user.save().catch(() => { });
+      // Returning Google User Welcome Back
+      createNotification(user._id, `Welcome back, ${user.fullName.split(' ')[0]}! logged in via Google.`, 'login');
     }
 
     if (!user.isActive) return res.status(403).json({ error: 'Your account has been deactivated. Please contact admin.' });
@@ -1467,6 +1518,102 @@ app.post('/api/notes', notesUpload.single('file'), async (req, res) => {
       fs.unlink(req.file.path, () => { });
     }
     res.status(500).json({ error: 'Failed to save note', detail: err.message });
+  }
+});
+
+// --- NOTIFICATION ROUTES ---
+
+// Get all notifications for current user
+app.get('/api/notifications', authenticateToken, async (req, res) => {
+  try {
+    const notifications = await NotificationModel.find({ recipient: req.user.userId })
+      .sort({ createdAt: -1 })
+      .limit(50);
+    res.json({ success: true, notifications });
+  } catch (err) {
+    console.error(' Error fetching notifications:', err);
+    res.status(500).json({ error: 'Failed to fetch notifications' });
+  }
+});
+
+// Mark notification as read
+app.patch('/api/notifications/:id/read', authenticateToken, async (req, res) => {
+  try {
+    const notification = await NotificationModel.findOneAndUpdate(
+      { _id: req.params.id, recipient: req.user.userId },
+      { $set: { isRead: true } },
+      { new: true }
+    );
+    if (!notification) return res.status(404).json({ error: 'Notification not found' });
+    res.json({ success: true, notification });
+  } catch (err) {
+    console.error(' Error updating notification:', err);
+    res.status(500).json({ error: 'Failed to update notification' });
+  }
+});
+
+// Mark all as read
+app.post('/api/notifications/mark-all-read', authenticateToken, async (req, res) => {
+  try {
+    await NotificationModel.updateMany(
+      { recipient: req.user.userId, isRead: false },
+      { $set: { isRead: true } }
+    );
+    res.json({ success: true, message: 'All notifications marked as read' });
+  } catch (err) {
+    console.error(' Error marking notifications as read:', err);
+    res.status(500).json({ error: 'Failed to update notifications' });
+  }
+});
+
+// Delete specific notification
+app.delete('/api/notifications/:id', authenticateToken, async (req, res) => {
+  try {
+    const notification = await NotificationModel.findOneAndDelete({
+      _id: req.params.id,
+      recipient: req.user.userId
+    });
+    if (!notification) return res.status(404).json({ error: 'Notification not found' });
+    res.json({ success: true, message: 'Notification deleted' });
+  } catch (err) {
+    console.error(' Error deleting notification:', err);
+    res.status(500).json({ error: 'Failed to delete notification' });
+  }
+});
+
+// --- ADMIN NOTIFICATION TOOLS ---
+
+// Post universal notification (Admin only)
+app.post('/api/admin/broadcast-notification', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Access denied: Admin only' });
+    }
+    const { message, type = 'admin' } = req.body;
+    if (!message) return res.status(400).json({ error: 'Message is required' });
+
+    // Get all active users
+    const users = await UserModel.find({ isActive: true }).select('_id');
+    
+    // Create notifications in bulk
+    const notifications = users.map(u => ({
+      recipient: u._id,
+      message,
+      type,
+      sender: req.user.userId
+    }));
+
+    await NotificationModel.insertMany(notifications);
+
+    // Emit via socket to everyone online
+    if (ioInstance) {
+      ioInstance.emit('new_broadcast', { message, type });
+    }
+
+    res.json({ success: true, message: `Broadcasted to ${users.length} users` });
+  } catch (err) {
+    console.error(' Broadcast error:', err);
+    res.status(500).json({ error: 'Failed to broadcast notification' });
   }
 });
 
@@ -2949,6 +3096,7 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: { origin: '*' }
 });
+ioInstance = io;
 
 // Simple socket handling: clients join a room named by their userId
 io.on('connection', (socket) => {
