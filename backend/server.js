@@ -268,27 +268,6 @@ const createNotification = async (recipientId, message, type = 'system', senderI
   }
 };
 
-// Global IO instance for accessibility
-let ioInstance = null;
-
-// Helper to create and emit notifications
-const createNotification = async (recipientId, message, type = 'system', senderId = null) => {
-  try {
-    const notif = await NotificationModel.create({
-      recipient: recipientId,
-      sender: senderId,
-      message,
-      type
-    });
-    if (ioInstance) {
-      ioInstance.to(recipientId.toString()).emit('new_notification', notif);
-    }
-    return notif;
-  } catch (err) {
-    console.error(' Error creating notification:', err);
-  }
-};
-
 // Authentication Middleware
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
