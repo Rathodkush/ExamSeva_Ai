@@ -2585,6 +2585,7 @@ def submit_quiz():
 # ==================== Database Initialization ====================
 
 if __name__ == '__main__':
+    # Initialize database before starting the app
     if models_available:
         try:
             with app.app_context():
@@ -2592,11 +2593,13 @@ if __name__ == '__main__':
                 print("[OK] Database initialized successfully")
         except Exception as e:
             print(f"[WARN] Database initialization failed: {e}")
-            print("[WARN] Continuing without database (some features may not work)")
+            print("[WARN] Continuing without database")
     else:
-        print("[WARN] Database models not available, running in analysis-only mode")
+        print("[WARN] Running in analysis-only mode (no DB)")
     
-    print("[OK] Flask app starting on http://127.0.0.1:5000")
+    host = os.environ.get('HOST', '0.0.0.0')
+    port = int(os.environ.get('PORT', 5000))
+    print(f"[OK] Flask app starting on {host}:{port}")
     
-    # Bind to all interfaces and disable the reloader to ensure a single process binds reliably
-    app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False)
+    # Run the app
+    app.run(host=host, port=port, debug=False, use_reloader=False)
