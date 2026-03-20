@@ -23,8 +23,10 @@ const { OAuth2Client } = require('google-auth-library');
 const app = express();
 const http = require('http');
 const { Server } = require('socket.io');
-app.use(cors());
+const cookieParser = require('cookie-parser');
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
+app.use(cookieParser());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Global error handlers to surface crashes during startup
@@ -271,11 +273,12 @@ const createNotification = async (recipientId, message, type = 'system', senderI
 
 // Authentication Middleware
 const authenticateToken = (req, res, next) => {
+  // Check Authorization header or cookie
   const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  const token = (authHeader && authHeader.split(' ')[1]) || req.cookies.token;
 
   if (!token) {
-    return res.status(401).json({ error: 'Access denied. No token provided.' });
+    return res.status(401).json({ error: 'Access denied: Token required' });
   }
 
   jwt.verify(token, JWT_SECRET, async (err, decoded) => {
@@ -464,6 +467,14 @@ app.post('/api/auth/register', async (req, res) => {
       { expiresIn: '7d' }
     );
 
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 7 * 24 * 3600000, // 7 days
+      sameSite: 'lax'
+    };
+    res.cookie('token', token, cookieOptions);
+
     // Return user data (without password)
     const returnUserData = {
       id: user._id,
@@ -552,6 +563,16 @@ app.post('/api/auth/login', async (req, res) => {
     }
 
     console.log(' User logged in:', user.email, 'Role:', user.role);
+    // Cookie options
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 7 * 24 * 3600000, // 7 days
+      sameSite: 'lax'
+    };
+
+    res.cookie('token', token, cookieOptions);
+
     res.json({
       success: true,
       message: 'Login successful',
@@ -625,6 +646,14 @@ app.post('/api/auth/google', async (req, res) => {
       JWT_SECRET,
       { expiresIn: '7d' }
     );
+
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 7 * 24 * 3600000,
+      sameSite: 'lax'
+    };
+    res.cookie('token', token, cookieOptions);
 
     res.json({
       success: true,
@@ -832,6 +861,12 @@ app.post('/api/auth/reset-password', async (req, res) => {
     console.error(' Reset password error:', err);
     res.status(500).json({ error: 'Failed to reset password', detail: err.message });
   }
+});
+
+// Cookie Logout Route
+app.post('/api/auth/logout', (req, res) => {
+  res.clearCookie('token');
+  res.json({ success: true, message: 'Logged out successfully' });
 });
 // Diagnostic check for upload route registration
 app.get('/api/upload', (req, res) => {
