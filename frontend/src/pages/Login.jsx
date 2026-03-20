@@ -26,7 +26,19 @@ function Login() {
     fetchSettings();
   }, []);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    // Check for logout success
+    const query = new URLSearchParams(window.location.search);
+    if (query.get('logout') === 'success') {
+      setSuccess('Logged out successfully. See you again!');
+      // Clear URL
+      window.history.replaceState({}, document.title, "/login");
+    }
+  }, []);
 
   const handleChange = (e) => {
     setFormData({
@@ -34,11 +46,13 @@ function Login() {
       [e.target.name]: e.target.value
     });
     setError('');
+    setSuccess('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setLoading(true);
 
     try {
@@ -69,6 +83,7 @@ function Login() {
         </div>
         
         {error && <div className="error-message">{error}</div>}
+        {success && <div className="success-message" style={{ background: '#ecfdf5', color: '#059669', padding: '10px', borderRadius: '8px', marginBottom: '12px', textAlign: 'center', border: '1px solid #a7f3d0' }}>{success}</div>}
         
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
@@ -86,15 +101,25 @@ function Login() {
 
           <div className="form-group">
             <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              placeholder="Enter your password"
-            />
+            <div className="password-input-wrapper">
+              <input
+                type={showPassword ? "text" : "password"}
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                placeholder="Enter your password"
+              />
+              <button 
+                type="button" 
+                className="password-toggle-btn"
+                onClick={() => setShowPassword(!showPassword)}
+                title={showPassword ? "Hide Password" : "Show Password"}
+              >
+                {showPassword ? "👁️" : "👁️‍🗨️"}
+              </button>
+            </div>
           </div>
 
           <div className="form-options">

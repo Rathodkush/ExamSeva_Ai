@@ -17,7 +17,7 @@ function Header() {
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    navigate('/login?logout=success');
     window.location.reload();
   };
 
@@ -53,6 +53,7 @@ function Header() {
       socket.on('forum_post', upsertNotification);
       socket.on('forum_reply', upsertNotification);
       socket.on('new_message', upsertNotification);
+      socket.on('new_notification', upsertNotification);
     } catch (err) {
       console.error('Socket connection error', err);
     }
