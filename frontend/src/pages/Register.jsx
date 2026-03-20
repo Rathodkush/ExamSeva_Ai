@@ -39,6 +39,8 @@ function Register() {
   }, []);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleRoleChange = () => {
     // In deployment, only student role is allowed from public registration.
