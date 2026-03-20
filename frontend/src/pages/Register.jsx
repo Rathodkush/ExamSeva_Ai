@@ -255,7 +255,7 @@ function Register() {
                   <label htmlFor="confirmPassword">Confirm Password</label>
                   <div className="password-input-wrapper">
                     <input
-                      type={showPassword ? "text" : "password"}
+                      type={showConfirmPassword ? "text" : "password"}
                       id="confirmPassword"
                       name="confirmPassword"
                       value={formData.confirmPassword}
@@ -266,9 +266,9 @@ function Register() {
                     <button 
                       type="button" 
                       className="password-toggle-btn"
-                      onClick={() => setShowPassword(!showPassword)}
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     >
-                      {showPassword ? "👁️" : "👁️‍🗨️"}
+                      {showConfirmPassword ? "👁️" : "👁️‍🗨️"}
                     </button>
                   </div>
                 </div>
