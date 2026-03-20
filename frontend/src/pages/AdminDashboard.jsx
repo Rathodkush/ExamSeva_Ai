@@ -29,10 +29,20 @@ function AdminDashboard() {
   const fetchDashboardData = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/admin/dashboard`, {
-        headers: { Authorization: `Bearer ${token}` }
+      // Fetch both generic and analytics data
+      const [genericResp, statsResp] = await Promise.all([
+        axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/admin/dashboard`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/admin/stats-overview`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      ]);
+      
+      setStats({
+        ...genericResp.data,
+        analytics: statsResp.data.stats
       });
-      setStats(response.data);
     } catch (err) {
       console.error('Error fetching dashboard:', err);
     } finally {
@@ -93,6 +103,22 @@ function AdminDashboard() {
           <div className="stat-content">
             <h3>{stats?.statistics?.totalAnnouncements || 0}</h3>
             <p>Announcements</p>
+          </div>
+        </div>
+
+        <div className="stat-card" style={{ background: '#f0f9ff', borderColor: '#bae6fd' }}>
+          <div className="stat-icon">🔑</div>
+          <div className="stat-content">
+            <h3>{stats?.analytics?.totalLifetimeLogins || 0}</h3>
+            <p>Total Logins</p>
+          </div>
+        </div>
+
+        <div className="stat-card" style={{ background: '#f0fdf4', borderColor: '#bbf7d0' }}>
+          <div className="stat-icon">🌐</div>
+          <div className="stat-content">
+            <h3>{stats?.analytics?.todayUniqueVisitors || 0}</h3>
+            <p>Today's Traffic</p>
           </div>
         </div>
       </div>

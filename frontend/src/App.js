@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import axios from 'axios';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SettingsProvider } from './context/SettingsContext';
 import Header from './components/Header';
@@ -76,6 +77,15 @@ const PublicRoute = ({ children }) => {
 
 function AppRoutes() {
   const { isAuthenticated, loading } = useAuth();
+
+  useEffect(() => {
+    const trackVisit = async () => {
+      try {
+        await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/stats/track-visit`);
+      } catch (err) { }
+    };
+    trackVisit();
+  }, []);
 
   if (loading) {
     return <div style={{ padding: '20px', textAlign: 'center' }}>Loading application...</div>;

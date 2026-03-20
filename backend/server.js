@@ -14,6 +14,7 @@ const axios = require('axios');
 const FormData = require('form-data');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const { VisitorModel, StatsModel } = require('./models/Stats');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const mammoth = require('mammoth');
@@ -557,6 +558,9 @@ app.post('/api/auth/login', async (req, res) => {
       token,
       user: userData
     });
+
+    // Increment Login Stat
+    await StatsModel.findOneAndUpdate({ key: 'total_logins' }, { $inc: { value: 1 } }, { upsert: true });
 
     // Send Welcome Back Notification
     createNotification(user._id, `Welcome back, ${user.fullName.split(' ')[0]}!`, 'login');
@@ -1593,6 +1597,51 @@ app.post('/api/admin/broadcast-notification', authenticateToken, async (req, res
   } catch (err) {
     console.error(' Broadcast error:', err);
     res.status(500).json({ error: 'Failed to broadcast notification' });
+  }
+});
+
+// --- INTERNAL ANALYTICS ---
+
+// Track Visit (Call from frontend)
+app.post('/api/stats/track-visit', async (req, res) => {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    
+    // Check if this IP already visited today
+    const visitor = await VisitorModel.findOneAndUpdate(
+      { date: today, ip },
+      { $inc: { totalViews: 1 }, lastVisited: new Date() },
+      { upsert: true, new: true }
+    );
+    res.json({ success: true, visitId: visitor._id });
+  } catch (err) {
+    res.status(500).json({ error: 'Stats recording failed' });
+  }
+});
+
+// Admin Stats Dashboard
+app.get('/api/admin/stats-overview', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') return res.status(403).json({ error: 'Admin only' });
+    
+    const today = new Date().toISOString().split('T')[0];
+    const totalUsers = await UserModel.countDocuments();
+    const uniqueVisitorsToday = await VisitorModel.countDocuments({ date: today });
+    const loginStats = await StatsModel.findOne({ key: 'total_logins' });
+    const totalQuestions = await mongoose.model('Question').countDocuments().catch(() => 0); // fallback if not loaded
+    
+    res.json({
+      success: true,
+      stats: {
+        totalUsers,
+        todayUniqueVisitors: uniqueVisitorsToday,
+        totalLifetimeLogins: loginStats ? loginStats.value : 0,
+        totalQuestionsBank: totalQuestions
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch dashboard stats' });
   }
 });
 
