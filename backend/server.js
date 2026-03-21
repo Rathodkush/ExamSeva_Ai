@@ -426,9 +426,10 @@ app.post('/api/auth/send-otp', async (req, res) => {
       return res.status(400).json({ error: 'Email already registered' });
     }
 
-    // Generate 6-digit OTPs
-    const emailOtp = Math.floor(100000 + Math.random() * 900000).toString();
-    const phoneOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    // Generate ONE 6-digit OTP for both (for simplicity and to avoid mismatch)
+    const commonOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    const emailOtp = commonOtp;
+    const phoneOtp = commonOtp;
 
     // Store in DB
     await OTPModel.deleteMany({ emailOrPhone: { $in: [email, phone] } });
