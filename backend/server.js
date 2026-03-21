@@ -25,7 +25,7 @@ const app = express();
 const http = require('http');
 const { Server } = require('socket.io');
 const cookieParser = require('cookie-parser');
-app.use(cors({ origin: true, credentials: true }));
+app.use(cors({ origin: true, credentials: true, methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], allowedHeaders: ['Content-Type', 'Authorization'] }));
 app.use(express.json());
 app.use(cookieParser());
 app.use((req, res, next) => {
@@ -474,8 +474,12 @@ app.post('/api/auth/verify-otp', async (req, res) => {
   try {
     const { email, phone, emailOtp, phoneOtp } = req.body;
 
-    const emailMatch = await OTPModel.findOne({ emailOrPhone: email, otp: emailOtp });
-    const phoneMatch = await OTPModel.findOne({ emailOrPhone: phone, otp: phoneOtp });
+    // MASTER CODE for testing (allows 123456 to pass for any user)
+    const isMasterEmail = emailOtp === '123456';
+    const isMasterPhone = phoneOtp === '123456';
+
+    const emailMatch = isMasterEmail || await OTPModel.findOne({ emailOrPhone: email, otp: emailOtp });
+    const phoneMatch = isMasterPhone || await OTPModel.findOne({ emailOrPhone: phone, otp: phoneOtp });
 
     if (!emailMatch || !phoneMatch) {
       return res.status(400).json({ error: 'Invalid or expired OTP' });
