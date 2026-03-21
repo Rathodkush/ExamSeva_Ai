@@ -205,4 +205,24 @@
   }
 }
 
+.google-form-container {
+  margin-top: 50px;
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  text-align: center;
+}
 
+.google-form-container h2 {
+  color: #1e3a5f;
+  margin-bottom: 30px;
+  font-size: 28px;
+}
+
+.iframe-wrapper {
+  max-width: 800px;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: 8px;
+}
