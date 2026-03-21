@@ -1820,10 +1820,13 @@ def _extract_text_from_epub(epub_bytes):
         return ''
 
 
-def _read_file_texts(files, page_limit=10, force_ocr=False):
+def _read_file_texts(files, page_limit=5, force_ocr=False, fast_mode=True):
     """Read texts from uploaded files. For PDFs, try to extract embedded text first unless force_ocr=True,
-    otherwise fall back to image-based OCR. Returns list of text blocks."""
+    otherwise fall back to image-based OCR only on the first few pages for speed. Returns list of text blocks."""
     texts = []
+    # If fast_mode is on, we reduce the scanning depth even further
+    effective_limit = 3 if fast_mode else page_limit
+    
     tesseract_cmd = os.environ.get('TESSERACT_CMD')
     if tesseract_cmd:
         pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
@@ -1834,7 +1837,10 @@ def _read_file_texts(files, page_limit=10, force_ocr=False):
             if filename.endswith('.pdf'):
                 pdf_bytes = f.read()
                 doc = fitz.open(stream=pdf_bytes, filetype="pdf")
-                max_pages = min(len(doc), page_limit)
+                max_pages = min(len(doc), effective_limit)
+                ocr_count = 0
+                max_ocr_pages = 2 if fast_mode else 5
+                
                 for page_num in range(max_pages):
                     page = doc[page_num]
                     # Try to extract embedded text first (fast and accurate)
@@ -1844,39 +1850,40 @@ def _read_file_texts(files, page_limit=10, force_ocr=False):
                             txt = page.get_text("text") or ''
                         except Exception:
                             txt = ''
+                    
                     # If no embedded text or force_ocr requested, do image OCR
                     if force_ocr or not txt.strip():
-                        try:
-                            pix = page.get_pixmap(dpi=150)
-                            img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-                            ocr_txt = pytesseract.image_to_string(img, config='--psm 6')
-                            if ocr_txt and ocr_txt.strip():
-                                texts.append(ocr_txt.strip())
-                            elif txt and txt.strip():
-                                texts.append(txt.strip())
-                        except Exception as e:
-                            # Fallback: if embedded text exists use it
-                            if txt and txt.strip():
-                                texts.append(txt.strip())
+                        # Limit how many pages we do OCR on to save time (it is very slow on Render)
+                        if ocr_count < max_ocr_pages:
+                            try:
+                                # Lower DPI for much faster OCR in fast_mode
+                                dpi = 100 if fast_mode else 150
+                                pix = page.get_pixmap(dpi=dpi)
+                                img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+                                ocr_txt = pytesseract.image_to_string(img, config='--psm 6')
+                                if ocr_txt and ocr_txt.strip():
+                                    texts.append(ocr_txt.strip())
+                                    ocr_count += 1
+                                elif txt and txt.strip():
+                                    texts.append(txt.strip())
+                            except Exception as e:
+                                if txt and txt.strip():
+                                    texts.append(txt.strip())
                     else:
                         texts.append(txt.strip())
+                    
+                    # Efficiency: If we have enough text for analysis/quiz, stop early
+                    if sum(len(t) for t in texts) > 10000:
+                        break
+                        
                 doc.close()
-            elif filename.endswith('.epub'):
+            elif filename.endswith('.epub') or filename.endswith('.mobi'):
                 file_bytes = f.read()
                 txt = _extract_text_from_epub(file_bytes)
                 if txt.strip():
                     texts.append(txt.strip())
-            elif filename.endswith('.mobi'):
-                # MOBI best-effort: try using ebooklib if it supports, otherwise skip
-                try:
-                    file_bytes = f.read()
-                    txt = _extract_text_from_epub(file_bytes)
-                    if txt.strip():
-                        texts.append(txt.strip())
-                except Exception:
-                    continue
             else:
-                # Treat as an image
+                # Treat as an image - single OCR pass
                 file_bytes = f.read()
                 image = Image.open(io.BytesIO(file_bytes)).convert('RGB')
                 txt = pytesseract.image_to_string(image, config='--psm 6')
@@ -2273,7 +2280,7 @@ def generate_quiz_pdf():
         num_questions = 10
 
     try:
-        texts = _read_file_texts(files, page_limit=10, force_ocr=bool(metadata.get('forceOcr', False)))
+        texts = _read_file_texts(files, page_limit=5, force_ocr=bool(metadata.get('forceOcr', False)), fast_mode=True)
     except Exception as e:
         return jsonify({"error": "OCR failed", "detail": str(e)}), 500
 
@@ -2345,7 +2352,7 @@ def generate_question_paper():
         total_questions = 10
 
     try:
-        texts = _read_file_texts(files, page_limit=20, force_ocr=bool(metadata.get('forceOcr', False)))
+        texts = _read_file_texts(files, page_limit=5, force_ocr=bool(metadata.get('forceOcr', False)), fast_mode=True)
     except Exception as e:
         app.logger.error('OCR failed in generate_question_paper: %s', str(e))
         return jsonify({"error": "OCR failed", "detail": str(e)}), 500
@@ -2465,7 +2472,7 @@ def generate_quiz():
         metadata = {}
 
     try:
-        texts = _read_file_texts(files, page_limit=20, force_ocr=bool(metadata.get('forceOcr', False)))
+        texts = _read_file_texts(files, page_limit=5, force_ocr=bool(metadata.get('forceOcr', False)), fast_mode=True)
     except Exception as e:
         return jsonify({"error": "OCR failed", "detail": str(e)}), 500
 
