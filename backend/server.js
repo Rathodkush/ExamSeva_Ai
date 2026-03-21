@@ -25,7 +25,19 @@ const app = express();
 const http = require('http');
 const { Server } = require('socket.io');
 const cookieParser = require('cookie-parser');
-app.use(cors({ origin: true, credentials: true, methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], allowedHeaders: ['Content-Type', 'Authorization'] }));
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow all subdomains of onrender.com and all variants of examseva
+    if (!origin || origin.includes('onrender.com') || origin.includes('localhost') || origin.includes('127.0.0.1')) {
+      callback(null, true);
+    } else {
+      callback(null, true); // fallback to true for other origins to be permissive
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
+}));
 app.use(express.json());
 app.use(cookieParser());
 app.use((req, res, next) => {
@@ -177,7 +189,7 @@ const NotificationModel = require('./models/Notification');
 const ensureInitialAdmin = async () => {
   try {
     // Allow env override, but fall back to sane defaults so admin always exists in dev
-    const adminEmail = process.env.ADMIN_EMAIL || 'admin@examseva.com';
+    const adminEmail = process.env.ADMIN_EMAIL || 'examsevahelpdesk@gmail.com';
     const adminPassword = process.env.ADMIN_PASSWORD || 'StrongAdminPass123';
     const adminName = process.env.ADMIN_NAME || 'ExamSeva Admin';
     if (!adminEmail || !adminPassword) return;
@@ -1232,7 +1244,7 @@ app.post('/api/upload', upload.array('files'), async (req, res) => {
         headers: form.getHeaders(),
         maxContentLength: Infinity,
         maxBodyLength: Infinity,
-        timeout: 180000 // 3 minute timeout
+        timeout: 300000 // 5 minutes (300k ms)
       });
 
       // Ensure response has the expected structure
@@ -1467,7 +1479,7 @@ app.post('/api/uploads/:uploadId/reanalyze', authenticateToken, async (req, res)
     const pythonUrl = `${pythonBaseUrl}/process`;
     const response = await axios.post(pythonUrl, form, {
       headers: form.getHeaders(),
-      timeout: 180000
+      timeout: 300000 // 5 minutes
     });
 
     const data = response.data || {};
@@ -1541,7 +1553,7 @@ app.post('/api/upload/preview', upload.array('files'), async (req, res) => {
         headers: form.getHeaders(),
         maxContentLength: Infinity,
         maxBodyLength: Infinity,
-        timeout: 60000 // Increased to 60s for preview on Render
+        timeout: 300000 // Increased to 5m for preview on Render
       });
     } catch (err) {
       // Cleanup files
@@ -1626,7 +1638,7 @@ app.post('/api/upload/enhance', upload.array('files'), async (req, res) => {
         headers: form.getHeaders(),
         maxContentLength: Infinity,
         maxBodyLength: Infinity,
-        timeout: 120000 // 2 minutes for enhancement
+        timeout: 300000 // 5 minutes for enhancement
       });
     } catch (err) {
       files.forEach(f => fs.unlink(f.path, () => { }));
@@ -1732,7 +1744,7 @@ app.post('/api/notes', notesUpload.single('file'), async (req, res) => {
         form.append('metadata', JSON.stringify({ uploadedBy: author || name }));
 
         const pythonUrl = `${pythonBaseUrl}/process`;
-        const resp = await axios.post(pythonUrl, form, { headers: form.getHeaders(), timeout: 120000 });
+        const resp = await axios.post(pythonUrl, form, { headers: form.getHeaders(), timeout: 300000 });
         const data = resp.data || {};
 
         // Persist an Upload record with extracted groups, unique questions and metadata
@@ -2106,8 +2118,8 @@ app.post('/api/quiz/generate_pdf', quizUpload.single('file'), async (req, res) =
     // Pre-check: request JSON quiz generation to confirm questions exist
     try {
       const checkForm = createForm();
-      const checkUrl = process.env.PYTHON_URL_BASE ? `${process.env.PYTHON_URL_BASE}/generate-quiz` : 'http://127.0.0.1:5000/generate-quiz';
-      const checkResp = await axios.post(checkUrl, checkForm, { headers: checkForm.getHeaders(), timeout: 180000 });
+      const checkUrl = `${pythonBaseUrl}/generate-quiz`;
+      const checkResp = await axios.post(checkUrl, checkForm, { headers: checkForm.getHeaders(), timeout: 300000 });
       const questionCount = (checkResp.data && checkResp.data.questions && checkResp.data.questions.length) || 0;
       console.log('Python /generate-quiz returned question count:', questionCount);
       if (questionCount === 0) {
@@ -2120,8 +2132,8 @@ app.post('/api/quiz/generate_pdf', quizUpload.single('file'), async (req, res) =
     }
 
     const form = createForm();
-    const pythonUrl = process.env.PYTHON_URL_BASE ? `${process.env.PYTHON_URL_BASE}/generate-quiz-pdf` : 'http://127.0.0.1:5000/generate-quiz-pdf';
-    const response = await axios.post(pythonUrl, form, { headers: form.getHeaders(), responseType: 'arraybuffer', timeout: 180000 });
+    const pythonUrl = `${pythonBaseUrl}/generate-quiz-pdf`;
+    const response = await axios.post(pythonUrl, form, { headers: form.getHeaders(), responseType: 'arraybuffer', timeout: 300000 });
     const dataBuffer = Buffer.from(response.data || []);
 
     // Treat very small responses as empty / no-results (likely OCR failed or no questions produced)
@@ -2149,8 +2161,8 @@ app.post('/api/exam/detect', quizUpload.single('file'), async (req, res) => {
       return f;
     };
     const form = createForm();
-    const url = process.env.PYTHON_URL_BASE ? `${process.env.PYTHON_URL_BASE}/generate-quiz` : 'http://127.0.0.1:5000/generate-quiz';
-    const resp = await axios.post(url, form, { headers: form.getHeaders(), timeout: 180000 });
+    const url = `${pythonBaseUrl}/generate-quiz`;
+    const resp = await axios.post(url, form, { headers: form.getHeaders(), timeout: 300000 });
     const questions = (resp.data && resp.data.questions) || [];
     // Reuse detection logic from generate_paper
     const detectClassFromQuestions = (qs) => {
@@ -2226,8 +2238,8 @@ app.post('/api/quiz/generate_paper', quizUpload.single('file'), async (req, res)
     // Pre-check: request JSON quiz generation to confirm questions exist
     try {
       const checkForm = createForm();
-      const checkUrl = process.env.PYTHON_URL_BASE ? `${process.env.PYTHON_URL_BASE}/generate-quiz` : 'http://127.0.0.1:5000/generate-quiz';
-      const checkResp = await axios.post(checkUrl, checkForm, { headers: checkForm.getHeaders(), timeout: 180000 });
+      const checkUrl = `${pythonBaseUrl}/generate-quiz`;
+      const checkResp = await axios.post(checkUrl, checkForm, { headers: checkForm.getHeaders(), timeout: 300000 });
       let questions = (checkResp.data && checkResp.data.questions) || [];
 
       // If the user didn't specify class level for school mode, attempt a lightweight heuristic
@@ -2384,7 +2396,7 @@ app.post('/api/analysis/report', async (req, res) => {
     // Expect body with { groups, unique, metadata }
     const payload = req.body || {};
     const pythonUrl = `${pythonBaseUrl}/generate_report`;
-    const response = await axios.post(pythonUrl, payload, { responseType: 'arraybuffer', timeout: 60000 });
+    const response = await axios.post(pythonUrl, payload, { responseType: 'arraybuffer', timeout: 300000 });
     // Forward content headers from Python service when available
     if (response.headers && response.headers['content-type']) {
       res.set('Content-Type', response.headers['content-type']);
@@ -2436,7 +2448,7 @@ app.post('/api/analysis/docx', authenticateToken, async (req, res) => {
   try {
     const payload = req.body || {};
     const pythonUrl = `${pythonBaseUrl}/generate_docx`;
-    const response = await axios.post(pythonUrl, payload, { responseType: 'arraybuffer', timeout: 60000 });
+    const response = await axios.post(pythonUrl, payload, { responseType: 'arraybuffer', timeout: 300000 });
     res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
     res.set('Content-Disposition', 'attachment; filename="analysis_questions.docx"');
     res.send(Buffer.from(response.data));
@@ -3401,7 +3413,11 @@ app.get('/api/chat/conversations', authenticateToken, async (req, res) => {
 // Create HTTP server and attach Socket.IO for realtime notifications
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: '*' }
+  cors: { 
+    origin: '*',
+    credentials: true
+  },
+  transports: ['websocket']
 });
 ioInstance = io;
 
@@ -3415,16 +3431,13 @@ io.on('connection', (socket) => {
 const PORT = process.env.PORT || 4000;
 
 // Start server
-server.listen(PORT, () => {
+const nodeServer = server.listen(PORT, () => {
   console.log(`\n Backend server started!`);
   console.log(` Server running on http://localhost:${PORT}`);
   console.log(` MongoDB status: ${mongoose.connection.readyState === 1 ? '✅ Connected' : '⚠️  Not connected'}`);
-  console.log(`\n Available endpoints:`);
-  console.log(`   GET  /api/health`);
-  console.log(`   POST /api/notes`);
-  console.log(`   GET  /api/notes`);
-  console.log(`   POST /api/quiz/generate`);
-  console.log(`   POST /api/forum/posts`);
-  console.log(`   GET  /api/forum/posts`);
-  console.log(`\n`);
 });
+
+// Configure server timeouts (Required for long-running AI processes)
+nodeServer.timeout = 600000;       // 10 minutes
+nodeServer.keepAliveTimeout = 610000; 
+nodeServer.headersTimeout = 620000;
