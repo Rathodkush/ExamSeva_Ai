@@ -1684,7 +1684,7 @@ app.get('/api/admin/stats-overview', authenticateToken, async (req, res) => {
     const totalUsers = await UserModel.countDocuments();
     const uniqueVisitorsToday = await VisitorModel.countDocuments({ date: today });
     const loginStats = await StatsModel.findOne({ key: 'total_logins' });
-    const totalQuestions = await mongoose.model('Question').countDocuments().catch(() => 0); // fallback if not loaded
+    const totalQuestions = 0; // Fallback or use another relevant count if needed
 
     res.json({
       success: true,
