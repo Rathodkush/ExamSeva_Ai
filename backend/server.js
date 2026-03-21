@@ -167,7 +167,7 @@ const UserModel = mongoose.models.User || mongoose.model('User', UserSchema);
 const OTPSchema = new mongoose.Schema({
   emailOrPhone: { type: String, required: true },
   otp: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now, expires: 600 } // Set to exactly 10 minutes (600s) as requested
+  createdAt: { type: Date, default: Date.now, expires: 900 } // Extended to 15 minutes (900s) to prevent early expiry
 });
 const OTPModel = mongoose.models.OTP || mongoose.model('OTP', OTPSchema);
 
@@ -265,7 +265,14 @@ const SettingsModel = mongoose.models.Settings || mongoose.model('Settings', Set
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || process.env.REACT_APP_GOOGLE_CLIENT_ID || '';
 const googleClient = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : null;
-const pythonBaseUrl = (process.env.PYTHON_URL_BASE || process.env.PYTHON_URL || 'http://127.0.0.1:5000').replace(/\/$/, '');
+// Python AI Service configuration: prefer internal networking on Render if available
+const isRender = !!process.env.RENDER;
+const pythonBaseUrl = (
+  process.env.PYTHON_URL_BASE || 
+  process.env.PYTHON_URL || 
+  (isRender ? 'http://examseva-ai:5000' : 'http://127.0.0.1:5000') // Use internal hostname on Render for reliability
+).replace(/\/$/, '');
+
 console.log(' Python AI service URL:', pythonBaseUrl);
 
 // Nodemailer Config
@@ -1930,7 +1937,11 @@ app.get('/api/notes/:id/download', async (req, res) => {
     }
 
     if (!note.filePath || !fs.existsSync(note.filePath)) {
-      return res.status(404).json({ error: 'File not found' });
+      console.warn(`[DOWNLOAD] File not found on disk at ${note.filePath}. This may happen if the server restarted (ephemeral storage).`);
+      return res.status(404).json({ 
+        error: 'File not found on server', 
+        detail: 'The requested file is no longer available on this server due to ephemeral storage limitations. Please re-upload if needed.' 
+      });
     }
 
     res.download(note.filePath, note.fileName || 'note.pdf', (err) => {
@@ -2568,8 +2579,8 @@ app.post('/api/forum/posts', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Only students and admins can create forum posts
-    if (user.role !== 'student' && user.role !== 'admin') {
+    // Allow students, admins, and mentors (legacy) to create forum posts
+    if (user.role !== 'student' && user.role !== 'admin' && user.role !== 'mentor') {
       return res.status(403).json({ error: 'Only authorized users can create forum posts' });
     }
 
@@ -3220,7 +3231,7 @@ app.get('/api/admin/reports', authenticateToken, requireAdmin, async (req, res) 
       const forumStats = {
         totalPosts: await PostModel.countDocuments(),
         totalLikes: await PostModel.aggregate([
-          { $group: { _id: null, total: { $sum: { $size: { $ifNull: ['$likes', []] } } } } }
+          { $group: { _id: null, total: { $sum: '$likes' } } }
         ]).then(result => result[0]?.total || 0)
       };
       reports.forum = forumStats;

@@ -333,6 +333,25 @@ def extract_pdf_metadata(text: str) -> dict:
 
     return meta
 
+@app.route('/health', methods=['GET'])
+def health():
+    """Service health check for monitoring and internal connectivity testing."""
+    model_loaded = False
+    try:
+        from ocr_nlp import _model
+        model_loaded = (_model is not None)
+    except Exception:
+        model_loaded = False
+        
+    return jsonify({
+        "status": "online",
+        "service": "examseva-ai",
+        "timestamp": datetime.now().isoformat(),
+        "models_loaded": model_loaded,
+        "environment": os.environ.get('RENDER_EXTERNAL_URL', 'local'),
+        "models_available": models_available
+    })
+
 # ==================== Authentication Routes ====================
 
 @app.route('/')

@@ -32,4 +32,6 @@ COPY . .
 EXPOSE 5000
 
 # Run the application (use dynamic port for Render)
-CMD ["sh", "-c", "gunicorn app:app --bind 0.0.0.0:${PORT:-5000} --timeout 300"]
+# Run the application (use dynamic port for Render) with memory-optimized workers
+CMD ["sh", "-c", "gunicorn app:app --bind 0.0.0.0:${PORT:-5000} --workers 1 --threads 4 --timeout 300"]
+
