@@ -15,7 +15,7 @@ except Exception:
     Document = None
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 import re
 try:
@@ -944,7 +944,7 @@ def health():
     return jsonify({
         "status": "online",
         "service": "examseva-python-ai",
-        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "timestamp": datetime.now(timezone.utc).isoformat() if hasattr(datetime, 'now') and hasattr(timezone, 'utc') else datetime.utcnow().isoformat() + "Z",
         "models_available": models_available
     }), 200
 
@@ -989,18 +989,37 @@ def health_model():
         }), 500
 
 def enhance_image_for_ocr(image: Image.Image) -> Image.Image:
-    """Enhance image quality for better OCR."""
+    """Enhance image quality for better OCR, handling low-res/blur."""
     try:
         width, height = image.size
+        # Tesseract performs best at ~300 DPI. If small, scale UP.
+        # If too large, scale DOWN to save memory.
         max_dim = max(width, height)
-        if max_dim > 1500:  # Only scale down if too large, not up
-            scale = 1500 / max_dim
+        if max_dim < 1000:
+            scale = 2000 / max_dim
+            new_size = (int(width * scale), int(height * scale))
+            image = image.resize(new_size, Image.Resampling.LANCZOS)
+        elif max_dim > 2500:
+            scale = 2500 / max_dim
             new_size = (int(width * scale), int(height * scale))
             image = image.resize(new_size, Image.Resampling.LANCZOS)
 
+        # Convert to grayscale
         gray = image.convert("L")
+        
+        # Increase contrast significantly
+        enhancer = ImageEnhance.Contrast(gray)
+        gray = enhancer.enhance(2.0)
+        
+        # Auto-contrast for final balancing
         gray = ImageOps.autocontrast(gray)
-        gray = gray.filter(ImageFilter.UnsharpMask(radius=1.0, percent=120, threshold=3))
+        
+        # Sharpening - helps with blur
+        sharpen = ImageEnhance.Sharpness(gray)
+        gray = sharpen.enhance(2.5)
+        
+        # Final unsharp mask filter
+        gray = gray.filter(ImageFilter.UnsharpMask(radius=2, percent=150, threshold=3))
 
         return gray
     except Exception as e:
@@ -1195,6 +1214,9 @@ def process():
     
     try:
         futures = []
+        # Keep documents open until all tasks are finished
+        open_docs = []
+        
         for f in files:
             try:
                 filename = f.filename.lower()
@@ -1202,11 +1224,11 @@ def process():
                     pdf_bytes = f.read()
                     try:
                         doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+                        open_docs.append(doc) # Track to close later
                         max_pages = min(len(doc), 10)
                         for page_num in range(max_pages):
                             try:
                                 page = doc[page_num]
-                                # Try to get embedded text first (fast and accurate when present)
                                 try:
                                     page_text = page.get_text().strip()
                                 except Exception:
@@ -1220,7 +1242,6 @@ def process():
                                     futures.append(future)
                             except Exception as pe:
                                 errors.append(f"Error on page {page_num}: {str(pe)}")
-                        doc.close()
                     except Exception as pdf_e:
                         errors.append(f"Error processing PDF {filename}: {str(pdf_e)}")
                 else:
@@ -1233,7 +1254,7 @@ def process():
             except Exception as file_e:
                 errors.append(f"Error with file {f.filename}: {str(file_e)}")
         
-        # Collect results from futures
+        # Collect results from all futures before closing docs
         if futures:
             for future in as_completed(futures):
                 try:
@@ -1242,6 +1263,13 @@ def process():
                         texts.append(result)
                 except Exception as result_e:
                     errors.append(f"Error processing result: {str(result_e)}")
+        
+        # Clean up all open documents now that processing is done
+        for doc in open_docs:
+            try:
+                doc.close()
+            except:
+                pass
 
         # Filter out garbage-like OCR outputs (hex dumps, base64, low-letter density)
         filtered_texts = []

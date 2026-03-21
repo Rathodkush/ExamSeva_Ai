@@ -76,26 +76,15 @@ function Contact() {
           <div className="info-card form-promo">
             <h3>Send a Message</h3>
             <p>Fill our Google Form — we reply within 24-48 hrs.</p>
-            <button className="open-form-btn">Open Form</button>
+            <button 
+              className="open-form-btn" 
+              onClick={() => window.open(settings.contactFormUrl, '_blank')}
+            >
+              Open Form
+            </button>
           </div>
         </div>
 
-        <div className="google-form-container">
-          <h2>Send us a Message</h2>
-          <div className="iframe-wrapper">
-            <iframe 
-              src="https://docs.google.com/forms/d/e/1FAIpQLSfirVmJnhCpoHbjo7_FJ2DlZ11AJVSRMHbZi9p3Q0EPUkFgTw/viewform?embedded=true" 
-              width="100%" 
-              height="800" 
-              frameBorder="0" 
-              marginHeight="0" 
-              marginWidth="0"
-              title="Contact Form"
-            >
-              Loading…
-            </iframe>
-          </div>
-        </div>
       </div>
     </div>
   );

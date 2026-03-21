@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import '../styles/Auth.css';
 import GoogleAuthButton from '../components/GoogleAuthButton';
+import { showPersistentToast } from '../utils/toast';
 
 function Login() {
   const navigate = useNavigate();
@@ -62,6 +63,9 @@ function Login() {
         // Store token in localStorage
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
+        localStorage.removeItem('lastAnalysis'); // Fresh start for new user
+        
+        showPersistentToast(`Welcome back, ${response.data.user.fullName || 'User'}! Logged in successfully.`);
         
         // Redirect to profile or home
         navigate('/profile');

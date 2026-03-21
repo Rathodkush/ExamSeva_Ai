@@ -2235,53 +2235,10 @@ app.post('/api/quiz/generate_paper', quizUpload.single('file'), async (req, res)
       return f;
     };
 
-    // Pre-check: request JSON quiz generation to confirm questions exist
-    try {
-      const checkForm = createForm();
-      const checkUrl = `${pythonBaseUrl}/generate-quiz`;
-      const checkResp = await axios.post(checkUrl, checkForm, { headers: checkForm.getHeaders(), timeout: 300000 });
-      let questions = (checkResp.data && checkResp.data.questions) || [];
-
-      // If the user didn't specify class level for school mode, attempt a lightweight heuristic
-      if (metadataToSend.mode === 'school' && !metadataToSend.classLevel) {
-        // Detect class using question complexity/keywords
-        const detectClassFromQuestions = (qs) => {
-          if (!qs || qs.length === 0) return undefined;
-          const text = qs.map(q => (q.question || '') + ' ' + (q.options || []).join(' ')).join(' ').toLowerCase();
-          let score = 0;
-          const universityKeywords = ['derive', 'prove', 'differentiate', 'integration', 'integrate', 'eigen', 'determinant', 'theorem', 'assume', 'state and prove', 'justify', 'compare'];
-          const higherKeywords = ['photosynthesis', 'osmosis', 'thermodynamics', 'electrolysis', 'acid', 'base', 'algebra', 'calculus', 'matrix', 'vector'];
-          universityKeywords.forEach(k => { if (text.includes(k)) score += 3; });
-          higherKeywords.forEach(k => { if (text.includes(k)) score += 2; });
-          // Very simple mapping
-          if (score >= 8) return 12; // Senior secondary
-          if (score >= 5) return 10; // Secondary
-          if (score >= 2) return 8;  // Middle/secondary
-          return 6; // Lower secondary
-        };
-        const detected = detectClassFromQuestions(questions);
-        if (detected) {
-          metadataToSend.classLevel = detected;
-          console.log('Auto-detected classLevel:', detected);
-        }
-      }
-
-      // If includeOptions is false, strip options from preview/check results
-      if (metadataToSend.includeOptions === false) {
-        questions = questions.map(q => ({ ...q, options: [] }));
-      }
-      const questionCount = questions.length || 0;
-      console.log('Python /generate-quiz returned question count:', questionCount);
-      if (questionCount === 0) {
-        return res.status(400).json({ error: 'No questions could be generated from this file. Try using clearer/scanned content or modify advanced options.' });
-      }
-    } catch (checkErr) {
-      // If check fails due to connectivity/timeouts, log and continue to attempt PDF generation; previous fallback existed
-      console.error('Pre-check to Python generate-quiz failed:', checkErr && checkErr.message ? checkErr.message : checkErr);
-      // continue
-    }
+    // Optimization: Skip pre-check to save time, as OCR is slow. Directly attempt generation.
 
     const pythonUrl = `${pythonBaseUrl}/generate-question-paper`;
+    const form = createForm();
     let dataBuffer;
     try {
       const response = await axios.post(pythonUrl, form, { 

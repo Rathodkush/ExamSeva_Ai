@@ -443,6 +443,17 @@ def extract_and_compare(texts: List[str]) -> Dict[str, List]:
             # Tune for exam papers: require at least 2 shared keywords OR 1 strong stem match
             if (inter >= 2 and jacc >= 0.45) or (stem_inter >= 2):
                 union(i, j)
+                continue
+            
+            # Fuzzy match fallback for OCR typos
+            if fuzz is not None:
+                try:
+                    # Token Set Ratio is robust to typo-heavy OCR
+                    ratio = fuzz.token_set_ratio(questions_for_embed[i], questions_for_embed[j])
+                    if ratio >= 85: # High threshold for typos
+                        union(i, j)
+                except:
+                    pass
 
     comp_map = {}
     for i in range(n):
@@ -621,9 +632,25 @@ def extract_and_compare(texts: List[str]) -> Dict[str, List]:
             })
 
     elapsed = time.time() - t0
-    if VERBOSE:
-        print(f"[ocr_nlp] processed {len(texts)} source blocks -> {len(questions)} candidate qs -> "
-              f"{len(questions_for_embed)} embedded; clusters={len(groups)}; time={elapsed:.2f}s")
+    
+    # Calculate summary analytics
+    total_q = len(questions)
+    unique_q = len(unique)
+    redundant_q = total_q - unique_q
+    
+    summary = {
+        "totalQuestionsDetected": total_q,
+        "uniqueQuestionsCount": unique_q,
+        "repeatedGroupsCount": len(groups),
+        "redundancyPercentage": round((redundant_q / max(1, total_q)) * 100, 1),
+        "processingTimeSec": round(elapsed, 2),
+        "aiConfidence": "High" if len(texts) > 2 else "Medium"
+    }
 
     # Return groups, unique and also candidate list for UI fallback/inspection
-    return {"groups": groups, "unique": unique, "candidates": questions}
+    return {
+        "groups": groups, 
+        "unique": unique, 
+        "candidates": questions,
+        "summary": summary
+    }

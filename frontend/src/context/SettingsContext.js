@@ -12,6 +12,7 @@ export const SettingsProvider = ({ children }) => {
     contactEmail: 'support@examseva.com',
     contactPhone: '022-05200',
     contactAddress: '123 Education Street, Mumbai City, 400005',
+    contactFormUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSfirVmJnhCpoHbjo7_FJ2DlZ11AJVSRMHbZi9p3Q0EPUkFgTw/viewform',
     aboutUs: '',
     footerLinks: []
   });

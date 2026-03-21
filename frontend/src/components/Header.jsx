@@ -5,6 +5,7 @@ import { useSettings } from '../context/SettingsContext';
 import '../styles/Header.css';
 import axios from 'axios';
 import { io } from 'socket.io-client';
+import { showPersistentToast } from '../utils/toast';
 
 function Header() {
   const { isAuthenticated, user, logout } = useAuth();
@@ -16,6 +17,22 @@ function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [toasts, setToasts] = useState([]);
 
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/auth/logout`, {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+    } catch (e) { }
+    showPersistentToast('Logout Successful! See you again.');
+    localStorage.removeItem('lastAnalysis');
+    logout();
+    navigate('/login');
+    window.location.reload();
+  };
+
   // Auto-remove toasts after 3 seconds
   useEffect(() => {
     if (toasts.length > 0) {
@@ -26,19 +43,28 @@ function Header() {
     }
   }, [toasts]);
 
-  const handleLogout = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (token) {
-        await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/auth/logout`, {}, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+  // Listen for global toast events
+  useEffect(() => {
+    const handleToastEvent = (e) => {
+      const msg = e.detail;
+      if (msg) {
+        setToasts(prev => [...prev, { id: Date.now(), message: msg }]);
       }
-    } catch (e) { }
-    logout();
-    navigate('/login?logout=success');
-    window.location.reload();
-  };
+    };
+    window.addEventListener('show-toast', handleToastEvent);
+    return () => window.removeEventListener('show-toast', handleToastEvent);
+  }, []);
+
+  // Check for persistent toasts on mount
+  useEffect(() => {
+    const pending = localStorage.getItem('pending_toast');
+    if (pending) {
+      setTimeout(() => {
+        setToasts(prev => [...prev, { id: Date.now(), message: pending }]);
+        localStorage.removeItem('pending_toast');
+      }, 500); // Small delay to ensure header is fully visible
+    }
+  }, []);
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
