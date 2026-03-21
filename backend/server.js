@@ -167,7 +167,7 @@ const UserModel = mongoose.models.User || mongoose.model('User', UserSchema);
 const OTPSchema = new mongoose.Schema({
   emailOrPhone: { type: String, required: true },
   otp: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now, expires: 600 } // Auto-delete in 10 mins
+  createdAt: { type: Date, default: Date.now, expires: 1200 } // Increased to 20 minutes for safety
 });
 const OTPModel = mongoose.models.OTP || mongoose.model('OTP', OTPSchema);
 
@@ -454,7 +454,8 @@ app.post('/api/auth/send-otp', async (req, res) => {
       `
     };
     
-    await transporter.sendMail(mailOptions).catch(err => {
+    // DON'T AWAIT! Send in background so response is instant for user
+    transporter.sendMail(mailOptions).catch(err => {
       console.error('Email send error:', err);
     });
 
