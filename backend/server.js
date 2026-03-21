@@ -458,11 +458,13 @@ app.post('/api/auth/send-otp', async (req, res) => {
       console.error('Email send error:', err);
     });
 
-    // Send SMS (Dummy for now - user asked for free fast)
-    // You can integrate Fast2SMS or Twilio here
-    console.log(`[DUMMY SMS] To: ${phone}, OTP: ${phoneOtp}`);
-
-    res.json({ success: true, message: 'OTP sent to Email and Phone' });
+    // [TEST MODE] Return OTPs in response for easy testing on Render
+    res.json({ 
+      success: true, 
+      message: 'OTP sent (Simulated)', 
+      emailOtp, 
+      phoneOtp 
+    });
   } catch (err) {
     console.error('OTP send error:', err);
     res.status(500).json({ error: 'Failed to send OTP' });
