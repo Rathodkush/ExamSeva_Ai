@@ -155,10 +155,21 @@ const UserSchema = new mongoose.Schema({
   resetPasswordExpires: Date,
   lastLogin: Date,
   lastLogout: Date,
+  isEmailVerified: { type: Boolean, default: false },
+  isPhoneVerified: { type: Boolean, default: false },
   isActive: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now }
 });
 const UserModel = mongoose.models.User || mongoose.model('User', UserSchema);
+
+// OTP Schema
+const OTPSchema = new mongoose.Schema({
+  emailOrPhone: { type: String, required: true },
+  otp: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now, expires: 600 } // Auto-delete in 10 mins
+});
+const OTPModel = mongoose.models.OTP || mongoose.model('OTP', OTPSchema);
+
 const NotificationModel = require('./models/Notification');
 
 // Ensure there is at least one admin user if ADMIN_EMAIL / ADMIN_PASSWORD are provided
@@ -255,6 +266,16 @@ const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || process.env.REACT_APP_G
 const googleClient = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : null;
 const pythonBaseUrl = (process.env.PYTHON_URL_BASE || process.env.PYTHON_URL || 'http://127.0.0.1:5000').replace(/\/$/, '');
 console.log(' Python AI service URL:', pythonBaseUrl);
+
+// Nodemailer Config
+const nodemailer = require('nodemailer');
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS
+  }
+});
 
 // Global IO instance for accessibility
 let ioInstance = null;
@@ -385,7 +406,81 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
-// ==================== AUTHENTICATION ROUTES ====================
+// ==================== OTP VERIFICATION ROUTES ====================
+
+// Send OTP
+app.post('/api/auth/send-otp', async (req, res) => {
+  try {
+    const { email, phone } = req.body;
+    if (!email || !phone) return res.status(400).json({ error: 'Email and Phone are required' });
+
+    // Check if email already exists
+    const existing = await UserModel.findOne({ email });
+    if (existing) return res.status(400).json({ error: 'Email already registered' });
+
+    // Generate 6-digit OTPs
+    const emailOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    const phoneOtp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Store in DB
+    await OTPModel.deleteMany({ emailOrPhone: { $in: [email, phone] } });
+    await OTPModel.create([
+      { emailOrPhone: email, otp: emailOtp },
+      { emailOrPhone: phone, otp: phoneOtp }
+    ]);
+
+    // Send Email
+    const mailOptions = {
+      from: `"ExamSeva" <${process.env.SMTP_USER}>`,
+      to: email,
+      subject: 'ExamSeva - Email Verification Code',
+      html: `
+        <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+          <h2 style="color: #1e3a8a;">Verify your Email</h2>
+          <p>Your OTP for ExamSeva registration is:</p>
+          <div style="background: #f1f5f9; padding: 15px; font-size: 24px; font-weight: bold; text-align: center; letter-spacing: 5px; color: #1e3a8a;">
+            ${emailOtp}
+          </div>
+          <p style="color: #64748b; font-size: 14px; margin-top: 20px;">This OTP will expire in 10 minutes.</p>
+        </div>
+      `
+    };
+    
+    await transporter.sendMail(mailOptions).catch(err => {
+      console.error('Email send error:', err);
+    });
+
+    // Send SMS (Dummy for now - user asked for free fast)
+    // You can integrate Fast2SMS or Twilio here
+    console.log(`[DUMMY SMS] To: ${phone}, OTP: ${phoneOtp}`);
+
+    res.json({ success: true, message: 'OTP sent to Email and Phone' });
+  } catch (err) {
+    console.error('OTP send error:', err);
+    res.status(500).json({ error: 'Failed to send OTP' });
+  }
+});
+
+// Verify OTP
+app.post('/api/auth/verify-otp', async (req, res) => {
+  try {
+    const { email, phone, emailOtp, phoneOtp } = req.body;
+
+    const emailMatch = await OTPModel.findOne({ emailOrPhone: email, otp: emailOtp });
+    const phoneMatch = await OTPModel.findOne({ emailOrPhone: phone, otp: phoneOtp });
+
+    if (!emailMatch || !phoneMatch) {
+      return res.status(400).json({ error: 'Invalid or expired OTP' });
+    }
+
+    // Clean up
+    await OTPModel.deleteMany({ emailOrPhone: { $in: [email, phone] } });
+
+    res.json({ success: true, message: 'Verified successfully' });
+  } catch (err) {
+    res.status(500).json({ error: 'Verification failed' });
+  }
+});
 
 // Register Route
 app.post('/api/auth/register', async (req, res) => {

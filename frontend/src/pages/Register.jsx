@@ -23,6 +23,14 @@ function Register() {
     password: '',
     confirmPassword: ''
   });
+  
+  const [otpData, setOtpData] = useState({
+    emailOtp: '',
+    phoneOtp: ''
+  });
+  const [isOtpSent, setIsOtpSent] = useState(false);
+  const [isOtpVerified, setIsOtpVerified] = useState(false);
+  const [timer, setTimer] = useState(0);
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -104,16 +112,66 @@ function Register() {
   };
 
   const nextStep = () => {
-    if (validateStep1()) {
+    if (step === 1 && validateStep1()) {
       setStep(2);
       setError('');
+    } else if (step === 2 && isOtpVerified) {
+      setStep(3);
+      setError('');
+    } else if (step === 2 && !isOtpVerified) {
+      setError('Please verify both OTPs first');
     }
   };
 
   const prevStep = () => {
-    setStep(1);
+    setStep(prev => prev - 1);
     setError('');
   };
+
+  const sendOTP = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/auth/send-otp`, {
+        email: formData.email,
+        phone: formData.phone
+      });
+      setIsOtpSent(true);
+      setTimer(60);
+      alert('OTP sent to your Email and Phone!');
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to send OTP');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const verifyOTP = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/auth/verify-otp`, {
+        email: formData.email,
+        phone: formData.phone,
+        emailOtp: otpData.emailOtp,
+        phoneOtp: otpData.phoneOtp
+      });
+      setIsOtpVerified(true);
+      alert('Verification successful!');
+      setStep(3);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Invalid OTP');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (timer > 0) {
+      const interval = setInterval(() => setTimer(prev => prev - 1), 1000);
+      return () => clearInterval(interval);
+    }
+  }, [timer]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -168,6 +226,8 @@ function Register() {
           <div className={`progress-step ${step >= 1 ? 'active' : ''}`}>1</div>
           <div className="progress-line"></div>
           <div className={`progress-step ${step >= 2 ? 'active' : ''}`}>2</div>
+          <div className="progress-line"></div>
+          <div className={`progress-step ${step >= 3 ? 'active' : ''}`}>3</div>
         </div>
 
         {error && <div className="error-message">{error}</div>}
@@ -221,12 +281,68 @@ function Register() {
               </div>
 
               <button type="button" onClick={nextStep} className="auth-button">
-                Next Step →
+                Next: Verification →
               </button>
             </div>
           )}
 
           {step === 2 && (
+            <div className="step-animation">
+              <div className="otp-verification-section">
+                <h3>Verify your Identity</h3>
+                <p style={{fontSize: '14px', color: '#667', marginBottom: '15px'}}>Enter the 6-digit codes sent to your email and phone.</p>
+                
+                <div className="form-group">
+                  <label htmlFor="emailOtp">Email OTP</label>
+                  <input
+                    type="text"
+                    id="emailOtp"
+                    value={otpData.emailOtp}
+                    onChange={(e) => setOtpData({...otpData, emailOtp: e.target.value.replace(/\D/g, '').slice(0, 6)})}
+                    placeholder="Enter 6-digit email code"
+                    className="otp-input"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="phoneOtp">Phone OTP</label>
+                  <input
+                    type="text"
+                    id="phoneOtp"
+                    value={otpData.phoneOtp}
+                    onChange={(e) => setOtpData({...otpData, phoneOtp: e.target.value.replace(/\D/g, '').slice(0, 6)})}
+                    placeholder="Enter 6-digit phone code"
+                    className="otp-input"
+                  />
+                </div>
+
+                <div className="otp-actions">
+                  <button 
+                    type="button" 
+                    onClick={sendOTP} 
+                    className="resend-btn" 
+                    disabled={timer > 0 || loading}
+                  >
+                    {timer > 0 ? `Resend in ${timer}s` : 'Resend OTP'}
+                  </button>
+                  <button 
+                    type="button" 
+                    onClick={verifyOTP} 
+                    className="auth-button"
+                    disabled={loading || otpData.emailOtp.length < 6 || otpData.phoneOtp.length < 6}
+                  >
+                    {loading ? 'Verifying...' : 'Verify OTP'}
+                  </button>
+                </div>
+              </div>
+
+              <button type="button" onClick={prevStep} className="auth-button secondary" style={{ background: '#f1f5f9', color: '#475569', marginTop: '10px' }}>
+                ← Back
+              </button>
+            </div>
+          )}
+
+          {step === 3 && (
             <div className="step-animation">
               <div className="form-row">
                 <div className="form-group">
