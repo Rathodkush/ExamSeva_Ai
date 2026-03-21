@@ -115,6 +115,7 @@ function Register() {
     if (step === 1 && validateStep1()) {
       setStep(2);
       setError('');
+      sendOTP(); // Trigger OTP sending automatically
     } else if (step === 2 && isOtpVerified) {
       setStep(3);
       setError('');
