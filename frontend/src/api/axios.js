@@ -11,9 +11,14 @@ const api = axios.create({
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && error.response.status === 401) {
-      // Auto-logout if token is expired
-      // (Optional: handle this if your auth context isn't already)
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+      // Auto-logout if token is expired or unauthorized
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      // Only redirect if not already on login page to avoid loops
+      if (!window.location.pathname.includes('/login')) {
+         window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

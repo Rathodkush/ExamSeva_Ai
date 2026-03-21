@@ -464,13 +464,13 @@ app.post('/api/auth/register', async (req, res) => {
     const token = jwt.sign(
       { userId: user._id, email: user.email, role: user.role },
       JWT_SECRET,
-      { expiresIn: '7d' }
+      { expiresIn: '24h' }
     );
 
     const cookieOptions = {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      maxAge: 7 * 24 * 3600000, // 7 days
+      maxAge: 1 * 24 * 3600000, // 1 day
       sameSite: 'lax'
     };
     res.cookie('token', token, cookieOptions);
@@ -543,7 +543,7 @@ app.post('/api/auth/login', async (req, res) => {
     const token = jwt.sign(
       { userId: user._id, email: user.email, role: user.role },
       JWT_SECRET,
-      { expiresIn: '7d' }
+      { expiresIn: '24h' }
     );
 
     // Return user data (without password)
@@ -567,7 +567,7 @@ app.post('/api/auth/login', async (req, res) => {
     const cookieOptions = {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      maxAge: 7 * 24 * 3600000, // 7 days
+      maxAge: 1 * 24 * 3600000, // 1 day
       sameSite: 'lax'
     };
 
@@ -644,13 +644,13 @@ app.post('/api/auth/google', async (req, res) => {
     const token = jwt.sign(
       { userId: user._id, email: user.email, role: user.role },
       JWT_SECRET,
-      { expiresIn: '7d' }
+      { expiresIn: '24h' }
     );
 
     const cookieOptions = {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      maxAge: 7 * 24 * 3600000,
+      maxAge: 1 * 24 * 3600000,
       sameSite: 'lax'
     };
     res.cookie('token', token, cookieOptions);
@@ -1612,7 +1612,7 @@ app.post('/api/admin/broadcast-notification', authenticateToken, async (req, res
 
     // Get all active users
     const users = await UserModel.find({ isActive: true }).select('_id');
-    
+
     // Create notifications in bulk
     const notifications = users.map(u => ({
       recipient: u._id,
@@ -1642,7 +1642,7 @@ app.post('/api/stats/track-visit', async (req, res) => {
   try {
     const today = new Date().toISOString().split('T')[0];
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-    
+
     // Check if this IP already visited today
     const visitor = await VisitorModel.findOneAndUpdate(
       { date: today, ip },
@@ -1659,13 +1659,13 @@ app.post('/api/stats/track-visit', async (req, res) => {
 app.get('/api/admin/stats-overview', authenticateToken, async (req, res) => {
   try {
     if (req.user.role !== 'admin') return res.status(403).json({ error: 'Admin only' });
-    
+
     const today = new Date().toISOString().split('T')[0];
     const totalUsers = await UserModel.countDocuments();
     const uniqueVisitorsToday = await VisitorModel.countDocuments({ date: today });
     const loginStats = await StatsModel.findOne({ key: 'total_logins' });
     const totalQuestions = await mongoose.model('Question').countDocuments().catch(() => 0); // fallback if not loaded
-    
+
     res.json({
       success: true,
       stats: {

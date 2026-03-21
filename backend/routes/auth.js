@@ -67,7 +67,7 @@ router.post('/register', async (req, res) => {
       semester: req.body.semester || ''
     });
 
-    const token = jwt.sign({ userId: user._id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ userId: user._id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '24h' });
 
     res.status(201).json({
       success: true,
@@ -99,7 +99,7 @@ router.post('/login', async (req, res) => {
       return res.status(403).json({ error: 'Account deactivated' });
     }
 
-    const token = jwt.sign({ userId: user._id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ userId: user._id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '24h' });
     res.json({
       success: true,
       token,
@@ -126,7 +126,7 @@ router.post('/google', async (req, res) => {
       user = await User.create({ fullName: name, email, role: 'student', password: hashedPassword, googleSub: sub });
     }
 
-    const token = jwt.sign({ userId: user._id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ userId: user._id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '24h' });
     res.json({ success: true, token, user });
   } catch (err) {
     res.status(500).json({ error: 'Google auth failed' });
