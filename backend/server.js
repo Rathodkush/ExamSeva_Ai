@@ -1684,7 +1684,7 @@ app.get('/api/admin/stats-overview', authenticateToken, async (req, res) => {
     const totalUsers = await UserModel.countDocuments();
     const uniqueVisitorsToday = await VisitorModel.countDocuments({ date: today });
     const loginStats = await StatsModel.findOne({ key: 'total_logins' });
-    const totalQuestions = 0; // Fallback or use another relevant count if needed
+    const totalQuestions = await QuizModel.countDocuments().catch(() => 0); // Count total quiz entries as a metric
 
     res.json({
       success: true,
