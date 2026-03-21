@@ -412,11 +412,19 @@ app.get('/api/health', async (req, res) => {
 app.post('/api/auth/send-otp', async (req, res) => {
   try {
     const { email, phone } = req.body;
-    if (!email || !phone) return res.status(400).json({ error: 'Email and Phone are required' });
+    console.log(`[OTP] Request received for: Email: ${email}, Phone: ${phone}`);
+    
+    if (!email || !phone) {
+      console.log('[OTP] Error: Email or Phone missing in request body');
+      return res.status(400).json({ error: 'Email and Phone are required' });
+    }
 
     // Check if email already exists
     const existing = await UserModel.findOne({ email });
-    if (existing) return res.status(400).json({ error: 'Email already registered' });
+    if (existing) {
+      console.log(`[OTP] Error: Email ${email} is already registered`);
+      return res.status(400).json({ error: 'Email already registered' });
+    }
 
     // Generate 6-digit OTPs
     const emailOtp = Math.floor(100000 + Math.random() * 900000).toString();
