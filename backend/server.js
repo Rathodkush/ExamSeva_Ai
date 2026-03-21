@@ -2030,7 +2030,7 @@ app.post('/api/quiz/generate', quizUpload.single('file'), async (req, res) => {
     } catch (axiosErr) {
       console.error(' Python AI service error:', axiosErr.message);
       // If Python service is not available, generate basic questions
-      if (axiosErr.code === 'ECONNREFUSED' || axiosErr.code === 'ETIMEDOUT') {
+      if (axiosErr.code === 'ECONNREFUSED' || axiosErr.code === 'ETIMEDOUT' || axiosErr.code === 'ECONNABORTED') {
         console.log(' Python service unavailable, generating basic questions');
         response = {
           data: {
