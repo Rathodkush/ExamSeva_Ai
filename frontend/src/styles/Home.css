@@ -452,8 +452,25 @@
   }
 
   .announcements-banner {
-    padding: 20px 15px;
-    margin: 20px 15px;
+    padding: 10px 10px;
+    margin: 10px 5px;
+    border-radius: 20px;
+  }
+  .announcements-banner h2 {
+    font-size: 0.9rem;
+    padding-left: 10px;
+  }
+  .announcements-marquee {
+    left: 110px;
+  }
+  .announcement-item {
+    padding: 0 40px;
+  }
+  .announcement-item h3 {
+    font-size: 0.8rem;
+  }
+  .announcement-item p {
+    font-size: 0.75rem;
   }
 }
 

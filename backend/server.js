@@ -587,8 +587,16 @@ app.post('/api/auth/login', async (req, res) => {
     // Increment Login Stat
     await StatsModel.findOneAndUpdate({ key: 'total_logins' }, { $inc: { value: 1 } }, { upsert: true });
 
-    // Send Welcome Back Notification
-    createNotification(user._id, `Welcome back, ${user.fullName.split(' ')[0]}!`, 'login');
+    // Send Welcome Back Notification (only if not sent in last 12 hours)
+    const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000);
+    const existingNotif = await NotificationModel.findOne({
+      recipient: user._id,
+      type: 'login',
+      createdAt: { $gt: twelveHoursAgo }
+    });
+    if (!existingNotif) {
+      createNotification(user._id, `Welcome back, ${user.fullName.split(' ')[0]}!`, 'login');
+    }
 
   } catch (err) {
     console.error(' Login error:', err);
@@ -639,8 +647,16 @@ app.post('/api/auth/google', async (req, res) => {
       if (!user.fullName && fullName) user.fullName = fullName;
       if (!user.googleSub && googleSub) user.googleSub = googleSub;
       await user.save().catch(() => { });
-      // Returning Google User Welcome Back
-      createNotification(user._id, `Welcome back, ${user.fullName.split(' ')[0]}! logged in via Google.`, 'login');
+      // Returning Google User Welcome Back (only if not sent in last 12 hours)
+      const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000);
+      const existingNotif = await NotificationModel.findOne({
+        recipient: user._id,
+        type: 'login',
+        createdAt: { $gt: twelveHoursAgo }
+      });
+      if (!existingNotif) {
+        createNotification(user._id, `Welcome back, ${user.fullName.split(' ')[0]}! logged in via Google.`, 'login');
+      }
     }
 
     if (!user.isActive) return res.status(403).json({ error: 'Your account has been deactivated. Please contact admin.' });

@@ -14,6 +14,17 @@ function Header() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showServicesDropdown, setShowServicesDropdown] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [toasts, setToasts] = useState([]);
+
+  // Auto-remove toasts after 3 seconds
+  useEffect(() => {
+    if (toasts.length > 0) {
+      const timer = setTimeout(() => {
+        setToasts(prev => prev.slice(1));
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toasts]);
 
   const handleLogout = () => {
     logout();
@@ -48,6 +59,8 @@ function Header() {
 
       const upsertNotification = (payload) => {
         setNotifications(prev => [payload, ...prev]);
+        // Add to floating toasts
+        setToasts(prev => [...prev, { id: Date.now(), message: payload.message }]);
       };
 
       socket.on('forum_post', upsertNotification);
@@ -187,6 +200,15 @@ function Header() {
             </>
           )}
         </div>
+      </div>
+
+      {/* Floating Toasts Container */}
+      <div className="toast-container">
+        {toasts.map(toast => (
+          <div key={toast.id} className="toast-item">
+            <span className="toast-msg">{toast.message}</span>
+          </div>
+        ))}
       </div>
     </header>
   );
