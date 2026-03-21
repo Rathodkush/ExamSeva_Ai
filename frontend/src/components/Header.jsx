@@ -26,7 +26,15 @@ function Header() {
     }
   }, [toasts]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/auth/logout`, {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+    } catch (e) { }
     logout();
     navigate('/login?logout=success');
     window.location.reload();

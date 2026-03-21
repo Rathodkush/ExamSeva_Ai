@@ -134,6 +134,9 @@ function AdminDashboard() {
                   <div>
                     <strong>{user.fullName}</strong>
                     <span className="user-email">{user.email}</span>
+                    <div style={{fontSize: '11px', color: '#666', marginTop: '2px'}}>
+                      {user.lastLogin ? `Last Login: ${new Date(user.lastLogin).toLocaleString()}` : 'Never logged in'}
+                    </div>
                   </div>
                   <span className={`status-badge ${user.isActive ? 'active' : 'inactive'}`}>
                     {user.isActive ? 'Active' : 'Inactive'}

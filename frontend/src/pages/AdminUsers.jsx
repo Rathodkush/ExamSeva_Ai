@@ -127,6 +127,8 @@ function AdminUsers() {
               <th>Phone</th>
               <th>Role</th>
               <th>Registration Date</th>
+              <th>Last Login</th>
+              <th>Last Logout</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
@@ -139,6 +141,8 @@ function AdminUsers() {
                 <td>{user.phone || 'N/A'}</td>
                 <td><span className={`role-badge ${user.role}`}>{user.role}</span></td>
                 <td>{new Date(user.createdAt).toLocaleDateString()}</td>
+                <td>{user.lastLogin ? new Date(user.lastLogin).toLocaleString() : 'Never'}</td>
+                <td>{user.lastLogout ? new Date(user.lastLogout).toLocaleString() : 'Ongoing'}</td>
                 <td>
                   <span className={`status-badge ${user.isActive ? 'active' : 'inactive'}`}>
                     {user.isActive ? 'Active' : 'Inactive'}

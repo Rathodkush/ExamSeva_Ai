@@ -153,6 +153,8 @@ const UserSchema = new mongoose.Schema({
   googleSub: { type: String },
   resetPasswordToken: String,
   resetPasswordExpires: Date,
+  lastLogin: Date,
+  lastLogout: Date,
   isActive: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now }
 });
@@ -577,6 +579,9 @@ app.post('/api/auth/login', async (req, res) => {
 
     res.cookie('token', token, cookieOptions);
 
+    // Track Login Time
+    await user.updateOne({ lastLogin: new Date() });
+
     res.json({
       success: true,
       message: 'Login successful',
@@ -693,9 +698,23 @@ app.post('/api/auth/google', async (req, res) => {
         semester: user.semester
       }
     });
+
+    // Track Login Time
+    await user.updateOne({ lastLogin: new Date() });
   } catch (err) {
     console.error('Google auth error:', err);
     res.status(500).json({ error: 'Google authentication failed', detail: err.message });
+  }
+});
+
+// Logout Route (to track session end)
+app.post('/api/auth/logout', authenticateToken, async (req, res) => {
+  try {
+    await UserModel.findByIdAndUpdate(req.user.userId, { lastLogout: new Date() });
+    res.clearCookie('token');
+    res.json({ success: true, message: 'Logout tracked' });
+  } catch (e) {
+    res.status(500).json({ error: 'Logout failed' });
   }
 });
 
