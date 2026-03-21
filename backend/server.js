@@ -19,6 +19,7 @@ const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const mammoth = require('mammoth');
 const { OAuth2Client } = require('google-auth-library');
+const crypto = require('crypto');
 
 const app = express();
 const http = require('http');
@@ -268,7 +269,6 @@ const pythonBaseUrl = (process.env.PYTHON_URL_BASE || process.env.PYTHON_URL || 
 console.log(' Python AI service URL:', pythonBaseUrl);
 
 // Nodemailer Config
-const nodemailer = require('nodemailer');
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
