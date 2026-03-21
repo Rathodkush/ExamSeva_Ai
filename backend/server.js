@@ -167,7 +167,7 @@ const UserModel = mongoose.models.User || mongoose.model('User', UserSchema);
 const OTPSchema = new mongoose.Schema({
   emailOrPhone: { type: String, required: true },
   otp: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now, expires: 1200 } // Increased to 20 minutes for safety
+  createdAt: { type: Date, default: Date.now, expires: 600 } // Set to exactly 10 minutes (600s) as requested
 });
 const OTPModel = mongoose.models.OTP || mongoose.model('OTP', OTPSchema);
 
