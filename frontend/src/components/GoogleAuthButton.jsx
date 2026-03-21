@@ -28,25 +28,29 @@ export default function GoogleAuthButton({ text = 'continue_with' }) {
       try {
         const g = window.google;
         if (g?.accounts?.id && btnRef.current) {
-          g.accounts.id.initialize({
-            client_id: clientId,
-            callback: async (resp) => {
-              try {
-                setError('');
-                const r = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/auth/google`, { credential: resp.credential });
-                if (r.data?.success) {
-                  localStorage.setItem('token', r.data.token);
-                  localStorage.setItem('user', JSON.stringify(r.data.user));
-                  navigate('/profile');
-                  window.location.reload();
-                } else {
-                  setError(r.data?.error || 'Google sign-in failed');
+          // Initialize once globally
+          if (!window._googleAuthInitialized) {
+            g.accounts.id.initialize({
+              client_id: clientId,
+              callback: async (resp) => {
+                try {
+                  setError('');
+                  const r = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/auth/google`, { credential: resp.credential });
+                  if (r.data?.success) {
+                    localStorage.setItem('token', r.data.token);
+                    localStorage.setItem('user', JSON.stringify(r.data.user));
+                    navigate('/profile');
+                    window.location.reload();
+                  } else {
+                    setError(r.data?.error || 'Google sign-in failed');
+                  }
+                } catch (e) {
+                  setError(e.response?.data?.error || e.message || 'Google sign-in failed');
                 }
-              } catch (e) {
-                setError(e.response?.data?.error || e.message || 'Google sign-in failed');
               }
-            }
-          });
+            });
+            window._googleAuthInitialized = true;
+          }
           
           g.accounts.id.renderButton(btnRef.current, {
             theme: 'outline',

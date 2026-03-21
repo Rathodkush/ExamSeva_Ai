@@ -27,6 +27,10 @@ const cookieParser = require('cookie-parser');
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
+app.use((req, res, next) => {
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+  next();
+});
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Global error handlers to surface crashes during startup
