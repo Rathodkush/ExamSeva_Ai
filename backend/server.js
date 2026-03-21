@@ -391,6 +391,8 @@ app.get('/api/health', async (req, res) => {
       const pythonUrl = `${pythonBaseUrl}/health`;
       const pythonResponse = await axios.get(pythonUrl, { timeout: 5000 });
       pythonHealth = pythonResponse.data || pythonHealth;
+      // Normalizing status to 'online' or 'ok'
+      if (pythonHealth.status === 'ok') pythonHealth.status = 'online';
     } catch (err) {
       pythonHealth = {
         status: 'unavailable',
