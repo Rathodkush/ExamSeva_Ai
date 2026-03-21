@@ -2269,11 +2269,14 @@ app.post('/api/quiz/generate_paper', quizUpload.single('file'), async (req, res)
       // continue
     }
 
-    const form = createForm();
-    const pythonUrl = process.env.PYTHON_URL_BASE ? `${process.env.PYTHON_URL_BASE}/generate-question-paper` : 'http://127.0.0.1:5000/generate-question-paper';
+    const pythonUrl = `${pythonBaseUrl}/generate-question-paper`;
     let dataBuffer;
     try {
-      const response = await axios.post(pythonUrl, form, { headers: form.getHeaders(), responseType: 'arraybuffer', timeout: 180000 });
+      const response = await axios.post(pythonUrl, form, { 
+        headers: form.getHeaders(), 
+        responseType: 'arraybuffer', 
+        timeout: 300000 // 5 minutes for generation
+      });
       dataBuffer = Buffer.from(response.data || []);
 
       // Treat very small responses as empty / no-results (likely OCR failed or no questions produced)
@@ -2288,7 +2291,7 @@ app.post('/api/quiz/generate_paper', quizUpload.single('file'), async (req, res)
     } catch (err) {
       console.error('Error communicating with Python service for question paper:', err.message || err);
       // Avoid silently returning a placeholder PDF — return an informative JSON error so the frontend can surface it
-      return res.status(503).json({ error: 'Question paper generation service unavailable', detail: 'Unable to contact Python OCR/NLP service at 127.0.0.1:5000. Start Python service and retry.' });
+      return res.status(503).json({ error: 'Question paper generation service unavailable', detail: 'Unable to contact Python OCR/NLP service. Please ensure the service is running.' });
     }
   } catch (err) {
     console.error('Error generating question paper:', err.message || err);

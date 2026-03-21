@@ -62,7 +62,10 @@ function Header() {
     fetchNotifications();
 
     try {
-      socket = io(process.env.REACT_APP_API_URL || "http://localhost:4000", { auth: { token } });
+      socket = io(process.env.REACT_APP_API_URL || "http://localhost:4000", { 
+        auth: { token },
+        transports: ['websocket']
+      });
       socket.emit('join', (user?._id || user?.id)?.toString());
 
       const upsertNotification = (payload) => {

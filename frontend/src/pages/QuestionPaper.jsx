@@ -78,7 +78,14 @@ function QuestionPaper() {
       const headers = { 'Content-Type': 'multipart/form-data' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
 
-      const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/quiz/generate_paper`, fd, { headers, responseType: 'arraybuffer', timeout: 180000 });
+      const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/quiz/generate_paper`, fd, { 
+        headers: {
+          ...headers,
+          'Content-Type': 'multipart/form-data'
+        }, 
+        responseType: 'arraybuffer', 
+        timeout: 300000 // 5 minutes 
+      });
 
       // Treat very small responses as empty / no-results (likely OCR failed or no questions produced)
       const dataLen = (res.data && (res.data.byteLength || res.data.length)) || 0;

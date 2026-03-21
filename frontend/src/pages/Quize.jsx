@@ -62,7 +62,7 @@ function Quize() {
 
       const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/quiz/generate`, formData, {
         headers: headers,
-        timeout: 180000 // 3 minutes
+        timeout: 300000 // 5 minutes (300k ms)
       });
 
       if (res.data.success && res.data.quiz) {
@@ -148,7 +148,14 @@ function Quize() {
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
     try {
-      const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/quiz/generate_pdf`, form, { headers, responseType: 'arraybuffer', timeout: 180000 });
+      const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/quiz/generate_pdf`, form, { 
+        headers: {
+          ...headers,
+          'Content-Type': 'multipart/form-data'
+        }, 
+        responseType: 'arraybuffer', 
+        timeout: 300000 // 5 minutes
+      });
       // If server returns an empty/small PDF, show a clear message instead of downloading a blank file
       const dataLen = (res.data && (res.data.byteLength || res.data.length)) || 0;
       if (dataLen < 1000) {
