@@ -168,6 +168,17 @@
   font-size: 13px;
 }
 
+.success-message {
+  background: #ecfdf5;
+  color: #059669;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 12px;
+  text-align: center;
+  border: 1px solid #a7f3d0;
+}
+
 .error-message {
   background: #fff1f2;
   color: #e11d48;

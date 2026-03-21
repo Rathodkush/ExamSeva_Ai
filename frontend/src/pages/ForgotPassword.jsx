@@ -15,6 +15,15 @@ function ForgotPassword() {
     confirmPassword: ''
   });
 
+  React.useEffect(() => {
+    const query = new URLSearchParams(window.location.search);
+    const token = query.get('token');
+    if (token) {
+      setResetToken(token);
+      setShowResetForm(true);
+    }
+  }, []);
+
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
     setError('');

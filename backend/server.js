@@ -614,6 +614,84 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
+// Forgot Password
+app.post('/api/auth/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await UserModel.findOne({ email });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // Generate token
+    const token = crypto.randomBytes(20).toString('hex');
+    user.resetPasswordToken = token;
+    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+    await user.save();
+
+    // Send reset email
+    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/forgot-password?token=${token}`;
+    const mailOptions = {
+      from: `"ExamSeva Support" <${process.env.SMTP_USER}>`,
+      to: email,
+      subject: 'ExamSeva - Password Reset Request',
+      html: `
+        <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+          <h2 style="color: #1e3a8a;">Reset your Password</h2>
+          <p>You requested a password reset. Please click the button below to set a new password:</p>
+          <a href="${resetUrl}" style="display: inline-block; background: #1e3a8a; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; margin: 20px 0;">Reset Password</a>
+          <p>Or use this token if requested: <strong>${token}</strong></p>
+          <p style="color: #64748b; font-size: 14px;">This link will expire in 1 hour.</p>
+        </div>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+    res.json({ success: true, message: 'Reset email sent!', resetToken: token });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to send reset email' });
+  }
+});
+
+// Reset Password
+app.post('/api/auth/reset-password', async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+    const user = await UserModel.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() }
+    });
+
+    if (!user) return res.status(400).json({ error: 'Invalid or expired token' });
+
+    // Update password
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    // Send success email
+    const mailOptions = {
+      from: `"ExamSeva Support" <${process.env.SMTP_USER}>`,
+      to: user.email,
+      subject: 'ExamSeva - Password Reset Successful',
+      html: `
+        <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+          <h2 style="color: #10b981;">Password Reset Successful</h2>
+          <p>Hello ${user.fullName},</p>
+          <p>Your password for ExamSeva has been successfully reset. If you did not perform this action, please contact support immediately.</p>
+          <p style="color: #64748b; font-size: 14px; margin-top: 20px;">Safe learning!</p>
+        </div>
+      `
+    };
+
+    await transporter.sendMail(mailOptions).catch(err => console.error('Success email error:', err));
+
+    res.json({ success: true, message: 'Password reset successful!' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to reset password' });
+  }
+});
+
 // Login Route
 app.post('/api/auth/login', async (req, res) => {
   try {
