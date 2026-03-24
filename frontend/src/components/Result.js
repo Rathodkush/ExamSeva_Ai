@@ -409,7 +409,7 @@ export default function Results({ results }) {
                 const a = document.createElement('a'); a.href = url; a.download = 'full_analysis.pdf'; a.click();
               } catch (err) { alert('Download failed'); }
             }}>
-              <span>📊</span> Download Full Analysis Report
+              Download Full Analysis Report
             </button>
 
             <button className="download-report-btn" onClick={async () => {
@@ -423,7 +423,7 @@ export default function Results({ results }) {
                 const a = document.createElement('a'); a.href = url; a.download = 'repeated_questions.pdf'; a.click();
               } catch (err) { alert('Download failed'); }
             }}>
-              <span>🔁</span> Download Repeated PDF
+              Download Repeated PDF
             </button>
 
             <button className="download-report-btn" onClick={async () => {
@@ -437,7 +437,7 @@ export default function Results({ results }) {
                 const a = document.createElement('a'); a.href = url; a.download = 'unique_questions.pdf'; a.click();
               } catch (err) { alert('Download failed'); }
             }}>
-              <span>📑</span> Download Unique PDF
+              Download Unique PDF
             </button>
 
           </div>

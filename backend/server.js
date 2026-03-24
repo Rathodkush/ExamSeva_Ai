@@ -280,8 +280,8 @@ const googleClient = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : nul
 // Python AI Service configuration: prefer internal networking on Render if available
 const isRender = !!process.env.RENDER;
 const pythonBaseUrl = (
-  process.env.PYTHON_URL_BASE || 
-  process.env.PYTHON_URL || 
+  process.env.PYTHON_URL_BASE ||
+  process.env.PYTHON_URL ||
   (isRender ? 'http://examseva-ai:5000' : 'http://127.0.0.1:5000') // Use internal hostname on Render for reliability
 ).replace(/\/$/, '');
 
@@ -434,7 +434,7 @@ app.post('/api/auth/send-otp', async (req, res) => {
   try {
     const { email, phone } = req.body;
     console.log(`[OTP] Request received for: Email: ${email}, Phone: ${phone}`);
-    
+
     if (!email || !phone) {
       console.log('[OTP] Error: Email or Phone missing in request body');
       return res.status(400).json({ error: 'Email and Phone are required' });
@@ -475,18 +475,18 @@ app.post('/api/auth/send-otp', async (req, res) => {
         </div>
       `
     };
-    
+
     // DON'T AWAIT! Send in background so response is instant for user
     transporter.sendMail(mailOptions).catch(err => {
       console.error('Email send error:', err);
     });
 
     // [TEST MODE] Return OTPs in response for easy testing on Render
-    res.json({ 
-      success: true, 
-      message: 'OTP sent (Simulated)', 
-      emailOtp, 
-      phoneOtp 
+    res.json({
+      success: true,
+      message: 'OTP sent (Simulated)',
+      emailOtp,
+      phoneOtp
     });
   } catch (err) {
     console.error('OTP send error:', err);
@@ -1952,9 +1952,9 @@ app.get('/api/notes/:id/download', async (req, res) => {
 
     if (!note.filePath || !fs.existsSync(note.filePath)) {
       console.warn(`[DOWNLOAD] File not found on disk at ${note.filePath}. This may happen if the server restarted (ephemeral storage).`);
-      return res.status(404).json({ 
-        error: 'File not found on server', 
-        detail: 'The requested file is no longer available on this server due to ephemeral storage limitations. Please re-upload if needed.' 
+      return res.status(404).json({
+        error: 'File not found on server',
+        detail: 'The requested file is no longer available on this server due to ephemeral storage limitations. Please re-upload if needed.'
       });
     }
 
@@ -2241,9 +2241,9 @@ app.post('/api/quiz/generate_paper', quizUpload.single('file'), async (req, res)
     const form = createForm();
     let dataBuffer;
     try {
-      const response = await axios.post(pythonUrl, form, { 
-        headers: form.getHeaders(), 
-        responseType: 'arraybuffer', 
+      const response = await axios.post(pythonUrl, form, {
+        headers: form.getHeaders(),
+        responseType: 'arraybuffer',
         timeout: 300000 // 5 minutes for generation
       });
       dataBuffer = Buffer.from(response.data || []);
@@ -3370,7 +3370,7 @@ app.get('/api/chat/conversations', authenticateToken, async (req, res) => {
 // Create HTTP server and attach Socket.IO for realtime notifications
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { 
+  cors: {
     origin: '*',
     credentials: true
   },
@@ -3396,5 +3396,5 @@ const nodeServer = server.listen(PORT, () => {
 
 // Configure server timeouts (Required for long-running AI processes)
 nodeServer.timeout = 600000;       // 10 minutes
-nodeServer.keepAliveTimeout = 610000; 
+nodeServer.keepAliveTimeout = 610000;
 nodeServer.headersTimeout = 620000;
