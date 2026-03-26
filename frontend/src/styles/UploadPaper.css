@@ -5,12 +5,10 @@
 }
 
 .upload-paper-content {
-  max-width: 900px;
+  max-width: 1000px;
   margin: 0 auto;
   background: #f5f5f5;
   padding: 40px;
-  /* border-radius: 12px; */
-  /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); */
 }
 
 .upload-title {
@@ -21,12 +19,30 @@
   text-align: center;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .upload-paper-content {
-    padding: 20px;
+    max-width: 100%;
+    padding: 30px;
+  }
+}
+
+@media (max-width: 768px) {
+  .upload-paper-container {
+    padding: 24px 16px;
+  }
+
+  .upload-paper-content {
+    padding: 20px 15px;
   }
 
   .upload-title {
     font-size: 24px;
+    margin-bottom: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .upload-title {
+    font-size: 20px;
   }
 }

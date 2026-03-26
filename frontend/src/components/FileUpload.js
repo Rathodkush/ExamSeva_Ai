@@ -74,7 +74,7 @@ export default function FileUpload({ setResults }) {
           if (y && !year) setYear(y);
         }
       } catch (err) {
-        console.warn('Preview failed', err);
+        // fail silently
         // If preview specifically indicated no readable text, show enhance option
         if (err.response && err.response.status === 400) {
           const errorMsg = err.response.data?.error || err.response.data?.detail || 'Preview failed - no readable text';
@@ -84,10 +84,8 @@ export default function FileUpload({ setResults }) {
           // Service unavailable - might be Python service not running or model not loaded
           const errorMsg = err.response.data?.detail || err.response.data?.error || 'Python AI service is not available. Please ensure the Python service is running on port 5000.';
           setLastFailedReason(errorMsg);
-          console.error('Python service unavailable:', errorMsg);
         } else {
           // Other errors - log but don't block user
-          console.error('Preview error:', err.message || err);
         }
       } finally {
         setPreviewLoading(false);
@@ -127,7 +125,6 @@ export default function FileUpload({ setResults }) {
       form.append("metadata", JSON.stringify(metadata));
 
       setProgress('Processing OCR and analyzing questions...');
-      console.log(` Uploading ${files.length} file(s) for analysis...`);
 
       // Get auth token if available. Do NOT set Content-Type manually when sending FormData
       const token = localStorage.getItem('token');
@@ -139,15 +136,6 @@ export default function FileUpload({ setResults }) {
         timeout: 600000 // 10 minutes timeout to allow deep OCR processing on cloud servers
       });
       
-      console.log(' Response received:', {
-        hasGroups: !!res.data.groups,
-        hasUnique: !!res.data.unique,
-        groupsCount: res.data.groups?.length || 0,
-        uniqueCount: res.data.unique?.length || 0,
-        hasError: !!res.data.error,
-        errorMessage: res.data.error || 'None',
-        allData: res.data
-      });
       
       const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
       setProcessingTime(elapsed);
@@ -174,19 +162,6 @@ export default function FileUpload({ setResults }) {
         return q;
       }).filter(q => q !== null && q.text && q.text.toString().trim().length > 0);
       
-      console.log('Analysis results received:', { 
-        groups: groups.length, 
-        unique: unique.length,
-        validUnique: unique.filter(q => q && q.text).length,
-        totalTime: res.data.totalTime,
-        rawData: {
-          hasGroups: !!res.data.groups,
-          hasUnique: !!res.data.unique,
-          groupsType: typeof res.data.groups,
-          uniqueType: typeof res.data.unique,
-          firstUnique: unique[0]
-        }
-      });
       
       // Always set results, even if empty - ensure proper state update
       const resultsToSet = {
@@ -196,15 +171,9 @@ export default function FileUpload({ setResults }) {
         filesProcessed: files.length
       };
       
-      console.log('🔴 SETTING RESULTS:');
-      console.log('   groups:', groups);
-      console.log('   unique:', unique);
-      console.log('   metadata:', res.data.metadata);
-      console.log('   Full resultsToSet:', resultsToSet);
       
       setResults(resultsToSet);
       
-      console.log('✅ Results set to parent component');
       
       // Apply extracted metadata if available
       if (res.data && res.data.metadata) {
@@ -239,7 +208,6 @@ export default function FileUpload({ setResults }) {
           filesProcessed: files.length
         }));
       } catch (e) {
-        console.warn('Failed to persist analysis locally', e);
       }
 
       // Keep files in the form by default so user can re-run enhancement or adjust options.
@@ -259,14 +227,6 @@ export default function FileUpload({ setResults }) {
         // ignore
       }
     } catch (err) {
-      console.error('Upload error:', err);
-      console.log('Error details:', {
-        code: err.code,
-        status: err.response?.status,
-        statusText: err.response?.statusText,
-        errorData: err.response?.data,
-        message: err.message
-      });
       setProgress('');
       setLoading(false);
       
@@ -325,7 +285,6 @@ export default function FileUpload({ setResults }) {
           setProgress('Cleared saved analysis.');
           setTimeout(() => setProgress(''), 3000);
         } catch (e) {
-          console.warn('Failed to clear persisted analysis', e);
         } finally {
           setConfirmState(s => ({ ...s, open: false }));
         }
@@ -488,7 +447,6 @@ export default function FileUpload({ setResults }) {
                   setShowEnhanceOption(false);
                 }
               } catch (err) {
-                console.error('Enhance retry failed', err);
                 alert((err.response && err.response.data && (err.response.data.error || err.response.data.detail)) || err.message || 'Enhancement failed');
               } finally {
                 setLoading(false);

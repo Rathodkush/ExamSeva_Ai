@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
+import FilePreviewModal from '../components/FilePreviewModal';
 import '../styles/AdminQuestionPapers.css';
 import '../styles/AdminShared.css';
 
@@ -19,6 +20,13 @@ function AdminQuestionPapers() {
     examType: '',
     visibility: 'free',
     file: null
+  });
+  const [preview, setPreview] = useState({
+    isOpen: false,
+    fileUrl: '',
+    fileName: '',
+    noteId: '',
+    isPaper: true
   });
 
   useEffect(() => {
@@ -104,9 +112,23 @@ function AdminQuestionPapers() {
     setShowModal(true);
   };
 
+  const handlePreview = (paper) => {
+    const isPreviewable = /\.(pdf|jpg|jpeg|png)$/i.test(paper.fileName);
+    if (isPreviewable) {
+      setPreview({
+        isOpen: true,
+        fileUrl: `${process.env.REACT_APP_API_URL || "http://localhost:4000"}/uploads/${paper.fileName}`,
+        fileName: paper.fileName,
+        noteId: paper._id,
+        isPaper: true
+      });
+    } else {
+      window.open(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/uploads/${paper.fileName}`, '_blank');
+    }
+  };
+
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this question paper?')) return;
-    
     try {
       const token = localStorage.getItem('token');
       await axios.delete(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/admin/question-papers/${id}`, {
@@ -124,6 +146,13 @@ function AdminQuestionPapers() {
 
   return (
     <div className="admin-page-container">
+      <FilePreviewModal
+        isOpen={preview.isOpen}
+        onClose={() => setPreview({ ...preview, isOpen: false })}
+        fileUrl={preview.fileUrl}
+        fileName={preview.fileName}
+        onDownload={() => window.open(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/uploads/${preview.fileName}`, '_blank')}
+      />
       <div className="admin-header-flex">
         <h1>Question Paper Management</h1>
         <div className="admin-header-actions">
@@ -158,6 +187,7 @@ function AdminQuestionPapers() {
               <p><strong>Uploaded:</strong> {new Date(paper.createdAt).toLocaleDateString()}</p>
             </div>
             <div className="paper-actions">
+              <button onClick={() => handlePreview(paper)} className="preview-btn">View</button>
               <button onClick={() => handleEdit(paper)} className="edit-btn">Edit</button>
               <button onClick={() => handleDelete(paper._id)} className="delete-btn">Delete</button>
             </div>

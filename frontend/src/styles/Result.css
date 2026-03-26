@@ -439,6 +439,13 @@
 }
 
 /* Responsive Design */
+@media (max-width: 1024px) {
+  .unique-questions-grid,
+  .repeated-questions-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
 @media (max-width: 768px) {
   .results-title {
     font-size: 20px;
@@ -467,11 +474,24 @@
   .summary-actions {
     flex-direction: column;
     width: 100%;
+    align-items: stretch;
   }
 
   .download-report-btn {
     width: 100%;
     margin-bottom: 5px;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .results-display-container {
+    padding-top: 20px;
+  }
+  
+  .summary-card {
+    flex-direction: column;
+    text-align: center;
   }
 }
 

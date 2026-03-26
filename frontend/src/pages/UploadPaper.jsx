@@ -48,7 +48,6 @@ function UploadPaper() {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed && (parsed.groups || parsed.unique)) {
-          console.log('[UploadPaper] Loading persisted analysis:', { groups: parsed.groups?.length || 0, unique: parsed.unique?.length || 0 });
           setResults({ groups: parsed.groups || [], unique: parsed.unique || [], metadata: parsed.metadata || {} });
         }
       }
@@ -57,28 +56,6 @@ function UploadPaper() {
     }
   }, []);
 
-  // Debug: Log results changes
-  useEffect(() => {
-    console.log('[UPLOADPAPER] 📍 Results state changed:');
-    console.log('   groups:', results.groups);
-    console.log('   unique:', results.unique);
-    console.log('   Count - groups:', results.groups?.length || 0, 'unique:', results.unique?.length || 0);
-    console.log('   Full results:', results);
-    
-    // Validate data structure
-    if (results.unique && Array.isArray(results.unique)) {
-      const validUnique = results.unique.filter(q => {
-        if (!q) return false;
-        const hasText = (typeof q === 'string' && q.trim().length > 0) || 
-                        (typeof q === 'object' && q.text && typeof q.text === 'string' && q.text.trim().length > 0);
-        return hasText;
-      });
-      console.log('   Valid unique questions:', validUnique.length, 'out of', results.unique.length);
-      if (validUnique.length !== results.unique.length) {
-        console.warn('   ⚠️ Some unique questions are invalid or missing text property');
-      }
-    }
-  }, [results]);
 
   return (
     <div className="upload-paper-container">

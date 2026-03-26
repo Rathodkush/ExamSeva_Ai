@@ -7,16 +7,9 @@ import "../styles/Result.css";
 export default function Results({ results }) {
   const [expandedGroups, setExpandedGroups] = useState({});
 
-  // DEBUGGING: Always log what we're getting
-  useEffect(() => {
-    console.log('[RESULT DEBUG] Full results prop:', results);
-    console.log('[RESULT DEBUG] groups:', results?.groups, 'length:', results?.groups?.length);
-    console.log('[RESULT DEBUG] unique:', results?.unique, 'length:', results?.unique?.length);
-  }, [results]);
 
   // Always render, even if results is null or empty
   if (!results) {
-    console.log('[RESULT] Results is null');
     return (
       <div className="results-display-container">
         <div className="no-results-message">
@@ -100,29 +93,7 @@ export default function Results({ results }) {
     displayGroups = buildFallbackGroups();
   }
 
-  console.log('[RESULT RENDER]', {
-    groupsCount: displayGroups.length,
-    uniqueCount: unique.length,
-    validUniqueCount: validUnique.length,
-    shouldShowRepeated: displayGroups.length > 0,
-    shouldShowUnique: validUnique.length > 0
-  });
-  console.log('[Result Component] Groups data:', displayGroups);
-  console.log('[Result Component] Unique data:', unique);
-  console.log('[Result Component] Valid unique data:', validUnique);
-  console.log('[Result Component] extractedSections:', extractedSections);
 
-  // If data exists but might not be rendering, show debug info
-  if ((groups.length > 0 || unique.length > 0) && process.env.NODE_ENV === 'development') {
-    console.log('[Result Component] Data exists but may not be rendering:', {
-      hasGroups: displayGroups.length > 0,
-      hasUnique: unique.length > 0,
-      groupsType: Array.isArray(groups) ? 'array' : typeof groups,
-      uniqueType: Array.isArray(unique) ? 'array' : typeof unique,
-      firstGroup: displayGroups[0],
-      firstUnique: unique[0]
-    });
-  }
 
   const toggleGroup = (groupId) => {
     setExpandedGroups(prev => ({
@@ -231,7 +202,6 @@ export default function Results({ results }) {
 
       alert('No matching answer found in Study Hub notes for this question. Try uploading relevant study materials first.');
     } catch (err) {
-      console.error('StudyHub search error', err);
       if (err.response && err.response.status === 401) {
         alert('Please login to use Study Hub search.');
         navigate('/login');
@@ -310,7 +280,6 @@ export default function Results({ results }) {
 
   return (
     <div className="results-display-container">
-      {console.log('[Result Render] groups:', displayGroups.length, 'unique:', unique.length)}
 
       {/* Paper metadata header */}
       {meta && (meta.subject || meta.year || meta.university || meta.subject_code) && (
@@ -535,8 +504,6 @@ export default function Results({ results }) {
           <div className="unique-questions-grid">
             {validUnique.map((q, index) => {
               const questionText = q.text || q.question || '';
-              const debugPreview = typeof questionText === 'string' ? questionText.substring(0, 50) : String(questionText);
-              console.log(`[Result] Unique question ${index}:`, { text: debugPreview, hasText: !!questionText });
               return (
                 <div key={q.id || index} className="unique-question-card">
                   <div className="unique-question-number">Q{index + 1}</div>

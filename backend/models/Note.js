@@ -7,8 +7,12 @@ const NoteSchema = new mongoose.Schema({
   role: String,
   subject: String,
   description: String,
-  fileName: String,
-  filePath: String,
+  fileName: String, // Legacy single file
+  filePath: String, // Legacy single file
+  files: [{
+    name: String,
+    path: String
+  }],
   createdAt: { type: Date, default: Date.now }
 });
 

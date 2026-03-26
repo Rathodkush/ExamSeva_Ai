@@ -396,6 +396,15 @@
   }
 }
 
+@media (max-width: 1024px) {
+  .features-section {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .benefits-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
   .home-container {
     padding: 40px 15px;
@@ -421,7 +430,7 @@
   }
 
   .important-content {
-    padding: 20px 15px;
+    padding: 24px 20px;
   }
 
   .content-section {
@@ -429,7 +438,7 @@
   }
 
   .content-section h2 {
-    font-size: 22px;
+    font-size: 24px;
   }
 
   .content-section p {
@@ -439,7 +448,7 @@
   .features-section {
     grid-template-columns: 1fr;
     gap: 20px;
-    padding: 20px 15px;
+    padding: 20px 0;
   }
 
   .feature-card {

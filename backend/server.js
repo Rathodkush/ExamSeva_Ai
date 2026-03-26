@@ -94,8 +94,12 @@ const NoteSchema = new mongoose.Schema({
   role: String,
   subject: String,
   description: String,
-  fileName: String,
-  filePath: String,
+  fileName: String, // Legacy single file
+  filePath: String, // Legacy single file
+  files: [{
+    name: String,
+    path: String
+  }],
   createdAt: { type: Date, default: Date.now }
 });
 const NoteModel = mongoose.models.Note || mongoose.model('Note', NoteSchema);
@@ -1769,8 +1773,54 @@ app.post('/api/upload/enhance', upload.array('files'), async (req, res) => {
   }
 });
 
+app.get('/api/uploads/:id/download', async (req, res) => {
+  try {
+    const upload = await UploadModel.findById(req.params.id);
+    if (!upload || !upload.files || upload.files.length === 0) {
+      return res.status(404).json({ error: 'No files found for this upload' });
+    }
+    
+    // Download first file by default
+    const filePath = upload.files[0];
+    if (fs.existsSync(filePath)) {
+      res.download(filePath, path.basename(filePath));
+    } else {
+      res.status(404).json({ error: 'File missing on server' });
+    }
+  } catch (err) {
+    res.status(500).json({ error: 'Download failed' });
+  }
+});
+
+app.get('/api/uploads/:id/files/:fileIndex/view', async (req, res) => {
+  try {
+    const upload = await UploadModel.findById(req.params.id);
+    if (!upload || !upload.files || !upload.files[req.params.fileIndex]) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+    
+    const filePath = upload.files[req.params.fileIndex];
+    if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'File missing' });
+    
+    // Set content type based on extension
+    const ext = path.extname(filePath).toLowerCase();
+    const mimeTypes = {
+      '.pdf': 'application/pdf',
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.png': 'image/png',
+      '.txt': 'text/plain'
+    };
+    
+    res.setHeader('Content-Type', mimeTypes[ext] || 'application/octet-stream');
+    res.sendFile(filePath);
+  } catch (err) {
+    res.status(500).json({ error: 'View failed' });
+  }
+});
+
 // Study Notes Routes
-app.post('/api/notes', notesUpload.single('file'), async (req, res) => {
+app.post('/api/notes', notesUpload.array('files', 15), async (req, res) => {
   try {
     // Check MongoDB connection
     if (mongoose.connection.readyState !== 1) {
@@ -1783,8 +1833,13 @@ app.post('/api/notes', notesUpload.single('file'), async (req, res) => {
       return res.status(400).json({ error: 'Name is required' });
     }
 
-    if (!req.file) {
-      return res.status(400).json({ error: 'File is required' });
+    const uploadedFiles = (req.files || []).map(f => ({
+      name: f.originalname,
+      path: f.path
+    }));
+
+    if (uploadedFiles.length === 0) {
+      return res.status(400).json({ error: 'At least one file is required' });
     }
 
     const note = await NoteModel.create({
@@ -1794,11 +1849,10 @@ app.post('/api/notes', notesUpload.single('file'), async (req, res) => {
       role: role || 'student',
       subject: subject || 'General',
       description: description || '',
-      fileName: req.file.originalname,
-      filePath: req.file.path
+      files: uploadedFiles,
+      // For backward compatibility with older components (removed fileName/filePath as it's now multi-file)
     });
-
-    console.log(' Note saved:', note._id);
+    console.log(' Note saved with', uploadedFiles.length, 'files:', note._id);
 
     // Notify all users about new study material
     notifyAllUsers(
@@ -1807,15 +1861,21 @@ app.post('/api/notes', notesUpload.single('file'), async (req, res) => {
       authorId,
       { noteId: note._id, subject }
     );
-    // Send file to Python OCR/NLP service for metadata extraction and QA indexing
+
+    // Send files to Python OCR/NLP service for metadata extraction and QA indexing
     (async () => {
       try {
         const form = new FormData();
-        form.append('files', fs.createReadStream(req.file.path), req.file.originalname);
+        req.files.forEach(f => {
+          form.append('files', fs.createReadStream(f.path), f.originalname);
+        });
         form.append('metadata', JSON.stringify({ uploadedBy: author || name }));
 
         const pythonUrl = `${pythonBaseUrl}/process`;
-        const resp = await axios.post(pythonUrl, form, { headers: form.getHeaders(), timeout: 300000 });
+        const resp = await axios.post(pythonUrl, form, {
+          headers: form.getHeaders(),
+          timeout: 300000
+        });
         const data = resp.data || {};
 
         // Persist an Upload record with extracted groups, unique questions and metadata
@@ -1825,7 +1885,7 @@ app.post('/api/notes', notesUpload.single('file'), async (req, res) => {
             institutionName: data.metadata?.university || null,
             classLevel: data.metadata?.course || null,
             year: null,
-            files: [req.file.path],
+            files: req.files.map(f => f.path),
             groups: data.groups || [],
             unique: data.unique || [],
             createdAt: new Date()
@@ -1839,7 +1899,7 @@ app.post('/api/notes', notesUpload.single('file'), async (req, res) => {
             await NoteModel.findByIdAndUpdate(note._id, update);
           }
 
-          console.log(' Python processing completed for file:', req.file.path);
+          console.log(' Python processing completed for files:', req.files.length);
         } catch (saveErr) {
           console.error('Failed to save upload metadata:', saveErr.message || saveErr);
         }
@@ -2038,6 +2098,92 @@ app.get('/api/notes/:id/download', async (req, res) => {
   } catch (err) {
     console.error('Error downloading note:', err);
     res.status(500).json({ error: 'Failed to download note' });
+  }
+});
+
+app.get('/api/notes/:id/files/:fileIndex/download', async (req, res) => {
+  try {
+    const note = await NoteModel.findById(req.params.id);
+    if (!note) return res.status(404).json({ error: 'Note not found' });
+    
+    const idx = parseInt(req.params.fileIndex);
+    if (!note.files || !note.files[idx]) return res.status(404).json({ error: 'File not found' });
+    
+    const file = note.files[idx];
+    if (!fs.existsSync(file.path)) return res.status(404).json({ error: 'File missing' });
+    
+    res.download(file.path, file.name);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed' });
+  }
+});
+
+
+app.get('/api/notes/:id/view', async (req, res) => {
+  try {
+    const note = await NoteModel.findById(req.params.id);
+    if (!note) return res.status(404).json({ error: 'Note not found' });
+    
+    // Check files array first, then fallback to legacy filePath
+    let filePath = note.filePath;
+    let fileName = note.fileName || 'note.pdf';
+    
+    // For legacy single file, we use filePath (if present)
+    // If it's a new multi-file note, we use the first file for this route
+    if (!filePath && note.files && note.files.length > 0) {
+      filePath = note.files[0].path;
+      fileName = note.files[0].name;
+    }
+    
+    if (!filePath || !fs.existsSync(filePath)) {
+      console.warn(`[VIEW] File not found on disk at ${filePath}`);
+      return res.status(404).json({ error: 'File not found on server' });
+    }
+    
+    // Detect extension from the ORIGINAL fileName, not the disk filePath
+    const ext = path.extname(fileName).toLowerCase();
+    const mimeTypes = {
+      '.pdf': 'application/pdf',
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.png': 'image/png',
+      '.txt': 'text/plain'
+    };
+    
+    res.setHeader('Content-Type', mimeTypes[ext] || 'application/octet-stream');
+    res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
+    res.sendFile(path.resolve(filePath));
+  } catch (err) {
+    console.error('View legacy note error:', err);
+    res.status(500).json({ error: 'Failed' });
+  }
+});
+
+app.get('/api/notes/:id/files/:fileIndex/view', async (req, res) => {
+  try {
+    const note = await NoteModel.findById(req.params.id);
+    if (!note) return res.status(404).json({ error: 'Note not found' });
+    
+    const idx = parseInt(req.params.fileIndex);
+    if (!note.files || !note.files[idx]) return res.status(404).json({ error: 'File not found' });
+    
+    const file = note.files[idx];
+    if (!fs.existsSync(file.path)) return res.status(404).json({ error: 'File missing' });
+    
+    // Set content type based on extension
+    const ext = path.extname(file.path).toLowerCase();
+    const mimeTypes = {
+      '.pdf': 'application/pdf',
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.png': 'image/png',
+      '.txt': 'text/plain'
+    };
+    
+    res.setHeader('Content-Type', mimeTypes[ext] || 'application/octet-stream');
+    res.sendFile(file.path);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed' });
   }
 });
 
@@ -2502,14 +2648,36 @@ app.post('/api/studyhub/search', authenticateToken, async (req, res) => {
 
     // If noteId is provided, resolve filePath and send to python search to limit scope
     let payload = { question, subject };
+    
     if (noteId) {
       try {
         const note = await NoteModel.findById(noteId);
-        if (note && note.filePath) {
-          payload.filePath = note.filePath;
+        if (note) {
+          if (note.filePath) {
+            payload.filePath = note.filePath;
+          } else if (note.files && note.files.length > 0) {
+            payload.filePaths = note.files.map(f => f.path);
+          }
         }
       } catch (e) {
         console.warn('Unable to find note for noteId', noteId, e.message || e);
+      }
+    } else {
+      // Fetch ALL note paths from DB to search across all study materials
+      try {
+        const allNotes = await NoteModel.find({}, 'filePath files');
+        const paths = [];
+        allNotes.forEach(note => {
+          if (note.filePath) paths.push(note.filePath);
+          if (note.files && note.files.length > 0) {
+            note.files.forEach(f => paths.push(f.path));
+          }
+        });
+        if (paths.length > 0) {
+          payload.filePaths = [...new Set(paths)]; // Unique paths
+        }
+      } catch (e) {
+        console.warn('Error fetching all notes for search', e.message);
       }
     }
 
@@ -3095,6 +3263,74 @@ app.put('/api/admin/notes/:id', authenticateToken, requireAdmin, async (req, res
   }
 });
 
+app.post('/api/admin/notes', authenticateToken, requireAdmin, notesUpload.array('files', 15), async (req, res) => {
+  try {
+    const { name, subject, description } = req.body;
+    const uploadedFiles = (req.files || []).map(f => ({
+      name: f.originalname,
+      path: f.path
+    }));
+
+    if (uploadedFiles.length === 0) return res.status(400).json({ error: 'At least one file is required' });
+
+    const note = await NoteModel.create({
+      name,
+      author: 'Admin',
+      authorId: req.user.userId,
+      role: 'admin',
+      subject: subject || 'General',
+      description: description || '',
+      files: uploadedFiles,
+      fileName: uploadedFiles[0].name,
+      filePath: uploadedFiles[0].path
+    });
+
+    res.json({ success: true, note });
+  } catch (err) {
+    console.error('Error uploading note:', err);
+    res.status(500).json({ error: 'Failed to upload note', detail: err.message });
+  }
+});
+
+app.get('/api/admin/notes/:id/files/:fileIndex/download', async (req, res) => {
+  try {
+    const note = await NoteModel.findById(req.params.id);
+    if (!note) return res.status(404).json({ error: 'Note not found' });
+    
+    const fileIndex = parseInt(req.params.fileIndex);
+    if (!note.files || !note.files[fileIndex]) return res.status(404).json({ error: 'File index not found' });
+    
+    const file = note.files[fileIndex];
+    if (!fs.existsSync(file.path)) return res.status(404).json({ error: 'File not found on server' });
+    
+    res.download(file.path, file.name);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed' });
+  }
+});
+
+app.delete('/api/admin/notes/:id', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const note = await NoteModel.findById(req.params.id);
+    if (!note) return res.status(404).json({ error: 'Note not found' });
+
+    // Delete file if exists
+    if (note.filePath && fs.existsSync(note.filePath)) {
+      try {
+        fs.unlinkSync(note.filePath);
+      } catch (fileErr) {
+        console.warn('Failed to delete file from disk:', fileErr);
+      }
+    }
+
+    await NoteModel.findByIdAndDelete(req.params.id);
+    res.json({ success: true, message: 'Note deleted permanently' });
+  } catch (err) {
+    console.error('Error deleting note:', err);
+    res.status(500).json({ error: 'Failed to delete note' });
+  }
+});
+
 // Admin Dashboard Statistics
 app.get('/api/admin/dashboard', authenticateToken, requireAdmin, async (req, res) => {
   try {
@@ -3389,23 +3625,7 @@ app.get('/api/chat/conversation/:otherUserId', authenticateToken, async (req, re
     })
       .populate('fromUserId', 'fullName role')
       .populate('toUserId', 'fullName role')
-      .populate('forumPostId', 'title')
-    // Notify forum owner about the reply
-    await MessageModel.create({
-      fromUserId: req.body.authorId || null,
-      toUserId: post.authorId,
-      forumPostId: post._id,
-      message: `New reply on your post: "${post.title}" by ${author}`,
-      isRead: false
-    });
-
-    // Emit real-time event via Socket.IO if available
-    try {
-      const toRoom = post.authorId.toString();
-      io.to(toRoom).emit('forum_reply', { postId: post._id, title: post.title, from: author });
-    } catch (e) { }
-
-    res.json({ success: true, post });
+      .populate('forumPostId', 'title');
 
     // Mark messages as read
     await MessageModel.updateMany(

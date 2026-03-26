@@ -809,9 +809,16 @@ def search_pdf():
         question = payload.get('question','')
         subject = payload.get('subject')
         file_path = payload.get('filePath')
-
+        file_paths = payload.get('filePaths', [])
+        
         if not question:
             return jsonify({ 'found': False, 'message': 'Question required' })
+
+        # Ensure file_paths is a list
+        if not file_paths:
+            file_paths = []
+        if file_path and file_path not in file_paths:
+            file_paths.append(file_path)
 
         def search_doc(path):
             try:
@@ -895,26 +902,27 @@ def search_pdf():
                 return None
             return None
 
-        # If a specific file path was requested, search it first
-        if file_path:
-            res = search_doc(file_path)
-            if res:
-                return jsonify(res)
-
-        # Otherwise, search all notes available in DB
-        notes = Note.query.order_by(Note.created_at.desc()).all()
-        for note in notes:
-            try:
-                if not note.filePath or not os.path.exists(note.filePath):
-                    continue
-                res = search_doc(note.filePath)
+        # If we have file paths provided, search those
+        if file_paths:
+            for path in file_paths:
+                res = search_doc(path)
                 if res:
                     return jsonify(res)
-            except Exception:
-                continue
+            return jsonify({ 'found': False, 'message': 'No match in provided study materials' })
 
-        return jsonify({ 'found': False, 'message': 'No matching page found' })
+        # Otherwise, search all notes available in Python's local DB (fallback)
+        notes = Note.query.order_by(Note.created_at.desc()).all()
+        for note in notes:
+            # Check both possible attribute names
+            p = getattr(note, 'filePath', None) or getattr(note, 'file_path', None)
+            if p:
+                res = search_doc(p)
+                if res:
+                    return jsonify(res)
+
+        return jsonify({ 'found': False, 'message': 'No match found in any notes' })
     except Exception as e:
+        print(f"Search PDF error: {e}")
         return jsonify({ 'error': 'Search failed', 'detail': str(e) }), 500
 
 @app.route('/admin/notes/<int:note_id>/delete', methods=['POST'])

@@ -114,7 +114,7 @@ function UserStatistics() {
 }
 
 function Profile() {
-  const { user: authUser, isAuthenticated } = useAuth();
+  const { user: authUser, isAuthenticated, updateUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [profileData, setProfileData] = useState({
@@ -222,12 +222,8 @@ function Profile() {
       if (response.data.success) {
         setMessage('Profile updated successfully');
         setIsEditing(false);
-        // Update stored user details
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-        // Refresh the page to update auth context
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
+        // Update auth context with new user data
+        updateUser(response.data.user);
       } else {
         setError(response.data.error || 'Failed to update profile');
       }
@@ -267,10 +263,12 @@ function Profile() {
       if (res.data.success) {
         setProfileData(prev => ({ ...prev, profilePicture: res.data.profilePicture }));
         setMessage('Profile picture updated successfully');
-        // Update local storage too if needed
-        const stored = JSON.parse(localStorage.getItem('user') || '{}');
-        stored.profilePicture = res.data.profilePicture;
-        localStorage.setItem('user', JSON.stringify(stored));
+        
+        // Update auth context and local storage
+        if (authUser) {
+          const updatedUser = { ...authUser, profilePicture: res.data.profilePicture };
+          updateUser(updatedUser);
+        }
       }
     } catch (err) {
       console.error('Error uploading profile picture:', err);
@@ -327,9 +325,16 @@ function Profile() {
             <div className="avatar-container">
               {profileData.profilePicture ? (
                 <img 
-                  src={`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/${profileData.profilePicture}`} 
+                  src={profileData.profilePicture.startsWith('http') 
+                        ? profileData.profilePicture 
+                        : `${process.env.REACT_APP_API_URL || "http://localhost:4000"}/${profileData.profilePicture.startsWith('/') ? profileData.profilePicture.substring(1) : profileData.profilePicture}`
+                      } 
                   alt="Profile" 
                   className="profile-img" 
+                  onError={(e) => {
+                    e.target.onerror = null; 
+                    e.target.src = "https://ui-avatars.com/api/?name=" + (profileData.fullName || 'User') + "&background=6366f1&color=fff";
+                  }}
                 />
               ) : (
                 <div className="avatar-circle">

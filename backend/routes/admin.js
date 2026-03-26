@@ -96,6 +96,70 @@ router.put('/settings', async (req, res) => {
   }
 });
 
+// Notes Management
+router.get('/notes', async (req, res) => {
+  try {
+    const notes = await Note.find().sort({ createdAt: -1 });
+    res.json({ success: true, notes });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch notes' });
+  }
+});
+
+router.post('/notes', upload.single('file'), async (req, res) => {
+  try {
+    const { name, subject, description } = req.body;
+    if (!req.file) return res.status(400).json({ error: 'File is required' });
+
+    const note = await Note.create({
+      name,
+      author: 'Admin',
+      authorId: req.user.userId,
+      role: 'admin',
+      subject: subject || 'General',
+      description: description || '',
+      fileName: req.file.originalname,
+      filePath: req.file.path
+    });
+
+    res.json({ success: true, note });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to upload note' });
+  }
+});
+
+router.put('/notes/:id', async (req, res) => {
+  try {
+    const { name, subject, description } = req.body;
+    const note = await Note.findByIdAndUpdate(
+      req.params.id,
+      { name, subject, description },
+      { new: true }
+    );
+    if (!note) return res.status(404).json({ error: 'Note not found' });
+    res.json({ success: true, note });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update note' });
+  }
+});
+
+router.delete('/notes/:id', async (req, res) => {
+  try {
+    const note = await Note.findById(req.params.id);
+    if (!note) return res.status(404).json({ error: 'Note not found' });
+    
+    // Delete file from disk if it exists
+    if (note.filePath && fs.existsSync(note.filePath)) {
+      fs.unlinkSync(note.filePath);
+    }
+    
+    await Note.findByIdAndDelete(req.params.id);
+    res.json({ success: true, message: 'Note deleted' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete note' });
+  }
+});
+
 // Dashboard Stats
 router.get('/dashboard', async (req, res) => {
   try {

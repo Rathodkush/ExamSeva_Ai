@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import FilePreviewModal from '../components/FilePreviewModal';
 import '../styles/StudyHub.css';
 import ConfirmModal from '../components/ConfirmModal';
 import { useAuth } from '../context/AuthContext';
@@ -9,15 +10,25 @@ function StudyHub() {
   const [showUpload, setShowUpload] = useState(false);
   const [uploadData, setUploadData] = useState({
     name: '',
-    file: null,
+    files: [],
     subject: '',
     description: ''
+  });
+  const [preview, setPreview] = useState({
+    isOpen: false,
+    fileUrl: '',
+    fileName: '',
+    noteId: '',
+    fileIndex: null,
+    isPaper: false
   });
   const [notes, setNotes] = useState([]);
   const [papers, setPapers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('notes'); // 'notes' | 'papers'
   const [searchQuery, setSearchQuery] = useState('');
+  const [confirmDelete, setConfirmDelete] = useState({ open: false, noteId: null });
+  const [askLoading, setAskLoading] = useState(false);
 
   useEffect(() => {
     checkBackendConnection();
@@ -32,20 +43,17 @@ function StudyHub() {
     const params = new URLSearchParams(window.location.search);
     const file = params.get('file');
     const page = params.get('page');
-    const snippet = params.get('snippet');
     const rects = params.get('rects');
     const question = params.get('question');
+    const snippet = params.get('snippet');
     
     if (file) {
-      // Navigate to viewer with highlighting parameters
       const viewerParams = new URLSearchParams();
       viewerParams.set('file', file);
       if (page) viewerParams.set('page', page);
       if (rects) viewerParams.set('rects', rects);
       if (question) viewerParams.set('question', question);
       if (snippet) viewerParams.set('snippet', snippet);
-      
-      // Use replace to avoid adding to history
       window.location.replace(`/viewer?${viewerParams.toString()}`);
     }
   }, []);
@@ -55,7 +63,6 @@ function StudyHub() {
       await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/health`, { timeout: 3000 });
     } catch (err) {
       console.error('Backend not reachable:', err);
-      alert('⚠️ Backend server is not running! Please start the backend server on port 4000.');
     }
   };
 
@@ -63,13 +70,10 @@ function StudyHub() {
     try {
       const token = localStorage.getItem('token');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      
-      // Load public notes and official papers
       const [notesRes, papersRes] = await Promise.all([
         axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/notes`, { headers }),
-        axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/question-papers`, { headers }).catch(e => ({ data: { papers: [] } }))
+        axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/question-papers`, { headers }).catch(() => ({ data: { papers: [] } }))
       ]);
-      
       setNotes(notesRes.data.notes || []);
       setPapers(papersRes.data.papers || []);
     } catch (err) {
@@ -80,13 +84,13 @@ function StudyHub() {
   };
 
   const handleFileChange = (e) => {
-    setUploadData({ ...uploadData, file: e.target.files[0] });
+    setUploadData({ ...uploadData, files: Array.from(e.target.files) });
   };
 
   const handleUpload = async (e) => {
     e.preventDefault();
-    if (!uploadData.name || !uploadData.file) {
-      alert('Please fill in name and select a file');
+    if (!uploadData.name || uploadData.files.length === 0) {
+      alert('Please fill in name and select at least one file');
       return;
     }
 
@@ -98,7 +102,7 @@ function StudyHub() {
       formData.append('role', user?.role || 'student');
       formData.append('subject', uploadData.subject);
       formData.append('description', uploadData.description);
-      formData.append('file', uploadData.file);
+      uploadData.files.forEach(file => formData.append('files', file));
 
       const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/notes`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
@@ -106,314 +110,246 @@ function StudyHub() {
       });
 
       if (res.data.success) {
-        await loadNotes(); // Reload notes from server
-        setUploadData({ name: '', file: null, subject: '', description: '' });
+        await loadNotes();
+        setUploadData({ ...uploadData, files: [], subject: '', description: '' });
         setShowUpload(false);
-        alert('Note uploaded successfully!');
+        alert('Notes uploaded successfully!');
       } else {
         throw new Error(res.data.error || 'Upload failed');
       }
     } catch (err) {
       console.error('Error uploading note:', err);
-      let errorMsg = 'Failed to upload note. ';
-      if (err.code === 'ECONNREFUSED' || err.response?.status === 404) {
-        errorMsg += 'Backend server is not running. Please start the backend server on port 4000.';
-      } else {
-        errorMsg += err.response?.data?.detail || err.response?.data?.error || err.message;
-      }
-      alert(errorMsg);
+      alert(err.response?.data?.error || err.message);
     }
   };
 
-  const handleDownload = async (noteId) => {
+  const handleDownload = async (noteId, fileIndex = 0) => {
     try {
-      const response = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/notes/${noteId}/download`, {
-        responseType: 'blob'
-      });
-      
-      // Create a blob link to download
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      
-      // Get filename from response headers or use default
-      const contentDisposition = response.headers['content-disposition'];
-      let filename = 'note.pdf';
-      if (contentDisposition) {
-        const filenameMatch = contentDisposition.match(/filename="?(.+)"?/);
-        if (filenameMatch) filename = filenameMatch[1];
-      }
-      
-      link.setAttribute('download', filename);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
+      const note = notes.find(n => n._id === noteId);
+      if (!note) return;
+
+      const downloadPath = note.files && note.files.length > 0 
+        ? `${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/notes/${noteId}/files/${fileIndex}/download`
+        : `${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/notes/${noteId}/download`;
+
+      // Use window.open for direct browser download/view
+      window.open(downloadPath, '_blank');
     } catch (err) {
-      console.error('Error downloading note:', err);
-      alert('Failed to download note. File may not exist.');
+      alert('Failed to download note.');
     }
   };
 
-  const [askLoading, setAskLoading] = useState(false);
+  const handlePaperDownload = (paperId) => {
+    try {
+      const paper = papers.find(p => p._id === paperId);
+      if (!paper) return;
+      window.open(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/uploads/${paper.fileName}`, '_blank');
+    } catch (err) {
+      alert('Failed to open paper.');
+    }
+  };
 
-  const [confirmDelete, setConfirmDelete] = useState({ open: false, noteId: null });
-
-  const handleDelete = async (noteId, authorId) => {
+  const handleDelete = (noteId, authorId) => {
     const currentUserId = user?._id || user?.id;
     if (authorId !== currentUserId && user?.role !== 'admin') {
-      alert('You can only delete your own notes');
+      alert('Only owners or admins can delete notes.');
       return;
     }
-
-    // Open confirmation dialog with type-to-confirm for strong action
     setConfirmDelete({ open: true, noteId });
   };
 
   const performDelete = async () => {
-    const noteId = confirmDelete.noteId;
-    const currentUserId = user?._id || user?.id;
+    const id = confirmDelete.noteId;
     try {
-      await axios.delete(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/notes/${noteId}?authorId=${currentUserId}`);
-      setNotes(notes.filter(note => note._id !== noteId));
+      await axios.delete(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/notes/${id}?authorId=${user?._id || user?.id}`);
+      setNotes(notes.filter(n => n._id !== id));
       setConfirmDelete({ open: false, noteId: null });
-      alert('Note deleted successfully!');
+      alert('Note deleted.');
     } catch (err) {
-      console.error('Error deleting note:', err);
-      setConfirmDelete({ open: false, noteId: null });
-      alert('Failed to delete note');
+      alert('Delete failed.');
     }
   };
 
-
-  // Ask AI for answer to a question using this specific note as context
   const handleAsk = async (note) => {
+    const question = window.prompt("Enter your question about this note:");
+    if (!question) return;
     try {
-      const question = window.prompt('Enter your question to search this note (e.g., "Define osmosis")');
-      if (!question || question.trim().length === 0) return;
       setAskLoading(true);
-
       const token = localStorage.getItem('token');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
-
-      const payload = { question: question.trim(), subject: note.subject || undefined, noteId: note._id };
-      const resp = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/studyhub/search`, payload, { headers, timeout: 30000 });
-
-      const data = resp.data;
-      if (!data || !data.success) {
-        throw new Error(data?.error || 'Search failed');
-      }
-
-      const result = data.result || {};
-      if (result.found) {
-        const snippet = result.snippet ? decodeURIComponent(encodeURIComponent(result.snippet)) : '';
-        // Open PDF viewer in a new tab and pass rects to highlight
-        const rects = result.rects || [];
-        const viewerUrl = `/viewer?file=${encodeURIComponent(result.filePath)}&page=${result.page || 1}&rects=${encodeURIComponent(JSON.stringify(rects))}`;
+      const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/studyhub/search`, 
+        { question, subject: note.subject, noteId: note._id }, { headers });
+      
+      const r = res.data.result;
+      if (r && r.found) {
+        const viewerUrl = `/viewer?file=${encodeURIComponent(r.filePath)}&page=${r.page || 1}&rects=${encodeURIComponent(JSON.stringify(r.rects || []))}`;
         window.open(viewerUrl, '_blank');
-
-        if (snippet) {
-          alert(`Answer found on page ${result.page}:\n\n${snippet}`);
-        } else {
-          alert(`Answer found on page ${result.page}. Opening viewer...`);
-        }
+        if (r.snippet) alert(`Found on page ${r.page}:\n\n${r.snippet}`);
       } else {
-        // Show friendly message if not found
-        const message = result.message || "This question's answer is not available in your Study Hub.";
-        alert(message);
+        alert(r?.message || "Not found in this note.");
       }
-
     } catch (err) {
-      console.error('Error searching note:', err);
-      alert(err.response?.data?.detail || err.message || 'Search failed');
+      alert("AI Search failed.");
     } finally {
       setAskLoading(false);
     }
   };
 
-  const filteredNotes = notes.filter(note => 
-    (note.subject || 'General').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (note.name || '').toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const filteredPapers = papers.filter(paper => 
-    (paper.subject || 'General').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (paper.title || '').toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
+  const filteredNotes = notes.filter(n => (n.subject || '').toLowerCase().includes(searchQuery.toLowerCase()) || (n.name || '').toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredPapers = papers.filter(p => (p.subject || '').toLowerCase().includes(searchQuery.toLowerCase()) || (p.title || '').toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
-    <div className="studyhub-container">
-      <div className="page-container">
-        <ConfirmModal
-          isOpen={confirmDelete.open}
-          title={'Delete Note'}
-          message={'This will permanently delete the note and its uploaded file. Type DELETE to confirm.'}
-          requireText={'DELETE'}
-          danger={true}
-          confirmText={'Delete Note'}
-          onConfirm={performDelete}
-          onCancel={() => setConfirmDelete({ open: false, noteId: null })}
-        />
-        <div className="studyhub-header">
-          <div>
-            <h1>Study Hub</h1>
-            <p className="page-subtitle">Access comprehensive study materials and resources</p>
-          </div>
-          <div className="header-actions">
-            <div className="search-box">
+    <>
+      <div className="studyhub-container">
+        {/* File Preview Modal Removed as per user request */}
+        <div className="page-container">
+          <ConfirmModal
+            isOpen={confirmDelete.open}
+            title="Delete Note"
+            message="This action cannot be undone. Type DELETE to confirm."
+            requireText="DELETE"
+            onConfirm={performDelete}
+            onCancel={() => setConfirmDelete({ open: false, noteId: null })}
+            danger={true}
+          />
+
+          <div className="studyhub-header">
+            <div>
+              <h1>Study Hub</h1>
+              <p className="page-subtitle">Access comprehensive study materials</p>
+            </div>
+            <div className="header-actions">
               <input 
                 type="text" 
-                placeholder="Search by subject or name..." 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="search-input"
+                placeholder="Search..." 
+                value={searchQuery} 
+                onChange={e => setSearchQuery(e.target.value)} 
+                className="search-input" 
               />
-            </div>
-            <div className="upload-controls">
               {(user?.role === 'student' || user?.role === 'admin') && (
-                <button onClick={() => setShowUpload(!showUpload)} className="upload-btn">
-                  {showUpload ? 'Cancel' : '+ Upload Notes'}
+                <button className="upload-btn" onClick={() => setShowUpload(!showUpload)}>
+                  {showUpload ? 'Cancel' : '+ Share Notes'}
                 </button>
               )}
             </div>
           </div>
-        </div>
 
-        {showUpload && (
-          <div className="upload-section">
-            <h2>Upload Study Notes</h2>
-            <form onSubmit={handleUpload} className="upload-form">
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Your Name *</label>
-                  <input
-                    type="text"
-                    value={uploadData.name}
-                    onChange={(e) => setUploadData({ ...uploadData, name: e.target.value })}
-                    placeholder="Enter your name"
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Subject</label>
-                  <input
-                    type="text"
-                    value={uploadData.subject}
-                    onChange={(e) => setUploadData({ ...uploadData, subject: e.target.value })}
-                    placeholder="e.g., Mathematics, Physics"
-                  />
-                </div>
-              </div>
-              <div className="form-group">
-                <label>Description</label>
-                <textarea
-                  value={uploadData.description}
-                  onChange={(e) => setUploadData({ ...uploadData, description: e.target.value })}
-                  placeholder="Brief description of the notes..."
-                  rows="3"
-                />
-              </div>
-              <div className="form-group">
-                <label>Upload File *</label>
-                <input
-                  type="file"
-                  onChange={handleFileChange}
-                  accept=".pdf,.doc,.docx,.txt,.jpg,.png"
-                  required
-                />
-              </div>
-              <button type="submit" className="submit-btn">Upload Notes</button>
-            </form>
-          </div>
-        )}
-
-        <div className="studyhub-tabs">
-          <button 
-            className={`tab-btn ${activeTab === 'notes' ? 'active' : ''}`}
-            onClick={() => setActiveTab('notes')}
-          >
-            Study Notes
-          </button>
-          <button 
-            className={`tab-btn ${activeTab === 'papers' ? 'active' : ''}`}
-            onClick={() => setActiveTab('papers')}
-          >
-            Question Papers
-          </button>
-        </div>
-
-        <div className="studyhub-content">
-          {activeTab === 'notes' ? (
-            <div className="notes-list">
-              <h2>Available Study Notes</h2>
-              {loading ? (
-                <div className="loading-state">Loading notes...</div>
-              ) : (
-                <div className="notes-grid">
-                  {filteredNotes.map(note => (
-                    <div key={note._id} className="note-card">
-                      <div className="note-header">
-                        <span className={`note-badge ${note.role || 'student'}`}>{(note.role || 'student').toUpperCase()}</span>
-                        <span className="note-subject-tag">{note.subject || 'General'}</span>
-                      </div>
-                      <div className="note-body">
-                        <h3>{note.name}</h3>
-                        <p className="note-author">By: {note.author}</p>
-                        <div className="note-description-box">
-                          {note.description || 'No description provided'}
-                        </div>
-                      </div>
-                      <div className="note-footer">
-                        <span className="note-date">{new Date(note.createdAt).toLocaleDateString()}</span>
-                        <div className="note-actions">
-                          <button className="download-btn-pill" onClick={() => handleDownload(note._id)}>Download</button>
-                          <button className="answer-btn-pill" onClick={() => handleAsk(note)}>ANSWER</button>
-                        </div>
-                      </div>
+          {showUpload && (
+            <div className="upload-modal-backdrop" onClick={() => setShowUpload(false)}>
+              <div className="upload-modal-content" onClick={e => e.stopPropagation()}>
+                <button className="modal-close-btn" onClick={() => setShowUpload(false)}>&times;</button>
+                <h2>Upload Study Notes</h2>
+                <form onSubmit={handleUpload} className="upload-form">
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Your Name *</label>
+                      <input type="text" value={uploadData.name} onChange={e => setUploadData({ ...uploadData, name: e.target.value })} required />
                     </div>
-                  ))}
-                  {notes.length === 0 && (
-                    <p className="empty-msg">No notes available yet.</p>
-                  )}
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="papers-list">
-              <h2 className="section-title">Official Question Papers</h2>
-              {loading ? (
-                <div className="loading-state">Loading papers...</div>
-              ) : (
-                <div className="notes-grid">
-                  {filteredPapers.map(paper => (
-                    <div key={paper._id} className="note-card">
-                      <div className="note-header">
-                        <span className="note-badge free">FREE</span>
-                        <span className="note-subject-tag">{paper.subject || 'General'}</span>
-                      </div>
-                      <div className="note-body">
-                        <h3>{paper.title}</h3>
-                        <p className="note-author">Official Resource</p>
-                      </div>
-                      <div className="note-footer">
-                        <span className="note-date">{new Date(paper.createdAt).toLocaleDateString()}</span>
-                        <div className="note-actions">
-                          <button className="download-paper-btn" onClick={() => window.open(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/uploads/${paper.fileName}`, '_blank')}>Download Paper</button>
-                        </div>
-                      </div>
+                    <div className="form-group">
+                      <label>Subject</label>
+                      <input type="text" value={uploadData.subject} onChange={e => setUploadData({ ...uploadData, subject: e.target.value })} placeholder="e.g. Physics" />
                     </div>
-                  ))}
-                  {papers.length === 0 && (
-                    <p className="empty-msg">No official question papers available yet.</p>
-                  )}
-                </div>
-              )}
+                  </div>
+                  <div className="form-group">
+                    <label>Description</label>
+                    <textarea value={uploadData.description} onChange={e => setUploadData({ ...uploadData, description: e.target.value })} rows="3" />
+                  </div>
+                  <div className="form-group">
+                    <label>Select Files *</label>
+                    <input type="file" onChange={handleFileChange} multiple required accept=".pdf,.jpg,.jpeg,.png" />
+                    <div className="selected-files-list">
+                      {uploadData.files.map((f, i) => <div key={i} className="selected-file-item">✓ {f.name}</div>)}
+                    </div>
+                  </div>
+                  <button type="submit" className="submit-btn" disabled={askLoading}>Upload Now</button>
+                </form>
+              </div>
             </div>
           )}
+
+          <div className="studyhub-tabs">
+            <button className={`tab-btn ${activeTab === 'notes' ? 'active' : ''}`} onClick={() => setActiveTab('notes')}>Study Notes</button>
+            <button className={`tab-btn ${activeTab === 'papers' ? 'active' : ''}`} onClick={() => setActiveTab('papers')}>Official Papers</button>
+          </div>
+
+          <div className="studyhub-content">
+            {activeTab === 'notes' ? (
+              <div className="notes-grid">
+                {filteredNotes.length === 0 && !loading && <div className="empty-msg">No notes found.</div>}
+                {filteredNotes.map(note => (
+                  <div key={note._id} className="note-card">
+                    <div className="note-header">
+                      <span className={`note-badge ${note.role || 'student'}`}>{(note.role || 'student').toUpperCase()}</span>
+                      <span className="note-subject-tag">{note.subject || 'General'}</span>
+                      {(note.authorId === user?._id || user?.role === 'admin') && (
+                        <button className="delete-note-btn" onClick={() => handleDelete(note._id, note.authorId)}>×</button>
+                      )}
+                    </div>
+                    <div className="note-body">
+                      <h3>{note.name}</h3>
+                      <p className="note-author">By: {note.author}</p>
+                      {note.description && (
+                        <div className="note-description-box">
+                          {note.description}
+                        </div>
+                      )}
+                      
+                      {note.files && note.files.length > 0 && (
+                        <div className="note-files-list">
+                          <p className="files-count-label">{note.files.length} file(s) attached:</p>
+                          {note.files.map((f, i) => (
+                            <div key={i} className="note-file-link" onClick={() => handleDownload(note._id, i)}>
+                              <div className="file-info">
+                                <span className="file-icon">{f.name.toLowerCase().endsWith('.pdf') ? '📄' : '🖼️'}</span>
+                                <span className="file-name">{f.name}</span>
+                              </div>
+                              <span className="view-badge">View</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div className="note-footer">
+                      <span className="note-date">{new Date(note.createdAt).toLocaleDateString()}</span>
+                      <div className="note-actions">
+                        {(!note.files || note.files.length <= 1) && (
+                          <button className="download-btn-pill" onClick={() => handleDownload(note._id, 0)}>
+                            View / Download
+                          </button>
+                        )}
+                        <button className="answer-btn-pill" onClick={() => handleAsk(note)}>ANSWER</button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="notes-grid">
+                {filteredPapers.length === 0 && !loading && <div className="empty-msg">No papers found.</div>}
+                {filteredPapers.map(paper => (
+                  <div key={paper._id} className="note-card paper-card">
+                    <div className="note-header">
+                      <span className="note-badge official">OFFICIAL</span>
+                      <span className="note-subject-tag">{paper.subject || 'Exams'}</span>
+                    </div>
+                    <div className="note-body">
+                      <h3>{paper.title}</h3>
+                      <p className="note-author">Authorized Resource</p>
+                    </div>
+                    <div className="note-footer">
+                      <span className="note-date">{new Date(paper.createdAt).toLocaleDateString()}</span>
+                      <div className="note-actions">
+                        <button className="download-btn-pill" onClick={() => handlePaperDownload(paper._id)}>View / Download</button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
