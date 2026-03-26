@@ -227,10 +227,26 @@ function Header() {
                       <div className="notif-empty">No notifications</div>
                     ) : (
                       notifications.map(n => (
-                        <div key={n._id} className={`notif-item ${n.isRead ? 'read' : ''}`}>
+                        <div 
+                          key={n._id} 
+                          className={`notif-item ${n.isRead ? 'read' : ''}`}
+                          onClick={() => {
+                            if (!n.isRead) markAsRead(n._id);
+                            // Navigate based on type
+                            if (n.type === 'forum_post' || n.type === 'forum_reply') {
+                              navigate('/forum');
+                            } else if (n.type === 'study_hub') {
+                              navigate('/studyhub');
+                            } else if (n.type === 'quiz') {
+                              navigate('/quize');
+                            }
+                            setShowDropdown(false);
+                          }}
+                          style={{ cursor: 'pointer' }}
+                        >
                           <div className="notif-title">{n.message}</div>
-                          <div className="notif-actions">
-                            {!n.isRead && <button onClick={() => markAsRead(n._id)}>Mark read</button>}
+                          <div className="notif-time" style={{ fontSize: '10px', color: '#888', marginTop: '4px' }}>
+                            {new Date(n.createdAt).toLocaleString([], { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' })}
                           </div>
                         </div>
                       ))

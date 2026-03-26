@@ -1802,10 +1802,10 @@ app.post('/api/notes', notesUpload.single('file'), async (req, res) => {
 
     // Notify all users about new study material
     notifyAllUsers(
-      `New study material added: "${name}" for ${subject}.`,
+      `${author || 'A student'} shared a new study material: "${name}" for ${subject}.`,
       'study_hub',
       authorId,
-      { noteId: note._id }
+      { noteId: note._id, subject }
     );
     // Send file to Python OCR/NLP service for metadata extraction and QA indexing
     (async () => {
@@ -2157,10 +2157,10 @@ app.post('/api/quiz/generate', quizUpload.single('file'), async (req, res) => {
 
     // Notify all users about new quiz
     notifyAllUsers(
-      `New practice quiz available for ${resolvedSubject}!`,
+      `New practice quiz available for ${resolvedSubject}! Try it now.`,
       'quiz',
       userId,
-      { quizId: quiz._id }
+      { quizId: quiz._id, subject: resolvedSubject }
     );
 
     res.json({ success: true, quiz });
@@ -2689,10 +2689,10 @@ app.post('/api/forum/posts', authenticateToken, async (req, res) => {
 
     // Notify all other students about new post using the helper
     notifyAllUsers(
-      `New question posted in the forum: "${title}" by ${user.fullName}`,
+      `${user.fullName} asked a new question: "${title}". Click to reply and help!`,
       'forum_post',
       req.user.userId,
-      { postId: post._id }
+      { postId: post._id, title: post.title }
     );
 
     console.log('Post created:', post._id);
