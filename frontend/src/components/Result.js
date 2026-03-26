@@ -313,13 +313,13 @@ export default function Results({ results }) {
           overflow: 'hidden'
         }}>
           <div style={{ position: 'absolute', top: '-10px', right: '-10px', fontSize: '60px', opacity: 0.1 }}>🤖</div>
-          
+
           <div className="stat-item">
             <div style={{ fontSize: '12px', opacity: 0.7, textTransform: 'uppercase', letterSpacing: '1px' }}>Total Detected</div>
             <div style={{ fontSize: '32px', fontWeight: '800' }}>{results.summary.totalQuestionsDetected}</div>
             <div style={{ fontSize: '11px', color: '#a5b4fc' }}>Questions in system</div>
           </div>
-          
+
           <div className="stat-item">
             <div style={{ fontSize: '12px', opacity: 0.7, textTransform: 'uppercase', letterSpacing: '1px' }}>Redundancy Score</div>
             <div style={{ fontSize: '32px', fontWeight: '800', color: results.summary.redundancyPercentage > 30 ? '#fbbf24' : '#34d399' }}>
@@ -335,7 +335,7 @@ export default function Results({ results }) {
           </div>
 
           <div className="stat-item" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <button 
+            <button
               className="generate-auto-btn"
               onClick={() => {
                 // Logic to trigger quiz with these questions
@@ -372,7 +372,7 @@ export default function Results({ results }) {
                   responseType: 'blob',
                   headers: token ? { Authorization: `Bearer ${token}` } : {}
                 });
-                
+
                 // Existing download logic...
                 const url = window.URL.createObjectURL(new Blob([res.data]));
                 const a = document.createElement('a'); a.href = url; a.download = 'full_analysis.pdf'; a.click();

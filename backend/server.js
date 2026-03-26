@@ -180,6 +180,13 @@ const UserSchema = new mongoose.Schema({
 });
 const UserModel = mongoose.models.User || mongoose.model('User', UserSchema);
 
+const ProfileImageSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  imageUrl: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now }
+});
+const ProfileImageModel = mongoose.models.ProfileImage || mongoose.model('ProfileImage', ProfileImageSchema, 'profileimages');
+
 // OTP Schema
 const OTPSchema = new mongoose.Schema({
   emailOrPhone: { type: String, required: true },
@@ -1076,7 +1083,16 @@ app.post('/api/auth/profile-picture', authenticateToken, profileUpload.single('p
       return res.status(400).json({ error: 'No file uploaded' });
     }
     const profilePictureUrl = `uploads/profiles/${req.file.filename}`;
+    
+    // Save to the new dedicated images collection
+    await ProfileImageModel.create({
+      userId: req.user.userId,
+      imageUrl: profilePictureUrl
+    });
+
+    // Also update the User model for fast access
     await UserModel.findByIdAndUpdate(req.user.userId, { profilePicture: profilePictureUrl });
+    
     res.json({ success: true, profilePicture: profilePictureUrl });
   } catch (err) {
     console.error('Profile picture upload error:', err);
