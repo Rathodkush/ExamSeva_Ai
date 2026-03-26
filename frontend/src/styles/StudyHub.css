@@ -25,10 +25,44 @@
 .studyhub-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   margin-bottom: 30px;
   flex-wrap: wrap;
   gap: 20px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  position: relative;
+  min-width: 300px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 20px;
+  padding-left: 40px;
+  border: 2px solid #edf2f7;
+  border-radius: 12px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  background-color: #f8fafc;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23a0aec0'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 12px center;
+  background-size: 20px;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #5a67d8;
+  background-color: white;
+  box-shadow: 0 0 0 3px rgba(90, 103, 216, 0.1);
 }
 
 .upload-controls {

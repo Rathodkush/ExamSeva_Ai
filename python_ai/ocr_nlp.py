@@ -101,6 +101,23 @@ def extract_question_stem(text: str) -> set:
     stem_words = [w for w in words if w not in question_markers and len(w) > 3]
     return set(stem_words)
 
+def detect_unit_markers(text: str) -> Optional[str]:
+    """Detect 'Unit X', 'Module X' or 'Chapter X' markers in a line of text."""
+    patterns = [
+        r'^\s*(?:Unit|Module|Chapter|Part|Section)\s*[:\- ]*([0-9A-ZIVX]+)',
+        r'^\s*([0-9A-ZIVX]+)\s*[:\- ]*(?:Unit|Module|Chapter|Part|Section)'
+    ]
+    for p in patterns:
+        m = re.search(p, text, re.I)
+        if m:
+            return f"Unit {m.group(1).upper()}"
+    
+    # Also look for bold/all-caps topics at the start of blocks
+    if len(text) < 40 and text.isupper() and any(word in text.lower() for word in ['unit', 'module', 'chapter', 'topic']):
+        return text.strip().title()
+        
+    return None
+
 def semantic_keyword_match(keywords1: set, keywords2: set) -> float:
     """Calculate semantic similarity between keyword sets using embeddings."""
     if not keywords1 or not keywords2:
@@ -212,10 +229,17 @@ def extract_question_with_answer(text: str) -> Dict[str, str]:
         'answer': None
     }
 
-def split_to_questions(text: str) -> List[str]:
-    """Enhanced question extraction that captures questions with their answers when available."""
-    out: List[str] = []
+def split_to_questions(text: str) -> List[Dict]:
+    """Enhanced question extraction that captures questions with their units, answers when available."""
+    out: List[Dict] = []
+    current_unit = "General"
     
+    lines = text.split('\n')
+    for line in lines:
+        unit = detect_unit_markers(line)
+        if unit:
+            current_unit = unit
+
     # First, try to extract explicit Q&A pairs
     qa_patterns = [
         r'(?:Q|Question)[:\s]*(\d+)?[:.\s]*(.+?)(?:A|Answer)[:\s]*(.+?)(?=\n(?:Q|Question|\d+\.|\Z))',
@@ -228,21 +252,39 @@ def split_to_questions(text: str) -> List[str]:
         for match in qa_pairs:
             if len(match) == 3:  # Q number, question, answer
                 q_num, question, answer = match
-                combined = f"Q{q_num}: {question.strip()} [Answer: {answer.strip()[:200]}...]"
-                if len(combined) > 50 and len(question.strip()) > 20:
-                    out.append(combined)
+                q_text = question.strip()
+                ans_text = answer.strip()[:200]
+                if len(q_text) > 20:
+                    out.append({
+                        'text': q_text,
+                        'answer': ans_text,
+                        'unit': current_unit
+                    })
             elif len(match) == 2:  # question, answer
                 question, answer = match
-                combined = f"{question.strip()} [Answer: {answer.strip()[:200]}...]"
-                if len(combined) > 50 and len(question.strip()) > 20:
-                    out.append(combined)
+                q_text = question.strip()
+                ans_text = answer.strip()[:200]
+                if len(q_text) > 20:
+                    out.append({
+                        'text': q_text,
+                        'answer': ans_text,
+                        'unit': current_unit
+                    })
     
     # Remove matched Q&A sections from text to avoid double-processing
     for pattern in qa_patterns:
         text = re.sub(pattern, '', text, flags=re.IGNORECASE | re.DOTALL)
     
     # Continue with original logic for questions without explicit answers
+    # ... (Simplified split approach for the rest of text)
     parts = re.split(r'\n(?=\d{1,3}[).])|\n(?=Q\d+[:).])', text, flags=re.IGNORECASE)
+    
+    # (Helper remained same)
+    def should_skip(line: str) -> bool:
+        # ... (same as original)
+        l = line.strip()
+        if not l: return True
+        # ...
     def should_skip(line: str) -> bool:
         l = line.strip()
         if not l:
@@ -291,10 +333,10 @@ def split_to_questions(text: str) -> List[str]:
             for sp in subparts:
                 sp = sp.strip()
                 if len(sp) > 20 and not should_skip(sp):
-                    out.append(sp)
+                    out.append({'text': sp, 'unit': current_unit})
             continue
 
-        def segment_paragraph(paragraph: str) -> List[str]:
+        def segment_paragraph(paragraph: str) -> List[Dict]:
             paragraph = normalize_spaces(paragraph)
             letters = sum(ch.isalpha() for ch in paragraph)
             digits = sum(ch.isdigit() for ch in paragraph)
@@ -324,20 +366,20 @@ def split_to_questions(text: str) -> List[str]:
                 else:
                     chunks.append(qp)
 
-            cleaned: List[str] = []
+            cleaned: List[Dict] = []
             for c in chunks:
                 c = normalize_spaces(re.sub(r'^\s*(\(?\d+[\)).-]|\(?[a-hA-H][\).-])\s+', '', c))
                 if len(c) > 30 and not should_skip(c):
                     if re.match(r'^(what|explain|define|write|draw|list|describe|state|differentiate|discuss|calculate|prove|show|derive)\b', c, flags=re.I) and not c.endswith('?'):
                         c = c + '?'
-                    cleaned.append(c)
+                    cleaned.append({'text': c, 'unit': current_unit})
             return cleaned
 
         if len(p) > 180:
             out.extend(segment_paragraph(p))
         else:
             if len(p) > 30 and not should_skip(p):
-                out.append(p)
+                out.append({'text': p, 'unit': current_unit})
     return out
 
 def _prefilter_candidates(questions: List[str], max_candidates: int = MAX_CANDIDATES_FOR_EMBED) -> List[str]:
@@ -380,22 +422,30 @@ def _union_find_make(n):
 def extract_and_compare(texts: List[str]) -> Dict[str, List]:
     t0 = time.time()
     # combine and split into candidate questions
-    questions: List[str] = []
+    raw_questions: List[Dict] = []
     for t in texts:
         qs = split_to_questions(t)
-        questions.extend(qs)
+        raw_questions.extend(qs)
 
     # fallback: if no questions found, split by sentence
-    if not questions:
+    if not raw_questions:
         for t in texts:
             sents = re.split(r'\.\s+|\?\s+|!\s+', t)
             for s in sents:
                 s = s.strip()
                 if len(s) > 30:
-                    questions.append(s)
+                    raw_questions.append({
+                        'text': s,
+                        'unit': 'General'
+                    })
 
-    if not questions:
+    if not raw_questions:
         return {"groups": [], "unique": [], "candidates": []}
+
+    # Extract strings for processing
+    questions = [q['text'] for q in raw_questions]
+    question_units = [q.get('unit', 'General') for q in raw_questions]
+    question_answers = [q.get('answer', None) for q in raw_questions]
 
     # Prefilter candidates to limit embedding workload
     if len(questions) > MAX_CANDIDATES_FOR_EMBED:
@@ -556,14 +606,18 @@ def extract_and_compare(texts: List[str]) -> Dict[str, List]:
             
             # Check for same answer pattern (if answer is embedded in text)
             answer_match = 0.0
-            if '[Answer:' in representative and '[Answer:' in q_text0:
-                rep_answer = re.search(r'\[Answer:\s*(.+?)\]', representative)
-                q_answer = re.search(r'\[Answer:\s*(.+?)\]', q_text0)
-                if rep_answer and q_answer:
+            q_answer_from_list = question_answers[q_global_idx0] if q_global_idx0 < len(question_answers) else None
+            rep_answer_from_list = question_answers[rep_idx_global] if rep_idx_global < len(question_answers) else None
+            
+            if (rep_answer_from_list and q_answer_from_list) or ('[Answer:' in representative and '[Answer:' in q_text0):
+                rep_ans = rep_answer_from_list or (re.search(r'\[Answer:\s*(.+?)\]', representative).group(1) if re.search(r'\[Answer:\s*(.+?)\]', representative) else None)
+                q_ans = q_answer_from_list or (re.search(r'\[Answer:\s*(.+?)\]', q_text0).group(1) if re.search(r'\[Answer:\s*(.+?)\]', q_text0) else None)
+                
+                if rep_ans and q_ans:
                     # Compare answer similarity
                     answer_sim = util.cos_sim(
-                        model.encode([rep_answer.group(1)], convert_to_tensor=True),
-                        model.encode([q_answer.group(1)], convert_to_tensor=True)
+                        model.encode([rep_ans], convert_to_tensor=True),
+                        model.encode([q_ans], convert_to_tensor=True)
                     ).item()
                     if answer_sim > 0.75:  # High similarity in answers
                         answer_match = 0.3  # Boost score if answers are similar
@@ -586,6 +640,8 @@ def extract_and_compare(texts: List[str]) -> Dict[str, List]:
                 members.append({
                     "id": int(q_global_idx),
                     "text": q_text,
+                    "unit": question_units[q_global_idx] if q_global_idx < len(question_units) else "General",
+                    "answer": question_answers[q_global_idx] if q_global_idx < len(question_answers) else None,
                     "similarity": float(sims[i]),
                     "keywordOverlap": semantic_keyword_score,  # Use semantic keyword score
                     "directKeywordOverlap": jaccard,  # Keep direct overlap for reference
@@ -609,6 +665,7 @@ def extract_and_compare(texts: List[str]) -> Dict[str, List]:
         groups.append({
             "groupId": int(gid),
             "representative": representative,
+            "unit": question_units[rep_idx_global] if rep_idx_global < len(question_units) else "General",
             "members": members,
             "keywords": top_keywords,
             "groupSize": len(members)
@@ -628,6 +685,8 @@ def extract_and_compare(texts: List[str]) -> Dict[str, List]:
             unique.append({
                 "id": int(idx),
                 "text": q,
+                "unit": question_units[idx] if idx < len(question_units) else "General",
+                "answer": question_answers[idx] if idx < len(question_answers) else None,
                 "keywords": get_keywords(q)
             })
 
@@ -638,11 +697,17 @@ def extract_and_compare(texts: List[str]) -> Dict[str, List]:
     unique_q = len(unique)
     redundant_q = total_q - unique_q
     
+    # Unit breakdown
+    unit_stats = {}
+    for unit in question_units:
+        unit_stats[unit] = unit_stats.get(unit, 0) + 1
+    
     summary = {
         "totalQuestionsDetected": total_q,
         "uniqueQuestionsCount": unique_q,
         "repeatedGroupsCount": len(groups),
         "redundancyPercentage": round((redundant_q / max(1, total_q)) * 100, 1),
+        "unitBreakdown": unit_stats,
         "processingTimeSec": round(elapsed, 2),
         "aiConfidence": "High" if len(texts) > 2 else "Medium"
     }

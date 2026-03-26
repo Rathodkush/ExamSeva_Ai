@@ -127,7 +127,8 @@ function Profile() {
     institutionName: '',
     boardName: '',
     state: '',
-    semester: ''
+    semester: '',
+    profilePicture: ''
   });
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
@@ -146,7 +147,8 @@ function Profile() {
         institutionName: authUser.institutionName || authUser.university || '',
         boardName: authUser.boardName || '',
         state: authUser.state || '',
-        semester: authUser.semester || ''
+        semester: authUser.semester || '',
+        profilePicture: authUser.profilePicture || ''
       });
       setLoading(false);
     } else {
@@ -177,7 +179,8 @@ function Profile() {
               institutionName: user.institutionName || user.university || '',
               boardName: user.boardName || '',
               state: user.state || '',
-              semester: user.semester || ''
+              semester: user.semester || '',
+              profilePicture: user.profilePicture || ''
             });
           }
         } catch (err) {
@@ -245,6 +248,36 @@ function Profile() {
     }
   };
 
+  const handleProfilePictureUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('profilePicture', file);
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/auth/profile-picture`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      if (res.data.success) {
+        setProfileData(prev => ({ ...prev, profilePicture: res.data.profilePicture }));
+        setMessage('Profile picture updated successfully');
+        // Update local storage too if needed
+        const stored = JSON.parse(localStorage.getItem('user') || '{}');
+        stored.profilePicture = res.data.profilePicture;
+        localStorage.setItem('user', JSON.stringify(stored));
+      }
+    } catch (err) {
+      console.error('Error uploading profile picture:', err);
+      setError('Failed to upload profile picture');
+    }
+  };
+
   if (loading) {
     return (
       <div className="profile-container">
@@ -291,8 +324,32 @@ function Profile() {
         {activeTab === 'profile' && (
         <div className="profile-card">
           <div className="profile-avatar">
-            <div className="avatar-circle">
-              {profileData.fullName ? profileData.fullName.charAt(0).toUpperCase() : 'U'}
+            <div className="avatar-container">
+              {profileData.profilePicture ? (
+                <img 
+                  src={`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/${profileData.profilePicture}`} 
+                  alt="Profile" 
+                  className="profile-img" 
+                />
+              ) : (
+                <div className="avatar-circle">
+                  {profileData.fullName ? profileData.fullName.charAt(0).toUpperCase() : 'U'}
+                </div>
+              )}
+              {isEditing && (
+                <div className="avatar-edit-overlay">
+                  <label htmlFor="profile-pic-input">
+                    <span className="camera-icon">📷</span>
+                    <input 
+                      type="file" 
+                      id="profile-pic-input" 
+                      onChange={handleProfilePictureUpload} 
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                    />
+                  </label>
+                </div>
+              )}
             </div>
             <h2>{profileData.fullName || 'User'}</h2>
           </div>

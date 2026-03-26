@@ -184,7 +184,7 @@
 }
 
 .dropdown-item:hover {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #667eea;
   color: white;
 }
 
@@ -238,15 +238,49 @@
   top: calc(100% + 10px);
   right: 0;
   background: #ffffff;
-  min-width: 280px;
+  min-width: 320px;
   max-width: 350px;
   max-height: 450px;
   overflow-y: auto;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   border-radius: 12px;
-  padding: 10px 0;
+  padding: 0;
   z-index: 2000;
   border: 1px solid #e2e8f0;
+}
+
+.notif-header {
+  padding: 15px 20px;
+  border-bottom: 2px solid #f1f5f9;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.notif-header h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #1a202c;
+}
+
+.mark-all-read {
+  background: none !important;
+  border: none !important;
+  color: #007bff !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  cursor: pointer;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+
+.mark-all-read:hover {
+  text-decoration: underline;
+  background: transparent !important;
 }
 
 .notif-item {

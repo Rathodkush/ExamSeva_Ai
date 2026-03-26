@@ -24,7 +24,7 @@ function Contact() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
-    
+
     try {
       const response = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/contact`, formData);
       if (response.data.success) {
@@ -74,10 +74,10 @@ function Contact() {
           </div>
 
           <div className="info-card form-promo">
-            <h3>Send a Message</h3>
+            <h3>Send a Message / Feedback</h3>
             <p>Fill our Google Form — we reply within 24-48 hrs.</p>
-            <button 
-              className="open-form-btn" 
+            <button
+              className="open-form-btn"
               onClick={() => window.open(settings.contactFormUrl, '_blank')}
             >
               Open Form

@@ -35,7 +35,7 @@ app.use(cors({
     }
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
 }));
 app.use(express.json());
@@ -171,6 +171,7 @@ const UserSchema = new mongoose.Schema({
   isEmailVerified: { type: Boolean, default: false },
   isPhoneVerified: { type: Boolean, default: false },
   isActive: { type: Boolean, default: true },
+  profilePicture: { type: String, default: '' },
   createdAt: { type: Date, default: Date.now }
 });
 const UserModel = mongoose.models.User || mongoose.model('User', UserSchema);
@@ -299,14 +300,16 @@ const transporter = nodemailer.createTransport({
 // Global IO instance for accessibility
 let ioInstance = null;
 
-// Helper to create and emit notifications
-const createNotification = async (recipientId, message, type = 'system', senderId = null) => {
+// Helper to create and emit notifications using MessageModel (which is what the UI expects)
+const createNotification = async (recipientId, message, type = 'system', senderId = null, meta = {}) => {
   try {
-    const notif = await NotificationModel.create({
-      recipient: recipientId,
-      sender: senderId,
+    const notif = await MessageModel.create({
+      toUserId: recipientId,
+      fromUserId: senderId || '000000000000000000000000', // System user ID placeholder
       message,
-      type
+      type,
+      meta,
+      isRead: false
     });
     if (ioInstance) {
       ioInstance.to(recipientId.toString()).emit('new_notification', notif);
@@ -314,6 +317,43 @@ const createNotification = async (recipientId, message, type = 'system', senderI
     return notif;
   } catch (err) {
     console.error(' Error creating notification:', err);
+  }
+};
+
+// Helper to notify all users (e.g., when Admin adds Note/Quiz or User adds Forum Post)
+const notifyAllUsers = async (message, type = 'announcement', senderId = null, meta = {}, excludeSender = true) => {
+  try {
+    // Get all active users
+    const query = { isActive: true };
+    if (excludeSender && senderId && mongoose.Types.ObjectId.isValid(senderId)) {
+      query._id = { $ne: senderId };
+    }
+    
+    const users = await UserModel.find(query, '_id');
+    const userIds = users.map(u => u._id);
+    
+    // Create notifications for each user - doing it in bulk for performance
+    const notifData = userIds.map(uid => ({
+      toUserId: uid,
+      fromUserId: senderId || '000000000000000000000000',
+      message,
+      type,
+      meta,
+      isRead: false
+    }));
+    
+    if (notifData.length === 0) return;
+    
+    const createdNotifs = await MessageModel.insertMany(notifData);
+    
+    // Emit to each user with their unique notification object (including its _id)
+    if (ioInstance) {
+      createdNotifs.forEach(n => {
+        ioInstance.to(n.toUserId.toString()).emit('new_notification', n);
+      });
+    }
+  } catch (err) {
+    console.error(' Error notifying all users:', err);
   }
 };
 
@@ -804,8 +844,8 @@ app.post('/api/auth/login', async (req, res) => {
 
     // Send Welcome Back Notification (only if not sent in last 12 hours)
     const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000);
-    const existingNotif = await NotificationModel.findOne({
-      recipient: user._id,
+    const existingNotif = await MessageModel.findOne({
+      toUserId: user._id,
       type: 'login',
       createdAt: { $gt: twelveHoursAgo }
     });
@@ -864,8 +904,8 @@ app.post('/api/auth/google', async (req, res) => {
       await user.save().catch(() => { });
       // Returning Google User Welcome Back (only if not sent in last 12 hours)
       const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000);
-      const existingNotif = await NotificationModel.findOne({
-        recipient: user._id,
+      const existingNotif = await MessageModel.findOne({
+        toUserId: user._id,
         type: 'login',
         createdAt: { $gt: twelveHoursAgo }
       });
@@ -983,7 +1023,7 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
 app.put('/api/auth/profile', authenticateToken, async (req, res) => {
   try {
     const updates = {};
-    const allowed = ['fullName', 'phone', 'classStandard', 'courseType', 'year', 'institutionName', 'boardName', 'state', 'semester'];
+    const allowed = ['fullName', 'phone', 'classStandard', 'courseType', 'year', 'institutionName', 'boardName', 'state', 'semester', 'profilePicture'];
     allowed.forEach(k => { if (req.body[k] !== undefined) updates[k] = req.body[k]; });
 
     // Validate phone if provided
@@ -1000,19 +1040,43 @@ app.put('/api/auth/profile', authenticateToken, async (req, res) => {
       updates.phone = cleanPhone;
     }
 
-    console.log(' Profile update by user:', req.user.userId, 'updates:', updates);
-
     const user = await UserModel.findByIdAndUpdate(req.user.userId, { $set: updates }, { new: true }).select('-password');
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     res.json({ success: true, user });
   } catch (err) {
     console.error(' Error updating profile:', err);
-    // Provide helpful message for common errors
     if (err.code === 11000) {
       return res.status(400).json({ error: 'Duplicate value exists', detail: err.message });
     }
     res.status(500).json({ error: 'Failed to update profile', detail: err.message });
+  }
+});
+
+const profileUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      const dir = path.join(__dirname, 'uploads', 'profiles');
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+      cb(null, `profile-${req.user.userId}-${Date.now()}${path.extname(file.originalname)}`);
+    }
+  })
+});
+
+app.post('/api/auth/profile-picture', authenticateToken, profileUpload.single('profilePicture'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+    const profilePictureUrl = `uploads/profiles/${req.file.filename}`;
+    await UserModel.findByIdAndUpdate(req.user.userId, { profilePicture: profilePictureUrl });
+    res.json({ success: true, profilePicture: profilePictureUrl });
+  } catch (err) {
+    console.error('Profile picture upload error:', err);
+    res.status(500).json({ error: 'Failed to upload profile picture' });
   }
 });
 
@@ -1736,6 +1800,13 @@ app.post('/api/notes', notesUpload.single('file'), async (req, res) => {
 
     console.log(' Note saved:', note._id);
 
+    // Notify all users about new study material
+    notifyAllUsers(
+      `New study material added: "${name}" for ${subject}.`,
+      'study_hub',
+      authorId,
+      { noteId: note._id }
+    );
     // Send file to Python OCR/NLP service for metadata extraction and QA indexing
     (async () => {
       try {
@@ -2083,6 +2154,15 @@ app.post('/api/quiz/generate', quizUpload.single('file'), async (req, res) => {
     fs.unlink(req.file.path, () => { });
 
     console.log(' Quiz generated:', quiz._id);
+
+    // Notify all users about new quiz
+    notifyAllUsers(
+      `New practice quiz available for ${resolvedSubject}!`,
+      'quiz',
+      userId,
+      { quizId: quiz._id }
+    );
+
     res.json({ success: true, quiz });
   } catch (err) {
     console.error('Error generating quiz:', err);
@@ -2268,6 +2348,40 @@ app.post('/api/quiz/generate_paper', quizUpload.single('file'), async (req, res)
   }
 });
 
+// Save Quiz Score
+app.post('/api/quiz/score', authenticateToken, async (req, res) => {
+  try {
+    const { quizId, score, totalQuestions } = req.body;
+    const percentage = Math.round((score / totalQuestions) * 100);
+    
+    const newScore = await QuizScoreModel.create({
+      userId: req.user.userId,
+      quizId: quizId || null,
+      score,
+      totalQuestions,
+      percentage
+    });
+    
+    res.json({ success: true, score: newScore });
+  } catch (err) {
+    console.error('Error saving quiz score:', err);
+    res.status(500).json({ error: 'Failed to save quiz score' });
+  }
+});
+
+// Get My Quiz Scores
+app.get('/api/quiz/my-scores', authenticateToken, async (req, res) => {
+  try {
+    const scores = await QuizScoreModel.find({ userId: req.user.userId })
+      .populate('quizId', 'subject')
+      .sort({ createdAt: -1 });
+    res.json({ success: true, scores });
+  } catch (err) {
+    console.error('Error fetching quiz scores:', err);
+    res.status(500).json({ error: 'Failed to fetch quiz scores' });
+  }
+});
+
 // Forum Routes - This will be replaced by the enhanced version below
 
 app.get('/api/forum/posts', async (req, res) => {
@@ -2301,16 +2415,13 @@ app.post('/api/forum/posts/:id/reply', async (req, res) => {
     try {
       const postOwnerId = post.authorId;
       if (postOwnerId && postOwnerId.toString() !== (req.user ? req.user.userId : '')) {
-        await MessageModel.create({
-          fromUserId: req.user?.userId || null,
-          toUserId: postOwnerId,
-          forumPostId: post._id,
-          message: `Your post has a new reply by ${author || 'Anonymous'}`,
-          isRead: false,
-          type: 'forum_reply',
-          meta: { postId: post._id }
-        });
-        try { io.to(postOwnerId.toString()).emit('forum_reply', { postId: post._id, from: author || 'Anonymous' }); } catch (e) { }
+        await createNotification(
+          postOwnerId, 
+          `Your post "${post.title}" has a new reply by ${author || 'Anonymous'}`,
+          'forum_reply',
+          authorId,
+          { postId: post._id }
+        );
       }
     } catch (e) {
       console.error('Error creating reply notification:', e);
@@ -2331,6 +2442,17 @@ app.get('/api/notifications', authenticateToken, async (req, res) => {
   } catch (err) {
     console.error('Error fetching notifications:', err);
     res.status(500).json({ error: 'Failed to fetch notifications' });
+  }
+});
+
+// Mark all notifications read
+app.post('/api/notifications/read-all', authenticateToken, async (req, res) => {
+  try {
+    await MessageModel.updateMany({ toUserId: req.user.userId, isRead: false }, { isRead: true });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error marking all notifications read:', err);
+    res.status(500).json({ error: 'Failed to update notifications' });
   }
 });
 
@@ -2565,25 +2687,16 @@ app.post('/api/forum/posts', authenticateToken, async (req, res) => {
       authorId: req.user.userId.toString()
     });
 
-    // Notify all other students about new post
-    const students = await UserModel.find({ role: 'student', isActive: true, _id: { $ne: req.user.userId } });
-    for (const student of students) {
-      await MessageModel.create({
-        fromUserId: req.user.userId,
-        toUserId: student._id,
-        forumPostId: post._id,
-        message: `New question posted: "${title}" by ${user.fullName}. Check the forum to help.`,
-        isRead: false,
-        type: 'forum_post',
-        meta: { postId: post._id }
-      });
+    // Notify all other students about new post using the helper
+    notifyAllUsers(
+      `New question posted in the forum: "${title}" by ${user.fullName}`,
+      'forum_post',
+      req.user.userId,
+      { postId: post._id }
+    );
 
-      // Emit socket notification to student
-      try { io.to(student._id.toString()).emit('forum_post', { postId: post._id, title, from: user.fullName }); } catch (e) { }
-    }
-
-    console.log('Post created:', post._id, 'Students notified:', students.length);
-    res.json({ success: true, post, studentsNotified: students.length });
+    console.log('Post created:', post._id);
+    res.json({ success: true, post });
   } catch (err) {
     console.error(' Error creating post:', err);
     res.status(500).json({ error: 'Failed to create post', detail: err.message });
@@ -3391,7 +3504,6 @@ const PORT = process.env.PORT || 4000;
 const nodeServer = server.listen(PORT, () => {
   console.log(`\n Backend server started!`);
   console.log(` Server running on http://localhost:${PORT}`);
-  console.log(` MongoDB status: ${mongoose.connection.readyState === 1 ? '✅ Connected' : '⚠️  Not connected'}`);
 });
 
 // Configure server timeouts (Required for long-running AI processes)

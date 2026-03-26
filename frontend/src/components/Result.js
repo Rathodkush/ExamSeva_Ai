@@ -472,6 +472,12 @@ export default function Results({ results }) {
                   <div className="repeated-group-number">{index + 1}</div>
                   <div className="repeated-question-text">
                     {formatted.text}
+                    {g.unit && g.unit !== 'General' && (
+                      <div className="unit-badge">
+                        <span className="unit-icon">📚</span>
+                        {g.unit}
+                      </div>
+                    )}
                   </div>
 
                   <div className="repeated-answer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
@@ -534,10 +540,18 @@ export default function Results({ results }) {
               return (
                 <div key={q.id || index} className="unique-question-card">
                   <div className="unique-question-number">Q{index + 1}</div>
-                  <div className="unique-question-text">{(() => {
-                    const formatted = formatQuestion(questionText);
-                    return formatted.text;
-                  })()}</div>
+                  <div className="unique-question-text">
+                    {(() => {
+                      const formatted = formatQuestion(questionText);
+                      return formatted.text;
+                    })()}
+                    {q.unit && q.unit !== 'General' && (
+                      <div className="unit-badge small">
+                        <span className="unit-icon">📚</span>
+                        {q.unit}
+                      </div>
+                    )}
+                  </div>
                   {(() => {
                     const formatted = formatQuestion(questionText);
                     return formatted.answer && (

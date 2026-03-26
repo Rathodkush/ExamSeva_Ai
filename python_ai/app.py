@@ -3,7 +3,7 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 from flask_cors import CORS
 import json
 import io
-from PIL import Image, ImageFilter, ImageOps
+from PIL import Image, ImageFilter, ImageOps, ImageEnhance
 import pytesseract
 import fitz
 from ocr_nlp import extract_and_compare, _get_model, SIMILARITY_THRESHOLD
@@ -989,37 +989,52 @@ def health_model():
         }), 500
 
 def enhance_image_for_ocr(image: Image.Image) -> Image.Image:
-    """Enhance image quality for better OCR, handling low-res/blur."""
+    """Enhance image quality for better OCR, handling low-res/blur and noise."""
     try:
         width, height = image.size
-        # Tesseract performs best at ~300 DPI. If small, scale UP.
-        # If too large, scale DOWN to save memory.
+        # Tesseract performs best at ~300 DPI.
         max_dim = max(width, height)
-        if max_dim < 1000:
-            scale = 2000 / max_dim
+        # Upscale if too small (low res)
+        if max_dim < 1500:
+            scale = 2500 / max_dim
             new_size = (int(width * scale), int(height * scale))
             image = image.resize(new_size, Image.Resampling.LANCZOS)
-        elif max_dim > 2500:
-            scale = 2500 / max_dim
+        elif max_dim > 3000:
+            # Downscale slightly if extreme to save memory but keep high detail
+            scale = 3000 / max_dim
             new_size = (int(width * scale), int(height * scale))
             image = image.resize(new_size, Image.Resampling.LANCZOS)
 
         # Convert to grayscale
         gray = image.convert("L")
         
-        # Increase contrast significantly
+        # Step 1: Denoise - helps when the "blur" is actually compression noise or film grain
+        # Median filter is great for removing salt-and-pepper noise
+        gray = gray.filter(ImageFilter.MedianFilter(size=3))
+        
+        # Step 2: Adaptive Contrast Enhancement
+        # Auto-contrast for baseline
+        gray = ImageOps.autocontrast(gray, cutoff=2)
+        
+        # Boost contrast significantly to make text stand out from background
         enhancer = ImageEnhance.Contrast(gray)
-        gray = enhancer.enhance(2.0)
+        gray = enhancer.enhance(2.2)
         
-        # Auto-contrast for final balancing
-        gray = ImageOps.autocontrast(gray)
+        # Step 3: Aggressive Sharpening for Blurred Text
+        # First pass: standard sharpen
+        gray = gray.filter(ImageFilter.SHARPEN)
         
-        # Sharpening - helps with blur
-        sharpen = ImageEnhance.Sharpness(gray)
-        gray = sharpen.enhance(2.5)
+        # Second pass: Unsharp Mask with specific radius for text
+        # Radius 2.0 and high percent (200) helps reconstruct blurry edges of characters
+        gray = gray.filter(ImageFilter.UnsharpMask(radius=2.0, percent=200, threshold=2))
         
-        # Final unsharp mask filter
-        gray = gray.filter(ImageFilter.UnsharpMask(radius=2, percent=150, threshold=3))
+        # Final sharpening adjustment
+        sharpen_enhancer = ImageEnhance.Sharpness(gray)
+        gray = sharpen_enhancer.enhance(3.0)
+        
+        # Step 4: Final thresholding if possible to produce clean BW image
+        # This can sometimes hurt if threshold is wrong, so we use autocontrast again
+        gray = ImageOps.autocontrast(gray, cutoff=1)
 
         return gray
     except Exception as e:

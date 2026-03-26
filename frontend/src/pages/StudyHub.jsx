@@ -17,6 +17,7 @@ function StudyHub() {
   const [papers, setPapers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('notes'); // 'notes' | 'papers'
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     checkBackendConnection();
@@ -230,6 +231,16 @@ function StudyHub() {
     }
   };
 
+  const filteredNotes = notes.filter(note => 
+    (note.subject || 'General').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (note.name || '').toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredPapers = papers.filter(paper => 
+    (paper.subject || 'General').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (paper.title || '').toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
 
   return (
     <div className="studyhub-container">
@@ -249,12 +260,23 @@ function StudyHub() {
             <h1>Study Hub</h1>
             <p className="page-subtitle">Access comprehensive study materials and resources</p>
           </div>
-          <div className="upload-controls">
-            {(user?.role === 'student' || user?.role === 'admin') && (
-              <button onClick={() => setShowUpload(!showUpload)} className="upload-btn">
-                {showUpload ? 'Cancel' : '+ Upload Notes'}
-              </button>
-            )}
+          <div className="header-actions">
+            <div className="search-box">
+              <input 
+                type="text" 
+                placeholder="Search by subject or name..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="search-input"
+              />
+            </div>
+            <div className="upload-controls">
+              {(user?.role === 'student' || user?.role === 'admin') && (
+                <button onClick={() => setShowUpload(!showUpload)} className="upload-btn">
+                  {showUpload ? 'Cancel' : '+ Upload Notes'}
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -329,7 +351,7 @@ function StudyHub() {
                 <div className="loading-state">Loading notes...</div>
               ) : (
                 <div className="notes-grid">
-                  {notes.map(note => (
+                  {filteredNotes.map(note => (
                     <div key={note._id} className="note-card">
                       <div className="note-header">
                         <span className={`note-badge ${note.role || 'student'}`}>{(note.role || 'student').toUpperCase()}</span>
@@ -364,7 +386,7 @@ function StudyHub() {
                 <div className="loading-state">Loading papers...</div>
               ) : (
                 <div className="notes-grid">
-                  {papers.map(paper => (
+                  {filteredPapers.map(paper => (
                     <div key={paper._id} className="note-card">
                       <div className="note-header">
                         <span className="note-badge free">FREE</span>

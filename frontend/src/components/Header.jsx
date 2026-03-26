@@ -129,6 +129,18 @@ function Header() {
     }
   };
 
+  const markAllAsRead = async () => {
+    const token = localStorage.getItem('token');
+    try {
+      await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/notifications/read-all`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+    } catch (err) {
+      console.error('Failed to mark all notifications read', err);
+    }
+  };
+
   return (
     <header className="header">
       <div className="header-container">
@@ -207,6 +219,10 @@ function Header() {
                 </button>
                 {showDropdown && (
                   <div className="notif-dropdown">
+                    <div className="notif-header">
+                      <h3>Notifications</h3>
+                      {unreadCount > 0 && <button onClick={markAllAsRead} className="mark-all-read">Mark all as read</button>}
+                    </div>
                     {notifications.length === 0 ? (
                       <div className="notif-empty">No notifications</div>
                     ) : (
