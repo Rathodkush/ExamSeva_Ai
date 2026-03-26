@@ -223,6 +223,7 @@
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -355,7 +356,7 @@
   justify-content: center;
   cursor: pointer;
   margin-right: 15px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .bell-icon {
@@ -366,7 +367,8 @@
   position: absolute;
   top: -6px;
   right: -6px;
-  background: #007bff; /* Changed from red to blue */
+  background: #007bff;
+  /* Changed from red to blue */
   color: white;
   font-size: 11px;
   font-weight: 700;
@@ -455,7 +457,8 @@
     display: flex;
   }
 
-  .nav-link, .dropdown-btn {
+  .nav-link,
+  .dropdown-btn {
     width: 100%;
     text-align: center !important;
     padding: 20px !important;
@@ -496,7 +499,7 @@
     max-height: 70vh;
     border-radius: 12px;
   }
-  
+
   .logout-btn-header {
     width: 90%;
     margin: 20px auto !important;
@@ -521,7 +524,7 @@
   justify-content: center;
   cursor: pointer;
   position: relative;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   transition: all 0.2s;
 }
 
@@ -565,7 +568,7 @@
   color: #1e3a8a;
   padding: 12px 20px;
   border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
   font-weight: 600;
   font-size: 14px;
   border-left: 5px solid #007bff;
@@ -578,29 +581,41 @@
 }
 
 @keyframes toastSlideIn {
-  from { opacity: 0; transform: translateY(-50px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-50px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 768px) {
   .header-container {
     padding: 8px 12px !important;
   }
+
   .logo h1 {
     font-size: 18px !important;
   }
+
   .logo img {
     height: 32px !important;
   }
+
   .bell-btn-wrap {
     width: 34px !important;
     height: 34px !important;
     margin-right: 10px !important;
   }
+
   .logout-btn-header {
     padding: 6px 12px !important;
     font-size: 14px !important;
   }
+
   .header-actions {
     gap: 8px !important;
   }
