@@ -20,6 +20,8 @@ const nodemailer = require('nodemailer');
 const mammoth = require('mammoth');
 const { OAuth2Client } = require('google-auth-library');
 const crypto = require('crypto');
+const ContactSubmission = require('./models/ContactSubmission');
+const OfficialPaper = require('./models/OfficialPaper');
 
 const app = express();
 const http = require('http');
@@ -1497,6 +1499,29 @@ app.get('/api/uploads', async (req, res) => {
   } catch (err) {
     console.error('Error fetching uploads:', err);
     res.status(500).json({ error: 'Failed to fetch uploads' });
+  }
+});
+
+// Contact Route
+app.post('/api/contact', async (req, res) => {
+  try {
+    const { name, email, subject, message } = req.body;
+    if (!name || !email || !message) {
+      return res.status(400).json({ error: 'Name, email, and message are required' });
+    }
+
+    const submission = await ContactSubmission.create({
+      name,
+      email,
+      subject: subject || 'No Subject',
+      message
+    });
+
+    console.log(' New contact submission saved:', submission._id);
+    res.json({ success: true, message: 'Thank you for your message! We will get back to you soon.' });
+  } catch (err) {
+    console.error(' Contact error:', err);
+    res.status(500).json({ error: 'Failed to send message' });
   }
 });
 

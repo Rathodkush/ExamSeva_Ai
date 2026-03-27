@@ -7,6 +7,7 @@ const Post = require('../models/Post');
 const Note = require('../models/Note');
 const Upload = require('../models/Upload');
 const Settings = require('../models/Settings');
+const OfficialPaper = require('../models/OfficialPaper');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
 const { upload } = require('../middleware/upload');
 
@@ -160,17 +161,82 @@ router.delete('/notes/:id', async (req, res) => {
   }
 });
 
+// Official Question Papers Management
+router.get('/question-papers', async (req, res) => {
+  try {
+    const papers = await OfficialPaper.find().sort({ createdAt: -1 });
+    res.json({ success: true, papers });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch papers' });
+  }
+});
+
+router.post('/question-papers', upload.single('file'), async (req, res) => {
+  try {
+    const { title, subject, classLevel, examType, visibility } = req.body;
+    if (!req.file) return res.status(400).json({ error: 'File is required' });
+
+    const paper = await OfficialPaper.create({
+      title,
+      subject,
+      classLevel,
+      examType,
+      visibility,
+      fileName: req.file.originalname,
+      filePath: req.file.path,
+      uploadedBy: req.user.userId
+    });
+
+    res.json({ success: true, paper });
+  } catch (err) {
+    console.error('Paper upload error:', err);
+    res.status(500).json({ error: 'Failed to upload paper' });
+  }
+});
+
+router.put('/question-papers/:id', async (req, res) => {
+  try {
+    const { title, subject, classLevel, examType, visibility } = req.body;
+    const paper = await OfficialPaper.findByIdAndUpdate(
+      req.params.id,
+      { title, subject, classLevel, examType, visibility },
+      { new: true }
+    );
+    if (!paper) return res.status(404).json({ error: 'Paper not found' });
+    res.json({ success: true, paper });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update paper' });
+  }
+});
+
+router.delete('/question-papers/:id', async (req, res) => {
+  try {
+    const paper = await OfficialPaper.findById(req.params.id);
+    if (!paper) return res.status(404).json({ error: 'Paper not found' });
+
+    if (paper.filePath && fs.existsSync(paper.filePath)) {
+      fs.unlinkSync(paper.filePath);
+    }
+
+    await OfficialPaper.findByIdAndDelete(req.params.id);
+    res.json({ success: true, message: 'Paper deleted' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed' });
+  }
+});
+
 // Dashboard Stats
 router.get('/dashboard', async (req, res) => {
   try {
     const statistics = {
       totalUsers: await User.countDocuments(),
-      totalPapers: await Upload.countDocuments(),
+      totalPapers: await OfficialPaper.countDocuments(),
       totalNotes: await Note.countDocuments(),
       totalAnnouncements: await Post.countDocuments({ type: 'announcement' })
     };
     const recentUsers = await User.find().select('-password').sort({ createdAt: -1 }).limit(5);
-    res.json({ success: true, statistics, recentUsers });
+    const recentPapers = await OfficialPaper.find().sort({ createdAt: -1 }).limit(5);
+    res.json({ success: true, statistics, recentUsers, recentPapers });
   } catch (err) {
     res.status(500).json({ error: 'Failed' });
   }
