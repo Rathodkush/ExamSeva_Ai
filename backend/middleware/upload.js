@@ -1,62 +1,48 @@
-const cloudinary = require('cloudinary').v2;
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-// Load env explicitly if needed (redundant if already in server.js but safe)
-require('dotenv').config();
-
-// Configuration
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
-});
-
-const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: async (req, file) => {
-    let folder = 'examseva/others';
-    const originalUrl = req.originalUrl || '';
-
-    if (file.fieldname === 'profilePicture') {
-      folder = 'examseva/profiles';
-    } else if (file.fieldname === 'noteFile' || originalUrl.includes('/notes')) {
-      folder = 'examseva/notes';
-    } else if (originalUrl.includes('/quiz')) {
-      folder = 'examseva/quizzes';
-    } else if (originalUrl.includes('/upload') || originalUrl.includes('/question-papers')) {
-      folder = 'examseva/question-papers';
-    }
-
-    // Extract file extension and determine resource_type
-    const ext = path.extname(file.originalname).toLowerCase();
-    const isImage = ['.jpg', '.jpeg', '.png', '.gif', '.webp'].includes(ext);
-    
-    return {
-      folder: folder,
-      public_id: Date.now() + '-' + file.originalname.split('.')[0].replace(/[^a-zA-Z0-9]/g, '_'),
-      resource_type: 'auto', // Cloudinary will decide if it's image or raw based on file
-    };
-  },
-});
-
-const baseUploadsDir = path.join(__dirname, '..', 'uploads');
-const dirs = {
-  notes: path.join(baseUploadsDir, 'notes'),
-  profiles: path.join(baseUploadsDir, 'profiles'),
-  papers: path.join(baseUploadsDir, 'question-papers'),
-  quizzes: path.join(baseUploadsDir, 'quizzes')
-};
-
-// Ensure all subdirectories exist (for local cached files or temporary legacy use)
-Object.values(dirs).forEach(dir => {
+// Ensure necessary directories exist
+const dirs = ['uploads/profiles', 'uploads/notes', 'uploads/question-papers', 'uploads/quizzes'];
+dirs.forEach(dir => {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
 });
 
-const upload = multer({ storage: storage });
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    let dest = 'uploads/';
+    if (file.fieldname === 'profilePicture') {
+      dest += 'profiles/';
+    } else if (file.fieldname === 'note' || file.fieldname === 'notes') {
+      dest += 'notes/';
+    } else if (file.fieldname === 'paper' || file.fieldname === 'question-paper') {
+      dest += 'question-papers/';
+    } else if (file.fieldname === 'quiz' || file.fieldname === 'file') {
+      dest += 'quizzes/';
+    }
+    cb(null, dest);
+  },
+  filename: (req, file, cb) => {
+    // Basic filename sanitization
+    const safeName = file.originalname.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9._-]/g, '');
+    cb(null, Date.now() + '-' + safeName);
+  }
+});
 
-module.exports = { upload, dirs };
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['.pdf', '.jpg', '.jpeg', '.png', '.docx', '.doc'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowedTypes.includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error(`File type ${ext} not allowed`));
+    }
+  }
+});
+
+module.exports = upload;

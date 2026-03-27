@@ -43,34 +43,16 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 app.use((req, res, next) => {
-  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
-  next();
-});
-// Helper to fetch file from Cloudinary as proxy
-const proxyCloudDownload = async (url, res, fileName) => {
-  try {
-    const response = await axios({
-      method: 'get',
-      url: url,
-      responseType: 'stream'
-    });
-    const contentType = response.headers['content-type'] || 'application/pdf';
-    res.setHeader('Content-Type', contentType);
-    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
-    response.data.pipe(res);
-  } catch (err) {
-    console.error('Proxy download error:', err.message);
-    if (!res.headersSent) res.status(500).json({ error: 'Failed to stream file' });
-  }
-};
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-app.use('/uploads', (req, res, next) => {
-  if (req.url.includes('http:')) {
-    const cloudUrl = req.url.substring(req.url.indexOf('http'));
-    return proxyCloudDownload(cloudUrl, res, path.basename(cloudUrl));
-  }
-  next();
-}, express.static(path.join(__dirname, 'uploads')));
+// Recover path resolution logic
+const getRelativePath = (absPath) => {
+  if (!absPath) return '';
+  const normalizedPath = absPath.replace(/\\/g, '/');
+  const uploadsIdx = normalizedPath.indexOf('/uploads/');
+  if (uploadsIdx !== -1) return normalizedPath.substring(uploadsIdx + 1);
+  return normalizedPath;
+};
 
 // Global error handlers to surface crashes during startup
 process.on('uncaughtException', (err) => {
@@ -428,15 +410,6 @@ const notesDir = dirs.notes;
 const uploadsDir = path.join(__dirname, 'uploads');
 
 
-// Helper to get relative path from uploads root for frontend access
-const getRelativePath = (absPath) => {
-  if (!absPath) return '';
-  if (absPath.startsWith('http')) return absPath;
-  const normalizedPath = absPath.replace(/\\/g, '/');
-  const uploadsIdx = normalizedPath.indexOf('uploads');
-  if (uploadsIdx !== -1) return normalizedPath.substring(uploadsIdx);
-  return path.basename(normalizedPath);
-};
 
 
 // Mount the extract-questions route (uses the same multer middleware: quizUpload.single('file'))
@@ -2200,12 +2173,6 @@ app.get('/api/notes/:id/download', async (req, res) => {
     if (!filePath) return res.status(404).json({ error: 'No file available' });
 
     const fileName = note.fileName || (filePath ? path.basename(filePath) : 'note.pdf');
-
-    // Proxy the download if it's a Cloudinary URL
-    if (filePath.startsWith('http')) {
-      return await proxyCloudDownload(filePath, res, fileName);
-    }
-    
     const localPath = path.join(notesDir, path.basename(filePath));
     const resolvedPath = fs.existsSync(localPath) ? localPath : filePath;
     
@@ -2238,23 +2205,17 @@ app.get('/api/notes/:id/files/:fileIndex/download', async (req, res) => {
     if (!file) return res.status(404).json({ error: 'File not found' });
 
     const fileName = file.name || path.basename(file.path) || 'note.pdf';
-
-    // Proxy the download if it's a Cloudinary URL
-    if (file.path && file.path.startsWith('http')) {
-      return await proxyCloudDownload(file.path, res, fileName);
-    }
-    
     const localPath = path.join(notesDir, fileName);
     const resolvedPath = fs.existsSync(localPath) ? localPath : file.path;
     
     if (!fs.existsSync(resolvedPath)) {
-      console.warn('[DOWNLOAD] File missing:', resolvedPath);
       return res.status(404).json({ error: 'File missing' });
     }
     
-    res.download(resolvedPath, file.name || fileName);
+    res.download(resolvedPath, fileName);
   } catch (err) {
-    res.status(500).json({ error: 'Failed' });
+    console.error('Error downloading note file:', err);
+    res.status(500).json({ error: 'Failed to download file' });
   }
 });
 

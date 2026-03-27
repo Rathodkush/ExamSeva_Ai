@@ -190,7 +190,7 @@ function AdminQuestionPapers() {
                   rel="noopener noreferrer"
                   style={{ wordBreak: 'break-all', color: '#6366f1', textDecoration: 'underline' }}
                 >
-                  {paper.fileName.startsWith('http') ? 'View File' : paper.fileName}
+                  {paper.fileName}
                 </a>
               </p>
               <p><strong>Uploaded:</strong> {new Date(paper.createdAt).toLocaleDateString()}</p>
