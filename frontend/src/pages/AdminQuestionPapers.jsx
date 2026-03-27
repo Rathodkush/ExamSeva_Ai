@@ -187,7 +187,6 @@ function AdminQuestionPapers() {
               <p><strong>Uploaded:</strong> {new Date(paper.createdAt).toLocaleDateString()}</p>
             </div>
             <div className="paper-actions">
-              <button onClick={() => handlePreview(paper)} className="preview-btn">View</button>
               <button onClick={() => handleEdit(paper)} className="edit-btn">Edit</button>
               <button onClick={() => handleDelete(paper._id)} className="delete-btn">Delete</button>
             </div>
