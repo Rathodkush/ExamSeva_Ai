@@ -406,6 +406,11 @@ const uploadsDir = path.join(__dirname, 'uploads');
 // Helper to get relative path from uploads root for frontend access
 const getRelativePath = (absPath) => {
   if (!absPath) return '';
+  // If it's a Cloudinary URL or any other link, return it as is
+  if (absPath.startsWith('http://') || absPath.startsWith('https://')) {
+    return absPath;
+  }
+  
   // Convert all slashes to forward slashes for consistency
   const normalizedPath = absPath.replace(/\\/g, '/');
   
@@ -1500,7 +1505,6 @@ app.get('/api/question-papers', async (req, res) => {
         query = { $or: [{ visibility: 'free' }, { visibility: 'login' }] };
       } catch (e) { }
     }
-
     const papers = await OfficialPaper.find(query).sort({ createdAt: -1 }).limit(50).lean();
     const mappedPapers = papers.map(paper => ({
       ...paper,
@@ -2186,6 +2190,11 @@ app.get('/api/notes/:id/download', async (req, res) => {
     }
     
     if (!filePath) return res.status(404).json({ error: 'No file available' });
+
+    // Handle Cloudinary URLs - REDIRECT
+    if (filePath.startsWith('http')) {
+      return res.redirect(filePath);
+    }
     
     const fileName = note.fileName || (filePath ? path.basename(filePath) : 'note.pdf');
     const localPath = path.join(notesDir, path.basename(filePath));
@@ -2219,6 +2228,11 @@ app.get('/api/notes/:id/files/:fileIndex/download', async (req, res) => {
     }
     
     if (!file) return res.status(404).json({ error: 'File not found' });
+
+    // Handle Cloudinary URLs - REDIRECT
+    if (file.path && file.path.startsWith('http')) {
+      return res.redirect(file.path);
+    }
     
     const fileName = path.basename(file.path);
     const localPath = path.join(notesDir, fileName);

@@ -1,48 +1,48 @@
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-const baseUploadsDir = path.join(__dirname, '..', 'uploads');
-const dirs = {
-  notes: path.join(baseUploadsDir, 'notes'),
-  profiles: path.join(baseUploadsDir, 'profiles'),
-  papers: path.join(baseUploadsDir, 'question-papers'),
-  quizzes: path.join(baseUploadsDir, 'quizzes')
-};
+// Load env explicitly if needed (redundant if already in server.js but safe)
+require('dotenv').config();
 
-// Ensure all subdirectories exist
-Object.values(dirs).forEach(dir => {
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
+// Configuration
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    // Determine destination folder based on some parameter or field
-    // Fallback based on fieldname if available
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: async (req, file) => {
+    let folder = 'examseva/others';
+    const originalUrl = req.originalUrl || '';
+
     if (file.fieldname === 'profilePicture') {
-      return cb(null, dirs.profiles);
-    } else if (file.fieldname === 'noteFile' || file.fieldname === 'file' && req.originalUrl.includes('/notes')) {
-      return cb(null, dirs.notes);
-    } else if (req.originalUrl.includes('/quiz')) {
-      return cb(null, dirs.quizzes);
-    } else if (req.originalUrl.includes('/upload')) {
-      return cb(null, dirs.papers);
+      folder = 'examseva/profiles';
+    } else if (file.fieldname === 'noteFile' || originalUrl.includes('/notes')) {
+      folder = 'examseva/notes';
+    } else if (originalUrl.includes('/quiz')) {
+      folder = 'examseva/quizzes';
+    } else if (originalUrl.includes('/upload') || originalUrl.includes('/question-papers')) {
+      folder = 'examseva/question-papers';
     }
-    cb(null, baseUploadsDir);
+
+    // Extract file extension and determine resource_type
+    const ext = path.extname(file.originalname).toLowerCase();
+    const isImage = ['.jpg', '.jpeg', '.png', '.gif', '.webp'].includes(ext);
+    
+    return {
+      folder: folder,
+      public_id: Date.now() + '-' + file.originalname.split('.')[0].replace(/\s+/g, '_'),
+      resource_type: isImage ? 'image' : 'raw', // use 'raw' for PDFs to avoid conversion issues, or 'auto'
+      format: ext.replace('.', '') // ensure format is preserved
+    };
   },
-  filename: (req, file, cb) => {
-    // Consistent filename generation
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + '-' + file.originalname);
-  }
 });
 
-const upload = multer({ storage });
+const upload = multer({ storage: storage });
 
-module.exports = {
-  upload,
-  dirs
-};
-
+module.exports = { upload };
