@@ -396,10 +396,12 @@ const requireAdmin = (req, res, next) => {
 // (Mentor role removed) - no mentor middleware
 
 // Importing centralized upload middleware
-const { upload } = require('./middleware/upload');
+const { upload, dirs } = require('./middleware/upload');
 const notesUpload = upload; // For backwards compatibility inside server.js if needed
 const quizUpload = upload;
 const profileUpload = upload;
+const notesDir = dirs.notes;
+const uploadsDir = path.join(__dirname, 'uploads');
 
 
 // Mount the extract-questions route (uses the same multer middleware: quizUpload.single('file'))
@@ -1478,8 +1480,12 @@ app.get('/api/question-papers', async (req, res) => {
       } catch (e) { }
     }
 
-    const papers = await OfficialPaper.find(query).sort({ createdAt: -1 }).limit(50);
-    res.json({ success: true, count: papers.length, papers });
+    const papers = await OfficialPaper.find(query).sort({ createdAt: -1 }).limit(50).lean();
+    const mappedPapers = papers.map(paper => ({
+      ...paper,
+      fileName: paper.filePath ? paper.filePath.replace(/\\/g, '/').replace(/^uploads\//, '') : (paper.files && paper.files[0] ? paper.files[0].replace(/\\/g, '/').replace(/^uploads\//, '') : '')
+    }));
+    res.json({ success: true, count: mappedPapers.length, papers: mappedPapers });
   } catch (err) {
     console.error('Error fetching papers:', err);
     res.status(500).json({ error: 'Failed' });
@@ -1489,8 +1495,12 @@ app.get('/api/question-papers', async (req, res) => {
 // Admin Question Paper CRUD (Consolidated)
 app.get('/api/admin/question-papers', authenticateToken, requireAdmin, async (req, res) => {
   try {
-    const papers = await OfficialPaper.find().sort({ createdAt: -1 });
-    res.json({ success: true, papers });
+    const papers = await OfficialPaper.find().sort({ createdAt: -1 }).lean();
+    const mappedPapers = papers.map(paper => ({
+      ...paper,
+      fileName: paper.filePath ? paper.filePath.replace(/\\/g, '/').replace(/^uploads\//, '') : (paper.files && paper.files[0] ? paper.files[0].replace(/\\/g, '/').replace(/^uploads\//, '') : '')
+    }));
+    res.json({ success: true, papers: mappedPapers });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch admin papers' });
   }
