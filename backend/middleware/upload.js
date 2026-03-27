@@ -2,9 +2,16 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
+// Define directory paths
+const dirs = {
+  profiles: 'uploads/profiles',
+  notes: 'uploads/notes',
+  papers: 'uploads/question-papers',
+  quizzes: 'uploads/quizzes'
+};
+
 // Ensure necessary directories exist
-const dirs = ['uploads/profiles', 'uploads/notes', 'uploads/question-papers', 'uploads/quizzes'];
-dirs.forEach(dir => {
+Object.values(dirs).forEach(dir => {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
@@ -14,18 +21,17 @@ const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     let dest = 'uploads/';
     if (file.fieldname === 'profilePicture') {
-      dest += 'profiles/';
+      dest = dirs.profiles + '/';
     } else if (file.fieldname === 'note' || file.fieldname === 'notes') {
-      dest += 'notes/';
+      dest = dirs.notes + '/';
     } else if (file.fieldname === 'paper' || file.fieldname === 'question-paper') {
-      dest += 'question-papers/';
+      dest = dirs.papers + '/';
     } else if (file.fieldname === 'quiz' || file.fieldname === 'file') {
-      dest += 'quizzes/';
+      dest = dirs.quizzes + '/';
     }
     cb(null, dest);
   },
   filename: (req, file, cb) => {
-    // Basic filename sanitization
     const safeName = file.originalname.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9._-]/g, '');
     cb(null, Date.now() + '-' + safeName);
   }
@@ -33,7 +39,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowedTypes = ['.pdf', '.jpg', '.jpeg', '.png', '.docx', '.doc'];
     const ext = path.extname(file.originalname).toLowerCase();
@@ -45,4 +51,4 @@ const upload = multer({
   }
 });
 
-module.exports = upload;
+module.exports = { upload, dirs };

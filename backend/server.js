@@ -42,17 +42,23 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser());
-app.use((req, res, next) => {
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// Recover path resolution logic
 const getRelativePath = (absPath) => {
   if (!absPath) return '';
+  if (absPath.startsWith('http')) return absPath;
   const normalizedPath = absPath.replace(/\\/g, '/');
-  const uploadsIdx = normalizedPath.indexOf('/uploads/');
-  if (uploadsIdx !== -1) return normalizedPath.substring(uploadsIdx + 1);
-  return normalizedPath;
+  const uploadsIdx = normalizedPath.indexOf('uploads');
+  if (uploadsIdx !== -1) return normalizedPath.substring(uploadsIdx);
+  return path.basename(normalizedPath);
 };
+
+app.use('/uploads', (req, res, next) => {
+  // If the request is actually a full URL (legacy Cloudinary data)
+  if (req.url.includes('http')) {
+    const cloudUrl = req.url.substring(req.url.indexOf('http'));
+    return res.redirect(cloudUrl);
+  }
+  next();
+}, express.static(path.join(__dirname, 'uploads')));
 
 // Global error handlers to surface crashes during startup
 process.on('uncaughtException', (err) => {
@@ -2172,6 +2178,11 @@ app.get('/api/notes/:id/download', async (req, res) => {
     
     if (!filePath) return res.status(404).json({ error: 'No file available' });
 
+    // Fallback: If legacy data points to Cloudinary, just redirect instead of failing
+    if (filePath.startsWith('http')) {
+      return res.redirect(filePath);
+    }
+
     const fileName = note.fileName || (filePath ? path.basename(filePath) : 'note.pdf');
     const localPath = path.join(notesDir, path.basename(filePath));
     const resolvedPath = fs.existsSync(localPath) ? localPath : filePath;
@@ -2203,6 +2214,11 @@ app.get('/api/notes/:id/files/:fileIndex/download', async (req, res) => {
     }
     
     if (!file) return res.status(404).json({ error: 'File not found' });
+
+    // Fallback: If legacy data points to Cloudinary, just redirect
+    if (file.path && file.path.startsWith('http')) {
+      return res.redirect(file.path);
+    }
 
     const fileName = file.name || path.basename(file.path) || 'note.pdf';
     const localPath = path.join(notesDir, fileName);
