@@ -43,6 +43,21 @@ const storage = new CloudinaryStorage({
   },
 });
 
+const baseUploadsDir = path.join(__dirname, '..', 'uploads');
+const dirs = {
+  notes: path.join(baseUploadsDir, 'notes'),
+  profiles: path.join(baseUploadsDir, 'profiles'),
+  papers: path.join(baseUploadsDir, 'question-papers'),
+  quizzes: path.join(baseUploadsDir, 'quizzes')
+};
+
+// Ensure all subdirectories exist (for local cached files or temporary legacy use)
+Object.values(dirs).forEach(dir => {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+});
+
 const upload = multer({ storage: storage });
 
-module.exports = { upload };
+module.exports = { upload, dirs };
