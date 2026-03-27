@@ -327,7 +327,7 @@ function Profile() {
                 <img 
                   src={profileData.profilePicture.startsWith('http') 
                         ? profileData.profilePicture 
-                        : `${process.env.REACT_APP_API_URL || "http://localhost:4000"}/${profileData.profilePicture.startsWith('/') ? profileData.profilePicture.substring(1) : profileData.profilePicture}`
+                        : `${process.env.REACT_APP_API_URL || "http://localhost:4000"}/uploads/${profileData.profilePicture.startsWith('/') ? profileData.profilePicture.substring(1) : profileData.profilePicture}`
                       } 
                   alt="Profile" 
                   className="profile-img" 
