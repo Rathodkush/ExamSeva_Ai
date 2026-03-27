@@ -47,8 +47,8 @@ const getRelativePath = (absPath) => {
   if (!absPath) return '';
   if (absPath.startsWith('http')) return absPath;
   const normalizedPath = absPath.replace(/\\/g, '/');
-  const uploadsIdx = normalizedPath.indexOf('uploads');
-  if (uploadsIdx !== -1) return normalizedPath.substring(uploadsIdx);
+  const uploadsIdx = normalizedPath.indexOf('uploads/');
+  if (uploadsIdx !== -1) return normalizedPath.substring(uploadsIdx + 8);
   return path.basename(normalizedPath);
 };
 
