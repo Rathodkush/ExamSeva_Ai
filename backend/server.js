@@ -422,8 +422,26 @@ const quizzesDir = path.join(__dirname, 'uploads', 'quizzes');
   }
 });
 
-const upload = multer({ dest: uploadsDir });
-const notesUpload = multer({ dest: notesDir });
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadsDir);
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + '-' + file.originalname);
+  }
+});
+
+const notesStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, notesDir);
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + '-' + file.originalname);
+  }
+});
+
+const upload = multer({ storage: storage });
+const notesUpload = multer({ storage: notesStorage });
 const quizUpload = multer({ dest: quizzesDir });
 
 // Mount the extract-questions route (uses the same multer middleware: quizUpload.single('file'))
@@ -1797,9 +1815,13 @@ app.get('/api/uploads/:id/download', async (req, res) => {
     }
     
     // Download first file by default
-    const filePath = upload.files[0];
-    if (fs.existsSync(filePath)) {
-      res.download(filePath, path.basename(filePath));
+    const storedPath = upload.files[0];
+    const fileName = path.basename(storedPath);
+    const localPath = path.join(uploadsDir, fileName);
+    const resolvedPath = fs.existsSync(localPath) ? localPath : storedPath;
+    
+    if (fs.existsSync(resolvedPath)) {
+      res.download(resolvedPath, fileName);
     } else {
       res.status(404).json({ error: 'File missing on server' });
     }
@@ -1815,11 +1837,15 @@ app.get('/api/uploads/:id/files/:fileIndex/view', async (req, res) => {
       return res.status(404).json({ error: 'File not found' });
     }
     
-    const filePath = upload.files[req.params.fileIndex];
-    if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'File missing' });
+    const storedPath = upload.files[req.params.fileIndex];
+    const fileName = path.basename(storedPath);
+    const localPath = path.join(uploadsDir, fileName);
+    const resolvedPath = fs.existsSync(localPath) ? localPath : storedPath;
+    
+    if (!fs.existsSync(resolvedPath)) return res.status(404).json({ error: 'File missing' });
     
     // Set content type based on extension
-    const ext = path.extname(filePath).toLowerCase();
+    const ext = path.extname(resolvedPath).toLowerCase();
     const mimeTypes = {
       '.pdf': 'application/pdf',
       '.jpg': 'image/jpeg',
@@ -2093,24 +2119,26 @@ app.get('/api/notes', async (req, res) => {
 app.get('/api/notes/:id/download', async (req, res) => {
   try {
     const note = await NoteModel.findById(req.params.id);
-    if (!note) {
-      return res.status(404).json({ error: 'Note not found' });
+    if (!note) return res.status(404).json({ error: 'Note not found' });
+    
+    // Support both multi-file (files array) and legacy (filePath field)
+    let filePath = note.filePath;
+    if (!filePath && note.files && note.files[0]) {
+      filePath = note.files[0].path;
     }
-
-    if (!note.filePath || !fs.existsSync(note.filePath)) {
-      console.warn(`[DOWNLOAD] File not found on disk at ${note.filePath}. This may happen if the server restarted (ephemeral storage).`);
-      return res.status(404).json({
-        error: 'File not found on server',
-        detail: 'The requested file is no longer available on this server due to ephemeral storage limitations. Please re-upload if needed.'
-      });
+    
+    if (!filePath) return res.status(404).json({ error: 'No file available' });
+    
+    const fileName = note.fileName || (filePath ? path.basename(filePath) : 'note.pdf');
+    const localPath = path.join(notesDir, path.basename(filePath));
+    const resolvedPath = fs.existsSync(localPath) ? localPath : filePath;
+    
+    if (!fs.existsSync(resolvedPath)) {
+      console.warn('[DOWNLOAD] File not found:', resolvedPath);
+      return res.status(404).json({ error: 'File missing' });
     }
-
-    res.download(note.filePath, note.fileName || 'note.pdf', (err) => {
-      if (err) {
-        console.error('Error downloading file:', err);
-        res.status(500).json({ error: 'Failed to download file' });
-      }
-    });
+    
+    res.download(resolvedPath, fileName);
   } catch (err) {
     console.error('Error downloading note:', err);
     res.status(500).json({ error: 'Failed to download note' });
@@ -2122,13 +2150,28 @@ app.get('/api/notes/:id/files/:fileIndex/download', async (req, res) => {
     const note = await NoteModel.findById(req.params.id);
     if (!note) return res.status(404).json({ error: 'Note not found' });
     
+    let file = null;
     const idx = parseInt(req.params.fileIndex);
-    if (!note.files || !note.files[idx]) return res.status(404).json({ error: 'File not found' });
     
-    const file = note.files[idx];
-    if (!fs.existsSync(file.path)) return res.status(404).json({ error: 'File missing' });
+    if (note.files && note.files[idx]) {
+      file = note.files[idx];
+    } else if (idx === 0 && note.filePath) {
+      // Handle legacy single-file notes in multi-file route
+      file = { path: note.filePath, name: note.fileName };
+    }
     
-    res.download(file.path, file.name);
+    if (!file) return res.status(404).json({ error: 'File not found' });
+    
+    const fileName = path.basename(file.path);
+    const localPath = path.join(notesDir, fileName);
+    const resolvedPath = fs.existsSync(localPath) ? localPath : file.path;
+    
+    if (!fs.existsSync(resolvedPath)) {
+      console.warn('[DOWNLOAD] File missing:', resolvedPath);
+      return res.status(404).json({ error: 'File missing' });
+    }
+    
+    res.download(resolvedPath, file.name || fileName);
   } catch (err) {
     res.status(500).json({ error: 'Failed' });
   }
@@ -2184,10 +2227,14 @@ app.get('/api/notes/:id/files/:fileIndex/view', async (req, res) => {
     if (!note.files || !note.files[idx]) return res.status(404).json({ error: 'File not found' });
     
     const file = note.files[idx];
-    if (!fs.existsSync(file.path)) return res.status(404).json({ error: 'File missing' });
+    const fileName = path.basename(file.path);
+    const localPath = path.join(notesDir, fileName);
+    const resolvedPath = fs.existsSync(localPath) ? localPath : file.path;
+    
+    if (!fs.existsSync(resolvedPath)) return res.status(404).json({ error: 'File missing' });
     
     // Set content type based on extension
-    const ext = path.extname(file.path).toLowerCase();
+    const ext = path.extname(resolvedPath).toLowerCase();
     const mimeTypes = {
       '.pdf': 'application/pdf',
       '.jpg': 'image/jpeg',
@@ -2197,7 +2244,7 @@ app.get('/api/notes/:id/files/:fileIndex/view', async (req, res) => {
     };
     
     res.setHeader('Content-Type', mimeTypes[ext] || 'application/octet-stream');
-    res.sendFile(file.path);
+    res.sendFile(path.resolve(resolvedPath));
   } catch (err) {
     res.status(500).json({ error: 'Failed' });
   }
@@ -3162,6 +3209,7 @@ app.get('/api/admin/question-papers', authenticateToken, requireAdmin, async (re
         classLevel: paper.classLevel || '',
         examType: paper.levelType || '',
         visibility: 'public',
+        fileName: paper.files && paper.files[0] ? path.basename(paper.files[0]) : null,
         createdAt: paper.createdAt
       })));
     res.json({ success: true, papers });
@@ -3317,9 +3365,13 @@ app.get('/api/admin/notes/:id/files/:fileIndex/download', async (req, res) => {
     if (!note.files || !note.files[fileIndex]) return res.status(404).json({ error: 'File index not found' });
     
     const file = note.files[fileIndex];
-    if (!fs.existsSync(file.path)) return res.status(404).json({ error: 'File not found on server' });
+    const fileName = path.basename(file.path);
+    const localPath = path.join(notesDir, fileName);
+    const resolvedPath = fs.existsSync(localPath) ? localPath : file.path;
     
-    res.download(file.path, file.name);
+    if (!fs.existsSync(resolvedPath)) return res.status(404).json({ error: 'File not found on server' });
+    
+    res.download(resolvedPath, file.name || fileName);
   } catch (err) {
     res.status(500).json({ error: 'Failed' });
   }
