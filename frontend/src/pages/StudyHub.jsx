@@ -128,11 +128,17 @@ function StudyHub() {
       const note = notes.find(n => n._id === noteId);
       if (!note) return;
 
+      const file = note.files && note.files[fileIndex];
+      // If it's a Cloudinary URL (starts with http), use it directly
+      if (file && file.path && file.path.startsWith('http')) {
+        return window.open(file.path, '_blank');
+      }
+
+      // Fallback for local system notes
       const downloadPath = note.files && note.files.length > 0 
         ? `${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/notes/${noteId}/files/${fileIndex}/download`
         : `${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/notes/${noteId}/download`;
 
-      // Use window.open for direct browser download/view
       window.open(downloadPath, '_blank');
     } catch (err) {
       alert('Failed to download note.');
@@ -143,7 +149,13 @@ function StudyHub() {
     try {
       const paper = papers.find(p => p._id === paperId);
       if (!paper) return;
-      window.open(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/uploads/${paper.fileName}`, '_blank');
+      
+      // Use direct Cloudinary URL if available, otherwise prepend backend URL
+      const finalUrl = paper.fileName.startsWith('http') 
+        ? paper.fileName 
+        : `${process.env.REACT_APP_API_URL || "http://localhost:4000"}/uploads/${paper.fileName}`;
+      
+      window.open(finalUrl, '_blank');
     } catch (err) {
       alert('Failed to open paper.');
     }
