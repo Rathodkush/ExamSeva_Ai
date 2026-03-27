@@ -3,6 +3,7 @@ const multer = require('multer');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 // Load environment variables from backend/.env if present
 try {
   // eslint-disable-next-line global-require
@@ -426,8 +427,21 @@ app.use(extractRouter);
 const convertDocxToTextFile = async (filePath, originalName) => {
   const ext = path.extname(originalName || filePath).toLowerCase();
   if (ext !== '.docx' && ext !== '.doc') return { path: filePath, name: originalName, isTemp: false };
+  
   try {
-    const { value: text } = await mammoth.extractRawText({ path: filePath });
+    let finalPath = filePath;
+    let isTemp = false;
+
+    // Handle Cloud URLs - need to download locally for mammoth to read
+    if (filePath.startsWith('http')) {
+      const response = await axios.get(filePath, { responseType: 'arraybuffer' });
+      const tmpPath = path.join(os.tmpdir(), `temp_${Date.now()}${ext}`);
+      fs.writeFileSync(tmpPath, Buffer.from(response.data));
+      finalPath = tmpPath;
+      isTemp = true;
+    }
+
+    const { value: text } = await mammoth.extractRawText({ path: finalPath });
     const tmpPath = `${filePath}.txt`;
     await fs.promises.writeFile(tmpPath, text || '', 'utf8');
     return { path: tmpPath, name: (originalName ? originalName.replace(/\.[^/.]+$/, '') : path.basename(filePath)) + '.txt', isTemp: true, tmpPath };
