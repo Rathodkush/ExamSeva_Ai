@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Quiz = require('../models/Quiz');
 const QuizScore = require('../models/QuizScore');
-const upload = require('../middleware/upload');
+const { upload } = require('../middleware/upload');
 const { authenticateToken } = require('../middleware/auth');
 
 // Generate Quiz from PDF/DOC

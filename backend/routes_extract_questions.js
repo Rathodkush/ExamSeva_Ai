@@ -9,12 +9,9 @@ const axios = require('axios');
 // This route extracts questions (JSON) from an uploaded file using the Python service's /generate-quiz endpoint
 // It returns { questions: [ { text, options: [] } ] } and respects metadata includeOptions
 
-// IMPORTANT: This route needs multer. The main server mounts this router without middleware.
-const quizzesDir = path.join(__dirname, 'uploads', 'quizzes');
-if (!fs.existsSync(quizzesDir)) {
-  fs.mkdirSync(quizzesDir, { recursive: true });
-}
-const upload = multer({ dest: quizzesDir });
+// Using centralized upload middleware
+const { upload } = require('./middleware/upload');
+
 
 router.post('/api/quiz/extract-questions', upload.single('file'), async (req, res) => {
   try {
@@ -50,10 +47,9 @@ router.post('/api/quiz/extract-questions', upload.single('file'), async (req, re
 
     res.json({ questions });
 
-    // Cleanup uploaded file
-    try {
-      fs.unlink(req.file.path, () => {});
-    } catch (e) {}
+    // REAL FILES ARE NOW SAVED (Cleanup removed)
+    console.log(`Quiz extraction done. File saved in quizzes/ folder.`);
+
   } catch (err) {
     console.error('Error extracting questions:', err && err.message ? err.message : err);
     res.status(500).json({ error: 'Failed to extract questions', detail: err.message });

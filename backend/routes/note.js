@@ -3,7 +3,7 @@ const router = express.Router();
 const path = require('path');
 const fs = require('fs');
 const Note = require('../models/Note');
-const upload = require('../middleware/upload');
+const { upload } = require('../middleware/upload');
 
 // Get all notes
 router.get('/', async (req, res) => {

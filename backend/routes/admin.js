@@ -8,7 +8,7 @@ const Note = require('../models/Note');
 const Upload = require('../models/Upload');
 const Settings = require('../models/Settings');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
-const upload = require('../middleware/upload');
+const { upload } = require('../middleware/upload');
 
 // All routes here require admin authentication
 router.use(authenticateToken);

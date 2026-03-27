@@ -7,7 +7,7 @@ const FormData = require('form-data');
 const mammoth = require('mammoth');
 const Upload = require('../models/Upload');
 const User = require('../models/User');
-const upload = require('../middleware/upload');
+const { upload } = require('../middleware/upload');
 const { authenticateToken } = require('../middleware/auth');
 
 // Upload and Analyze Paper

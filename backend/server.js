@@ -411,38 +411,12 @@ const requireAdmin = (req, res, next) => {
 
 // (Mentor role removed) - no mentor middleware
 
-// Ensure upload directories exist
-const uploadsDir = path.join(__dirname, 'uploads');
-const notesDir = path.join(__dirname, 'uploads', 'notes');
-const quizzesDir = path.join(__dirname, 'uploads', 'quizzes');
+// Importing centralized upload middleware
+const { upload } = require('./middleware/upload');
+const notesUpload = upload; // For backwards compatibility inside server.js if needed
+const quizUpload = upload;
+const profileUpload = upload;
 
-[uploadsDir, notesDir, quizzesDir].forEach(dir => {
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-});
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir);
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + '-' + file.originalname);
-  }
-});
-
-const notesStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, notesDir);
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + '-' + file.originalname);
-  }
-});
-
-const upload = multer({ storage: storage });
-const notesUpload = multer({ storage: notesStorage });
-const quizUpload = multer({ dest: quizzesDir });
 
 // Mount the extract-questions route (uses the same multer middleware: quizUpload.single('file'))
 const extractRouter = require('./routes_extract_questions');
@@ -1082,18 +1056,8 @@ app.put('/api/auth/profile', authenticateToken, async (req, res) => {
   }
 });
 
-const profileUpload = multer({
-  storage: multer.diskStorage({
-    destination: (req, file, cb) => {
-      const dir = path.join(__dirname, 'uploads', 'profiles');
-      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-      cb(null, dir);
-    },
-    filename: (req, file, cb) => {
-      cb(null, `profile-${req.user.userId}-${Date.now()}${path.extname(file.originalname)}`);
-    }
-  })
-});
+// Using centralized upload middleware instead
+
 
 app.post('/api/auth/profile-picture', authenticateToken, profileUpload.single('profilePicture'), async (req, res) => {
   try {
@@ -1417,7 +1381,8 @@ app.post('/api/upload', upload.array('files'), async (req, res) => {
           degreeName: metadata.degreeName || '',
           semester: metadata.semester || '',
           year: metadata.year || '',
-          files: files.map(f => f.originalname),
+          // Storing relative paths for access (e.g. uploads/question-papers/...)
+          files: files.map(f => `uploads/question-papers/${f.filename}`),
           fileHashes: fileHashes,
           groups: analysisData.groups || [],
           unique: analysisData.unique || [],
@@ -1425,7 +1390,7 @@ app.post('/api/upload', upload.array('files'), async (req, res) => {
           extractedSections: (response && response.data && Array.isArray(response.data.extractedSections)) ? response.data.extractedSections : [],
           userId: userId
         });
-        console.log(' Data saved to MongoDB:', savedDoc._id);
+        console.log(' Data saved to MongoDB (with real files):', savedDoc._id);
       } catch (e) {
         console.error(' Mongo save error:', e.message);
       }
@@ -1433,10 +1398,8 @@ app.post('/api/upload', upload.array('files'), async (req, res) => {
     // Don't await - save in background
     saveToDB().catch(() => { });
 
-    // Cleanup uploaded files asynchronously
-    files.forEach(f => {
-      fs.unlink(f.path, () => { }); // Async delete, don't wait
-    });
+    // REAL FILES ARE NOW SAVED (Cleanup removed as per user request)
+
 
     // Return response with guaranteed structure
     const responseData = {
@@ -1459,7 +1422,8 @@ app.post('/api/upload', upload.array('files'), async (req, res) => {
       });
     }
 
-    console.log(` Returning analysis results: ${responseData.groups.length} groups, ${responseData.unique.length} unique`);
+    console.log(` Returning analysis results: ${responseData.groups.length} groups, ${responseData.unique.length} unique. Files saved in question-papers.`);
+
     res.json(responseData);
 
   } catch (err) {
