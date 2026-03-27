@@ -68,25 +68,7 @@ mongoose.connect(MONGODB_URI, {
   console.log(' App will continue but database features may not work');
 });
 
-const UploadSchema = new mongoose.Schema({
-  levelType: String,
-  institutionName: String,
-  state: String,
-  classLevel: String,
-  degreeName: String,
-  semester: String,
-  year: String,
-  files: [String],
-  fileHashes: [String],
-  groups: [mongoose.Schema.Types.Mixed],
-  unique: [mongoose.Schema.Types.Mixed],
-  metadata: mongoose.Schema.Types.Mixed,
-  extractedSections: [mongoose.Schema.Types.Mixed],
-  enhancements: [mongoose.Schema.Types.Mixed],
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  createdAt: { type: Date, default: Date.now }
-});
-const UploadModel = mongoose.models.Upload || mongoose.model('Upload', UploadSchema);
+// OfficialPaper model is already required at the top
 
 // Study Notes Schema
 const NoteSchema = new mongoose.Schema({
@@ -1259,7 +1241,7 @@ app.post('/api/upload', upload.array('files'), async (req, res) => {
 
     // Check for existing upload with the same file hash and return cached analysis if found
     if (fileHashes.length > 0) {
-      const cached = await UploadModel.findOne({ fileHashes: { $in: fileHashes } }).sort({ createdAt: -1 }).lean();
+      const cached = await OfficialPaper.findOne({ fileHashes: { $in: fileHashes } }).sort({ createdAt: -1 }).lean();
       if (cached) {
         console.log(' Found previous analysis record for uploaded file(s)');
         // If the caller requested fastMode but cached record doesn't have extractedSections,
@@ -1375,7 +1357,9 @@ app.post('/api/upload', upload.array('files'), async (req, res) => {
     // Persist to MongoDB asynchronously (don't block response)
     const saveToDB = async () => {
       try {
-        const savedDoc = await UploadModel.create({
+        const savedDoc = await OfficialPaper.create({
+          title: metadata.title || files[0].originalname, // Use provided title or filename
+          subject: metadata.subject || 'General',
           levelType: metadata.levelType || '',
           institutionName: metadata.institutionName || '',
           state: metadata.state || '',
@@ -1383,6 +1367,8 @@ app.post('/api/upload', upload.array('files'), async (req, res) => {
           degreeName: metadata.degreeName || '',
           semester: metadata.semester || '',
           year: metadata.year || '',
+          fileName: files[0].originalname,
+          filePath: files[0].path,
           // Storing relative paths for access (e.g. uploads/question-papers/...)
           files: files.map(f => `uploads/question-papers/${f.filename}`),
           fileHashes: fileHashes,
@@ -1390,9 +1376,10 @@ app.post('/api/upload', upload.array('files'), async (req, res) => {
           unique: analysisData.unique || [],
           metadata: (response && response.data && response.data.metadata) ? response.data.metadata : null,
           extractedSections: (response && response.data && Array.isArray(response.data.extractedSections)) ? response.data.extractedSections : [],
-          userId: userId
+          userId: userId,
+          uploadedBy: userId
         });
-        console.log(' Data saved to MongoDB (with real files):', savedDoc._id);
+        console.log(' Data saved to OfficialPaper collection:', savedDoc._id);
       } catch (e) {
         console.error(' Mongo save error:', e.message);
       }
@@ -1476,29 +1463,80 @@ app.post('/api/upload', upload.array('files'), async (req, res) => {
   }
 });
 
-// Route to get all saved uploads (optionally filtered by user)
-app.get('/api/uploads', async (req, res) => {
+// Route to get all saved question papers (official list)
+app.get('/api/question-papers', async (req, res) => {
   try {
-    let query = {};
+    let query = { visibility: 'free' };
 
-    // If user is authenticated, try to get their uploads
     const authHeader = req.headers['authorization'];
     if (authHeader) {
       try {
         const token = authHeader.split(' ')[1];
         const decoded = jwt.verify(token, JWT_SECRET);
-        // Filter by userId if available
-        query.userId = decoded.userId;
-      } catch (e) {
-        // If token is invalid, show all uploads
-      }
+        // If logged in, show both free and login-required papers
+        query = { $or: [{ visibility: 'free' }, { visibility: 'login' }] };
+      } catch (e) { }
     }
 
-    const uploads = await UploadModel.find(query).sort({ createdAt: -1 }).limit(50);
-    res.json({ count: uploads.length, uploads });
+    const papers = await OfficialPaper.find(query).sort({ createdAt: -1 }).limit(50);
+    res.json({ success: true, count: papers.length, papers });
   } catch (err) {
-    console.error('Error fetching uploads:', err);
-    res.status(500).json({ error: 'Failed to fetch uploads' });
+    console.error('Error fetching papers:', err);
+    res.status(500).json({ error: 'Failed' });
+  }
+});
+
+// Admin Question Paper CRUD (Consolidated)
+app.get('/api/admin/question-papers', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const papers = await OfficialPaper.find().sort({ createdAt: -1 });
+    res.json({ success: true, papers });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch admin papers' });
+  }
+});
+
+app.post('/api/admin/question-papers', authenticateToken, requireAdmin, upload.single('file'), async (req, res) => {
+  try {
+    const { title, subject, classLevel, examType, visibility } = req.body;
+    if (!req.file) return res.status(400).json({ error: 'File is required' });
+
+    const paper = await OfficialPaper.create({
+      title,
+      subject,
+      classLevel: classLevel || '',
+      examType: examType || '',
+      visibility: visibility || 'free',
+      fileName: req.file.originalname,
+      filePath: req.file.path,
+      files: [req.file.path],
+      uploadedBy: req.user.userId
+    });
+    res.json({ success: true, paper });
+  } catch (err) {
+    res.status(500).json({ error: 'Upload failed' });
+  }
+});
+
+app.put('/api/admin/question-papers/:id', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const updateData = req.body;
+    const paper = await OfficialPaper.findByIdAndUpdate(req.params.id, updateData, { new: true });
+    res.json({ success: true, paper });
+  } catch (err) {
+    res.status(500).json({ error: 'Update failed' });
+  }
+});
+
+app.delete('/api/admin/question-papers/:id', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const paper = await OfficialPaper.findByIdAndDelete(req.params.id);
+    if (paper && paper.filePath && fs.existsSync(paper.filePath)) {
+      fs.unlinkSync(paper.filePath);
+    }
+    res.json({ success: true, message: 'Deleted' });
+  } catch (err) {
+    res.status(500).json({ error: 'Delete failed' });
   }
 });
 
@@ -1531,9 +1569,9 @@ app.post('/api/uploads/:uploadId/reanalyze', authenticateToken, async (req, res)
     const { uploadId } = req.params;
     const { forceOcr } = req.body;
 
-    const upload = await UploadModel.findById(uploadId);
+    const upload = await OfficialPaper.findById(uploadId);
     if (!upload) {
-      return res.status(404).json({ error: 'Upload not found' });
+      return res.status(404).json({ error: 'Paper not found in official collection' });
     }
 
     if (!upload.files || upload.files.length === 0) {
@@ -1619,7 +1657,7 @@ app.post('/api/upload/preview', upload.array('files'), async (req, res) => {
 
     // If we found a previous record, return its metadata if available
     if (fileHashes.length > 0) {
-      const cached = await UploadModel.findOne({ fileHashes: { $in: fileHashes } }).sort({ createdAt: -1 }).lean();
+      const cached = await OfficialPaper.findOne({ fileHashes: { $in: fileHashes } }).sort({ createdAt: -1 }).lean();
       if (cached) {
         // Clean up uploaded temp files
         files.forEach(f => fs.unlink(f.path, () => { }));
@@ -1762,7 +1800,7 @@ app.post('/api/upload/enhance', upload.array('files'), async (req, res) => {
             hashes.push(null);
           }
         }
-        const uploadRecord = await UploadModel.create({
+        const uploadRecord = await OfficialPaper.create({
           levelType: metadata.levelType || '',
           institutionName: metadata.institutionName || '',
           state: metadata.state || '',
@@ -1798,7 +1836,7 @@ app.post('/api/upload/enhance', upload.array('files'), async (req, res) => {
 
 app.get('/api/uploads/:id/download', async (req, res) => {
   try {
-    const upload = await UploadModel.findById(req.params.id);
+    const upload = await OfficialPaper.findById(req.params.id);
     if (!upload || !upload.files || upload.files.length === 0) {
       return res.status(404).json({ error: 'No files found for this upload' });
     }
@@ -1821,7 +1859,7 @@ app.get('/api/uploads/:id/download', async (req, res) => {
 
 app.get('/api/uploads/:id/files/:fileIndex/view', async (req, res) => {
   try {
-    const upload = await UploadModel.findById(req.params.id);
+    const upload = await OfficialPaper.findById(req.params.id);
     if (!upload || !upload.files || !upload.files[req.params.fileIndex]) {
       return res.status(404).json({ error: 'File not found' });
     }
@@ -1911,7 +1949,7 @@ app.post('/api/notes', notesUpload.array('files', 15), async (req, res) => {
 
         // Persist an Upload record with extracted groups, unique questions and metadata
         try {
-          await UploadModel.create({
+          await OfficialPaper.create({
             levelType: data.metadata?.course || data.metadata?.subject || null,
             institutionName: data.metadata?.university || null,
             classLevel: data.metadata?.course || null,
@@ -2810,8 +2848,8 @@ app.get('/api/user/statistics', authenticateToken, async (req, res) => {
     const userId = req.user.userId;
     const userIdString = userId.toString();
 
-    // Count papers uploaded - userId is stored as ObjectId in UploadModel
-    const papersUploaded = await UploadModel.countDocuments({ userId: userId });
+    // Count papers uploaded - userId is stored as ObjectId in OfficialPaper
+    const papersUploaded = await OfficialPaper.countDocuments({ userId: userId });
 
     // Count quizzes taken - userId is stored as ObjectId
     const quizzesTaken = await QuizScoreModel.countDocuments({ userId: userId });
@@ -3161,127 +3199,7 @@ app.get('/api/announcements', async (req, res) => {
   }
 });
 
-// Public Question Papers Route for Study Hub
-app.get('/api/question-papers', async (req, res) => {
-  try {
-    const papers = await UploadModel.find({
-      // Assuming papers created via admin have specific markers or we just show all Uploads that are "papers"
-      // For now, let's treat all records in UploadModel as papers, or filter by those with levelType/classLevel
-      levelType: { $ne: null }
-    })
-      .sort({ createdAt: -1 })
-      .lean()
-      .then(papers => papers.map(paper => ({
-        _id: paper._id,
-        title: paper.levelType || 'Official Paper',
-        subject: paper.classLevel || 'General',
-        fileName: paper.files && paper.files.length > 0 ? path.basename(paper.files[0]) : '',
-        createdAt: paper.createdAt
-      })));
-    res.json({ success: true, papers });
-  } catch (err) {
-    console.error('Error fetching public question papers:', err);
-    res.status(500).json({ error: 'Failed to fetch question papers' });
-  }
-});
-
-// Admin Question Papers Routes
-app.get('/api/admin/question-papers', authenticateToken, requireAdmin, async (req, res) => {
-  try {
-    const papers = await UploadModel.find()
-      .sort({ createdAt: -1 })
-      .lean()
-      .then(papers => papers.map(paper => ({
-        _id: paper._id,
-        title: paper.levelType || paper.classLevel || 'Question Paper',
-        subject: paper.classLevel || paper.levelType || 'General',
-        classLevel: paper.classLevel || '',
-        examType: paper.levelType || '',
-        visibility: 'public',
-        fileName: paper.files && paper.files[0] ? path.basename(paper.files[0]) : null,
-        createdAt: paper.createdAt
-      })));
-    res.json({ success: true, papers });
-  } catch (err) {
-    console.error('Error fetching question papers:', err);
-    res.status(500).json({ error: 'Failed to fetch question papers' });
-  }
-});
-
-app.post('/api/admin/question-papers', authenticateToken, requireAdmin, upload.single('file'), async (req, res) => {
-  try {
-    const { title, subject, classLevel, examType, visibility } = req.body;
-
-    if (!title || !subject) {
-      return res.status(400).json({ error: 'Title and subject are required' });
-    }
-
-    // Save to UploadModel (reusing existing schema)
-    const paper = await UploadModel.create({
-      levelType: title,
-      classLevel: subject || classLevel || '',
-      institutionName: '',
-      files: req.file ? [req.file.path] : [],
-      groups: [],
-      unique: []
-    });
-
-    res.json({ success: true, paper });
-  } catch (err) {
-    console.error('Error creating question paper:', err);
-    res.status(500).json({ error: 'Failed to create question paper', detail: err.message });
-  }
-});
-
-app.put('/api/admin/question-papers/:id', authenticateToken, requireAdmin, async (req, res) => {
-  try {
-    const { title, subject, classLevel, examType, visibility } = req.body;
-    const paper = await UploadModel.findByIdAndUpdate(
-      req.params.id,
-      {
-        levelType: title,
-        classLevel: subject || classLevel || ''
-      },
-      { new: true }
-    );
-
-    if (!paper) {
-      return res.status(404).json({ error: 'Question paper not found' });
-    }
-
-    res.json({ success: true, paper });
-  } catch (err) {
-    console.error('Error updating question paper:', err);
-    res.status(500).json({ error: 'Failed to update question paper', detail: err.message });
-  }
-});
-
-app.delete('/api/admin/question-papers/:id', authenticateToken, requireAdmin, async (req, res) => {
-  try {
-    const paper = await UploadModel.findByIdAndDelete(req.params.id);
-    if (!paper) {
-      return res.status(404).json({ error: 'Question paper not found' });
-    }
-
-    // Delete associated files
-    if (paper.files && paper.files.length > 0) {
-      paper.files.forEach(filePath => {
-        try {
-          if (fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
-          }
-        } catch (fileErr) {
-          console.warn('Failed to delete file:', filePath, fileErr);
-        }
-      });
-    }
-
-    res.json({ success: true, message: 'Question paper deleted successfully' });
-  } catch (err) {
-    console.error('Error deleting question paper:', err);
-    res.status(500).json({ error: 'Failed to delete question paper' });
-  }
-});
+// Redundant question paper routes removed as they are handled earlier or via mounted routers.
 
 // Admin Notes Routes (GET and PUT)
 app.get('/api/admin/notes', authenticateToken, requireAdmin, async (req, res) => {
@@ -3392,7 +3310,7 @@ app.delete('/api/admin/notes/:id', authenticateToken, requireAdmin, async (req, 
 app.get('/api/admin/dashboard', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const totalUsers = await UserModel.countDocuments();
-    const totalPapers = await UploadModel.countDocuments();
+    const totalPapers = await OfficialPaper.countDocuments();
     const totalNotes = await NoteModel.countDocuments();
     const totalAnnouncements = await PostModel.countDocuments({ type: 'announcement' });
 
@@ -3402,7 +3320,7 @@ app.get('/api/admin/dashboard', authenticateToken, requireAdmin, async (req, res
       .limit(5)
       .lean();
 
-    const recentPapers = await UploadModel.find()
+    const recentPapers = await OfficialPaper.find()
       .sort({ createdAt: -1 })
       .limit(5)
       .lean()
@@ -3593,9 +3511,9 @@ app.get('/api/admin/reports', authenticateToken, requireAdmin, async (req, res) 
 
     if (!type || type === 'uploads') {
       const uploadStats = {
-        total: await UploadModel.countDocuments(),
-        withGroups: await UploadModel.countDocuments({ groups: { $exists: true, $ne: [] } }),
-        withUnique: await UploadModel.countDocuments({ unique: { $exists: true, $ne: [] } })
+        total: await OfficialPaper.countDocuments(),
+        withGroups: await OfficialPaper.countDocuments({ groups: { $exists: true, $ne: [] } }),
+        withUnique: await OfficialPaper.countDocuments({ unique: { $exists: true, $ne: [] } })
       };
       reports.uploads = uploadStats;
     }
