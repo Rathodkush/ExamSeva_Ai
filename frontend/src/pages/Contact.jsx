@@ -26,7 +26,7 @@ function Contact() {
     setSubmitting(true);
 
     try {
-      const response = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/contact`, formData);
+      const response = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/contact`, formData);
       if (response.data.success) {
         alert('Thank you for your message! We will get back to you soon.');
         setFormData({ name: '', email: '', subject: '', message: '' });

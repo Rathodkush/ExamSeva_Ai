@@ -1,7 +1,7 @@
 const axios = require('axios');
 
 async function verify() {
-    const API_URL = 'http://localhost:4000';
+    const API_URL = 'http://localhost:  4001';
 
     try {
         console.log('Logging in as admin...');

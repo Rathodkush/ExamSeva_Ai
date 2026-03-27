@@ -35,19 +35,19 @@ function AdminQuestionPapers() {
       return;
     }
     fetchPapers();
-    
+
     // Auto-refresh papers list every 15 seconds for real-time updates
     const interval = setInterval(() => {
       fetchPapers();
     }, 15000);
-    
+
     return () => clearInterval(interval);
   }, [isAuthenticated, user]);
 
   const fetchPapers = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/admin/question-papers`, {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4001"}/api/admin/question-papers`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setPapers(response.data.papers || []);
@@ -74,7 +74,7 @@ function AdminQuestionPapers() {
 
       if (editingPaper) {
         await axios.put(
-          `${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/admin/question-papers/${editingPaper._id}`,
+          `${process.env.REACT_APP_API_URL || "http://localhost:4001"}/api/admin/question-papers/${editingPaper._id}`,
           {
             title: formData.title,
             subject: formData.subject,
@@ -85,11 +85,11 @@ function AdminQuestionPapers() {
           { headers: { Authorization: `Bearer ${token}` } }
         );
       } else {
-        await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/admin/question-papers`, formDataToSend, {
+        await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4001"}/api/admin/question-papers`, formDataToSend, {
           headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
         });
       }
-      
+
       setShowModal(false);
       setEditingPaper(null);
       setFormData({ title: '', subject: '', classLevel: '', examType: '', visibility: 'free', file: null });
@@ -117,13 +117,13 @@ function AdminQuestionPapers() {
     if (isPreviewable) {
       setPreview({
         isOpen: true,
-        fileUrl: `${process.env.REACT_APP_API_URL || "http://localhost:4000"}/uploads/${paper.fileName}`,
+        fileUrl: `${process.env.REACT_APP_API_URL || "http://localhost:4001"}/uploads/${paper.fileName}`,
         fileName: paper.fileName,
         noteId: paper._id,
         isPaper: true
       });
     } else {
-      window.open(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/uploads/${paper.fileName}`, '_blank');
+      window.open(`${process.env.REACT_APP_API_URL || "http://localhost:4001"}/uploads/${paper.fileName}`, '_blank');
     }
   };
 
@@ -131,7 +131,7 @@ function AdminQuestionPapers() {
     if (!window.confirm('Are you sure you want to delete this question paper?')) return;
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/admin/question-papers/${id}`, {
+      await axios.delete(`${process.env.REACT_APP_API_URL || "http://localhost:4001"}/api/admin/question-papers/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchPapers();
@@ -151,7 +151,7 @@ function AdminQuestionPapers() {
         onClose={() => setPreview({ ...preview, isOpen: false })}
         fileUrl={preview.fileUrl}
         fileName={preview.fileName}
-        onDownload={() => window.open(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/uploads/${preview.fileName}`, '_blank')}
+        onDownload={() => window.open(`${process.env.REACT_APP_API_URL || "http://localhost:4001"}/uploads/${preview.fileName}`, '_blank')}
       />
       <div className="admin-header-flex">
         <h1>Question Paper Management</h1>
@@ -183,10 +183,10 @@ function AdminQuestionPapers() {
               <p><strong>Subject:</strong> {paper.subject}</p>
               {paper.classLevel && <p><strong>Class:</strong> {paper.classLevel}</p>}
               {paper.examType && <p><strong>Exam Type:</strong> {paper.examType}</p>}
-              <p><strong>File:</strong> 
-                <a 
-                  href={paper.fileName.startsWith('http') ? paper.fileName : `${process.env.REACT_APP_API_URL || 'http://localhost:4000'}/uploads/${paper.fileName}`} 
-                  target="_blank" 
+              <p><strong>File:</strong>
+                <a
+                  href={paper.fileName.startsWith('http') ? paper.fileName : `${process.env.REACT_APP_API_URL || 'http://localhost:4001'}/uploads/${paper.fileName}`}
+                  target="_blank"
                   rel="noopener noreferrer"
                   style={{ wordBreak: 'break-all', color: '#6366f1', textDecoration: 'underline' }}
                 >

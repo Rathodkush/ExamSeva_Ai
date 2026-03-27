@@ -27,7 +27,7 @@ function Home() {
 
   const fetchAnnouncements = async () => {
     try {
-      const response = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/announcements`);
+      const response = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/announcements`);
       setAnnouncements(response.data.announcements || []);
     } catch (err) {
       console.error('Error fetching announcements:', err);
@@ -40,7 +40,7 @@ function Home() {
         <div className="header-content">
           <h1 className="main-title">ExamSeva — Repeated Question Detector</h1>
           <p className="subtitle">Your ultimate exam preparation platform</p>
-          
+
           {!isAuthenticated && (
             <div className="auth-buttons">
               <Link to="/register" className="btn btn-primary">Sign Up</Link>
@@ -110,7 +110,7 @@ function Home() {
               <h4>Auto-generated quizzes & papers</h4>
               <p>Turn raw notes into MCQs, short / long questions and printable exam PDFs.</p>
             </div>
-      
+
             <div className="benefit-item">
               <div className="benefit-icon"></div>
               <h4>Student discussion forum</h4>

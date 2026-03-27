@@ -46,7 +46,7 @@ function StudyHub() {
     const rects = params.get('rects');
     const question = params.get('question');
     const snippet = params.get('snippet');
-    
+
     if (file) {
       const viewerParams = new URLSearchParams();
       viewerParams.set('file', file);
@@ -60,7 +60,7 @@ function StudyHub() {
 
   const checkBackendConnection = async () => {
     try {
-      await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/health`, { timeout: 3000 });
+      await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4001"}/api/health`, { timeout: 3000 });
     } catch (err) {
       console.error('Backend not reachable:', err);
     }
@@ -71,8 +71,8 @@ function StudyHub() {
       const token = localStorage.getItem('token');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
       const [notesRes, papersRes] = await Promise.all([
-        axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/notes`, { headers }),
-        axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/question-papers`, { headers }).catch(() => ({ data: { papers: [] } }))
+        axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4001"}/api/notes`, { headers }),
+        axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4001"}/api/question-papers`, { headers }).catch(() => ({ data: { papers: [] } }))
       ]);
       setNotes(notesRes.data.notes || []);
       setPapers(papersRes.data.papers || []);
@@ -104,7 +104,7 @@ function StudyHub() {
       formData.append('description', uploadData.description);
       uploadData.files.forEach(file => formData.append('files', file));
 
-      const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/notes`, formData, {
+      const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4001"}/api/notes`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         timeout: 30000
       });
@@ -127,11 +127,11 @@ function StudyHub() {
     try {
       const note = notes.find(n => n._id === noteId);
       if (!note) return;
-      
+
       // Force backend download via proxy to avoid browser-to-cloud connection issues
-      const downloadPath = note.files && note.files.length > 0 
-        ? `${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/notes/${noteId}/files/${fileIndex}/download`
-        : `${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/notes/${noteId}/download`;
+      const downloadPath = note.files && note.files.length > 0
+        ? `${process.env.REACT_APP_API_URL || "http://localhost:4001"}/api/notes/${noteId}/files/${fileIndex}/download`
+        : `${process.env.REACT_APP_API_URL || "http://localhost:4001"}/api/notes/${noteId}/download`;
 
       window.open(downloadPath, '_blank');
     } catch (err) {
@@ -143,10 +143,10 @@ function StudyHub() {
     try {
       const paper = papers.find(p => p._id === paperId);
       if (!paper) return;
-      
+
       // Use backend path (our server will proxy Cloudinary URLs automatically)
-      const finalUrl = `${process.env.REACT_APP_API_URL || "http://localhost:4000"}/uploads/${paper.fileName}`;
-      
+      const finalUrl = `${process.env.REACT_APP_API_URL || "http://localhost:4001"}/uploads/${paper.fileName}`;
+
       window.open(finalUrl, '_blank');
     } catch (err) {
       alert('Failed to open paper.');
@@ -165,7 +165,7 @@ function StudyHub() {
   const performDelete = async () => {
     const id = confirmDelete.noteId;
     try {
-      await axios.delete(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/notes/${id}?authorId=${user?._id || user?.id}`);
+      await axios.delete(`${process.env.REACT_APP_API_URL || "http://localhost:4001"}/api/notes/${id}?authorId=${user?._id || user?.id}`);
       setNotes(notes.filter(n => n._id !== id));
       setConfirmDelete({ open: false, noteId: null });
       alert('Note deleted.');
@@ -181,9 +181,9 @@ function StudyHub() {
       setAskLoading(true);
       const token = localStorage.getItem('token');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/studyhub/search`, 
+      const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4001"}/api/studyhub/search`,
         { question, subject: note.subject, noteId: note._id }, { headers });
-      
+
       const r = res.data.result;
       if (r && r.found) {
         const viewerUrl = `/viewer?file=${encodeURIComponent(r.filePath)}&page=${r.page || 1}&rects=${encodeURIComponent(JSON.stringify(r.rects || []))}`;
@@ -223,12 +223,12 @@ function StudyHub() {
               <p className="page-subtitle">Access comprehensive study materials</p>
             </div>
             <div className="header-actions">
-              <input 
-                type="text" 
-                placeholder="Search..." 
-                value={searchQuery} 
-                onChange={e => setSearchQuery(e.target.value)} 
-                className="search-input" 
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="search-input"
               />
               {(user?.role === 'student' || user?.role === 'admin') && (
                 <button className="upload-btn" onClick={() => setShowUpload(!showUpload)}>
@@ -297,7 +297,7 @@ function StudyHub() {
                           {note.description}
                         </div>
                       )}
-                      
+
                       {note.files && note.files.length > 0 && (
                         <div className="note-files-list">
                           <p className="files-count-label">{note.files.length} file(s) attached:</p>

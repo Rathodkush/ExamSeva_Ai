@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }) => {
         const userData = JSON.parse(savedUser);
         setUser(userData);
         setIsAuthenticated(true);
-        
+
         // Verify token is still valid
         verifyToken(token);
       } catch (err) {
@@ -40,12 +40,12 @@ export const AuthProvider = ({ children }) => {
 
   const verifyToken = async (token) => {
     try {
-      const response = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/auth/me`, {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/auth/me`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
-      
+
       if (response.data.user) {
         setUser(response.data.user);
         setIsAuthenticated(true);

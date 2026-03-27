@@ -34,12 +34,12 @@ function AdminNotes() {
       return;
     }
     fetchNotes();
-    
+
     // Auto-refresh notes list every 15 seconds for real-time updates
     const interval = setInterval(() => {
       fetchNotes();
     }, 15000);
-    
+
     return () => clearInterval(interval);
   }, [isAuthenticated, user]);
 
@@ -47,7 +47,7 @@ function AdminNotes() {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(
-        `${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/admin/notes`,
+        `${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/admin/notes`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setNotes(response.data.notes || []);
@@ -67,7 +67,7 @@ function AdminNotes() {
       const uploadFormData = new FormData();
       if (editingNote) {
         await axios.put(
-          `${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/admin/notes/${editingNote._id}`,
+          `${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/admin/notes/${editingNote._id}`,
           {
             name: formData.name,
             subject: formData.subject,
@@ -87,7 +87,7 @@ function AdminNotes() {
         }
 
         await axios.post(
-          `${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/admin/notes`,
+          `${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/admin/notes`,
           uploadFormData,
           { headers: { ...headers, 'Content-Type': 'multipart/form-data' } }
         );
@@ -126,10 +126,10 @@ function AdminNotes() {
 
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this note?')) return;
-    
+
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/admin/notes/${id}`, {
+      await axios.delete(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/admin/notes/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchNotes();
@@ -147,9 +147,9 @@ function AdminNotes() {
 
       if (isPreviewable && !forceDownload) {
         const viewUrl = fileIndex !== null
-          ? `${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/notes/${noteId}/files/${fileIndex}/view`
-          : `${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/notes/${noteId}/view`;
-        
+          ? `${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/notes/${noteId}/files/${fileIndex}/view`
+          : `${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/notes/${noteId}/view`;
+
         setPreview({
           isOpen: true,
           fileUrl: viewUrl,
@@ -160,25 +160,25 @@ function AdminNotes() {
         return;
       }
 
-      const urlPath = fileIndex !== null 
-        ? `${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/notes/${noteId}/files/${fileIndex}/download`
-        : `${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/notes/${noteId}/download`;
+      const urlPath = fileIndex !== null
+        ? `${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/notes/${noteId}/files/${fileIndex}/download`
+        : `${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/notes/${noteId}/download`;
 
       const response = await axios.get(urlPath, {
         responseType: 'blob'
       });
-      
+
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      
+
       const contentDisposition = response.headers['content-disposition'];
       let filename = 'note.pdf';
       if (contentDisposition) {
         const filenameMatch = contentDisposition.match(/filename="?(.+)"?/);
         if (filenameMatch) filename = filenameMatch[1];
       }
-      
+
       link.setAttribute('download', filename);
       document.body.appendChild(link);
       link.click();
@@ -206,8 +206,8 @@ function AdminNotes() {
       <div className="admin-header-flex">
         <h1>Study Notes Management</h1>
         <div className="admin-header-actions">
-           <button onClick={handleAddNew} className="admin-btn btn-primary">+ Upload New Note</button>
-           <Link to="/admin-dashboard" className="admin-btn btn-grey">← Dashboard</Link>
+          <button onClick={handleAddNew} className="admin-btn btn-primary">+ Upload New Note</button>
+          <Link to="/admin-dashboard" className="admin-btn btn-grey">← Dashboard</Link>
         </div>
       </div>
 
@@ -230,7 +230,7 @@ function AdminNotes() {
               <p><strong>Subject:</strong> {note.subject || 'General'}</p>
               <p><strong>Author:</strong> {note.author || 'Unknown'}</p>
               <p><strong>Uploaded:</strong> {new Date(note.createdAt).toLocaleDateString()}</p>
-              
+
               {note.files && note.files.length > 0 && (
                 <div className="admin-files-list">
                   <p className="admin-files-label">Uploaded Files ({note.files.length}):</p>
@@ -243,9 +243,9 @@ function AdminNotes() {
                   </ul>
                 </div>
               )}
-              
+
               {!note.files && <p><strong>File:</strong> {note.fileName}</p>}
-              
+
               {note.description && (
                 <p className="note-description">{note.description}</p>
               )}
@@ -306,9 +306,9 @@ function AdminNotes() {
                     required
                   />
                   {formData.files.length > 0 && (
-                     <div className="admin-selected-files-preview">
-                       {formData.files.map((f, i) => <div key={i}>✓ {f.name}</div>)}
-                     </div>
+                    <div className="admin-selected-files-preview">
+                      {formData.files.map((f, i) => <div key={i}>✓ {f.name}</div>)}
+                    </div>
                   )}
                 </div>
               )}

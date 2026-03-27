@@ -16,7 +16,7 @@ function Login() {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/settings`);
+        const response = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/settings`);
         if (response.data.settings) {
           setSettings(response.data.settings);
         }
@@ -57,16 +57,16 @@ function Login() {
     setLoading(true);
 
     try {
-      const response = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/auth/login`, formData);
-      
+      const response = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/auth/login`, formData);
+
       if (response.data.success) {
         // Store token in localStorage
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
         localStorage.removeItem('lastAnalysis'); // Fresh start for new user
-        
+
         showPersistentToast(`Welcome back, ${response.data.user.fullName || 'User'}! Logged in successfully.`);
-        
+
         // Redirect to profile or home
         navigate('/profile');
         window.location.reload(); // Refresh to update auth state
@@ -85,10 +85,10 @@ function Login() {
           <h1 className="auth-title">Login to {settings.websiteName}</h1>
           <p className="auth-subtitle">Welcome back! Please login to your account.</p>
         </div>
-        
+
         {error && <div className="error-message">{error}</div>}
         {success && <div className="success-message" style={{ background: '#ecfdf5', color: '#059669', padding: '10px', borderRadius: '8px', marginBottom: '12px', textAlign: 'center', border: '1px solid #a7f3d0' }}>{success}</div>}
-        
+
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
             <label htmlFor="email">Email Address</label>
@@ -115,8 +115,8 @@ function Login() {
                 required
                 placeholder="Enter your password"
               />
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className="password-toggle-btn"
                 onClick={() => setShowPassword(!showPassword)}
                 title={showPassword ? "Hide Password" : "Show Password"}

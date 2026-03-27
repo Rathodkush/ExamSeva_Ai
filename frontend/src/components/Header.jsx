@@ -21,7 +21,7 @@ function Header() {
     try {
       const token = localStorage.getItem('token');
       if (token) {
-        await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/auth/logout`, {}, {
+        await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/auth/logout`, {}, {
           headers: { Authorization: `Bearer ${token}` }
         });
       }
@@ -76,7 +76,7 @@ function Header() {
 
     const fetchNotifications = async () => {
       try {
-        const res = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/notifications`, {
+        const res = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/notifications`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setNotifications(res.data.notifications || []);
@@ -88,7 +88,7 @@ function Header() {
     fetchNotifications();
 
     try {
-      socket = io(process.env.REACT_APP_API_URL || "http://localhost:4000", { 
+      socket = io(process.env.REACT_APP_API_URL || "http://localhost:  4001", {
         auth: { token },
         transports: ['websocket']
       });
@@ -120,7 +120,7 @@ function Header() {
   const markAsRead = async (id) => {
     const token = localStorage.getItem('token');
     try {
-      await axios.patch(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/notifications/${id}/read`, {}, {
+      await axios.patch(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/notifications/${id}/read`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setNotifications(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
@@ -132,7 +132,7 @@ function Header() {
   const markAllAsRead = async () => {
     const token = localStorage.getItem('token');
     try {
-      await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/notifications/read-all`, {}, {
+      await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/notifications/read-all`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
@@ -146,20 +146,20 @@ function Header() {
       <div className="header-container">
         <div className="logo" style={{ display: 'flex', alignItems: 'center' }}>
           <Link to="/" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <img 
-              src={settings.logoUrl || "/favicon.png"} 
-              alt="ExamSeva Logo" 
-              style={{ 
-                height: '38px', 
-                width: 'auto', 
+            <img
+              src={settings.logoUrl || "/favicon.png"}
+              alt="ExamSeva Logo"
+              style={{
+                height: '38px',
+                width: 'auto',
                 borderRadius: '4px',
                 display: 'block'
-              }} 
+              }}
             />
-            <h1 style={{ 
-              margin: 0, 
-              fontSize: '24px', 
-              color: 'white', 
+            <h1 style={{
+              margin: 0,
+              fontSize: '24px',
+              color: 'white',
               fontWeight: '700',
               lineHeight: '1'
             }}>{settings.websiteName}</h1>
@@ -192,10 +192,10 @@ function Header() {
                 </button>
                 {showServicesDropdown && (
                   <div className="dropdown-menu">
-                    <Link to="/studyhub" className="dropdown-item" onClick={() => {setShowServicesDropdown(false); setIsMenuOpen(false);}}>Study Hub</Link>
-                    <Link to="/quize" className="dropdown-item" onClick={() => {setShowServicesDropdown(false); setIsMenuOpen(false);}}>Quiz</Link>
-                    <Link to="/question-paper" className="dropdown-item" onClick={() => {setShowServicesDropdown(false); setIsMenuOpen(false);}}>Question Paper</Link>
-                    <Link to="/forum" className="dropdown-item" onClick={() => {setShowServicesDropdown(false); setIsMenuOpen(false);}}>Forum</Link>
+                    <Link to="/studyhub" className="dropdown-item" onClick={() => { setShowServicesDropdown(false); setIsMenuOpen(false); }}>Study Hub</Link>
+                    <Link to="/quize" className="dropdown-item" onClick={() => { setShowServicesDropdown(false); setIsMenuOpen(false); }}>Quiz</Link>
+                    <Link to="/question-paper" className="dropdown-item" onClick={() => { setShowServicesDropdown(false); setIsMenuOpen(false); }}>Question Paper</Link>
+                    <Link to="/forum" className="dropdown-item" onClick={() => { setShowServicesDropdown(false); setIsMenuOpen(false); }}>Forum</Link>
                   </div>
                 )}
               </div>
@@ -227,8 +227,8 @@ function Header() {
                       <div className="notif-empty">No notifications</div>
                     ) : (
                       notifications.map(n => (
-                        <div 
-                          key={n._id} 
+                        <div
+                          key={n._id}
                           className={`notif-item ${n.isRead ? 'read' : ''}`}
                           onClick={() => {
                             if (!n.isRead) markAsRead(n._id);
@@ -255,8 +255,8 @@ function Header() {
                 )}
               </div>
               <span className="hello-user mobile-hide">Hello, {user?.fullName?.toUpperCase()}</span>
-              <button 
-                onClick={() => { logout(); setIsMenuOpen(false); }} 
+              <button
+                onClick={() => { logout(); setIsMenuOpen(false); }}
                 className="logout-btn-header"
               >
                 Logout

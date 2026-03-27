@@ -21,7 +21,7 @@ function Forum() {
 
   const checkBackendConnection = async () => {
     try {
-      await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/health`, { timeout: 3000 });
+      await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/health`, { timeout: 3000 });
     } catch (err) {
       console.error('Backend not reachable:', err);
     }
@@ -29,12 +29,12 @@ function Forum() {
 
   const loadPosts = async () => {
     try {
-      const res = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/forum/posts`, { timeout: 5000 });
+      const res = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/forum/posts`, { timeout: 5000 });
       setPosts(res.data.posts || []);
     } catch (err) {
       console.error('Error loading posts:', err);
       if (err.code === 'ECONNREFUSED' || err.response?.status === 404) {
-        alert('⚠️ Cannot connect to backend server. Please ensure the backend is running on `${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:4000"}`"}`');
+        alert('⚠️ Cannot connect to backend server. Please ensure the backend is running on `${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || "http://localhost:  4001"}`"}`');
       }
     } finally {
       setLoading(false);
@@ -50,7 +50,7 @@ function Forum() {
 
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/forum/posts`, {
+      const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/forum/posts`, {
         title: newPost.title,
         content: newPost.content,
         author: currentUserName,
@@ -72,7 +72,7 @@ function Forum() {
       console.error('Error creating post:', err);
       let errorMsg = 'Failed to create post. ';
       if (err.code === 'ECONNREFUSED' || err.response?.status === 404) {
-        errorMsg += 'Backend server is not running. Please start the backend server on port 4000.';
+        errorMsg += 'Backend server is not running. Please start the backend server on port   4001.';
       } else {
         errorMsg += err.response?.data?.detail || err.response?.data?.error || err.message;
       }
@@ -88,13 +88,13 @@ function Forum() {
 
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/forum/posts/${postId}/reply`, {
+      const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/forum/posts/${postId}/reply`, {
         content: replyContent,
         author: currentUserName,
         authorId: currentUserId
       }, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
 
-      setPosts(posts.map(post => 
+      setPosts(posts.map(post =>
         post._id === postId ? res.data.post : post
       ));
       setReplyContent('');
@@ -108,11 +108,11 @@ function Forum() {
   const handleLike = async (postId) => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/forum/posts/${postId}/like`, {
+      const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/forum/posts/${postId}/like`, {
         authorId: currentUserId
       }, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
 
-      setPosts(posts.map(post => 
+      setPosts(posts.map(post =>
         post._id === postId ? { ...post, likes: res.data.likes } : post
       ));
     } catch (err) {
@@ -143,7 +143,7 @@ function Forum() {
             <div className="search-box">
               <input type="text" placeholder="Search discussions..." />
             </div>
-            <button 
+            <button
               className="ask-btn"
               onClick={() => {
                 if (!isAuthenticated) {

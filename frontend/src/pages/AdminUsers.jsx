@@ -18,19 +18,19 @@ function AdminUsers() {
       return;
     }
     fetchUsers();
-    
+
     // Auto-refresh users list every 15 seconds for real-time updates
     const interval = setInterval(() => {
       fetchUsers();
     }, 15000);
-    
+
     return () => clearInterval(interval);
   }, [isAuthenticated, user]);
 
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/admin/users`, {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/admin/users`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setUsers(response.data.users || []);
@@ -45,7 +45,7 @@ function AdminUsers() {
     try {
       const token = localStorage.getItem('token');
       await axios.patch(
-        `${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/admin/users/${userId}/status`,
+        `${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/admin/users/${userId}/status`,
         { isActive: !currentStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -57,10 +57,10 @@ function AdminUsers() {
 
   const deleteUser = async (userId) => {
     if (!window.confirm('Are you sure you want to delete this user?')) return;
-    
+
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/admin/users/${userId}`, {
+      await axios.delete(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/admin/users/${userId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchUsers();
@@ -72,7 +72,7 @@ function AdminUsers() {
   const exportUsers = async () => {
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/admin/export-email/users`, {}, {
+      await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/admin/export-email/users`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       alert('User data exported and sent to email successfully!');

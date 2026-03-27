@@ -27,14 +27,14 @@ function QuestionPaper() {
       if (stored.subject && !formData.subject) {
         setFormData(f => ({ ...f, subject: stored.subject }));
       }
-    } catch (e) {}
+    } catch (e) { }
   }, []);
 
   const handleFileChange = (e) => {
     setFormData({ ...formData, file: e.target.files[0] });
   };
 
-  const downloadBlob = (data, filename, mime='application/pdf') => {
+  const downloadBlob = (data, filename, mime = 'application/pdf') => {
     const blob = new Blob([data], { type: mime });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -72,18 +72,18 @@ function QuestionPaper() {
         if (stored.state) fd.append('state', stored.state);
         if (stored.semester) fd.append('semester', stored.semester);
         if (stored.year) fd.append('year', stored.year);
-      } catch (e) {}
+      } catch (e) { }
 
       const token = localStorage.getItem('token');
       const headers = { 'Content-Type': 'multipart/form-data' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
 
-      const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/quiz/generate_paper`, fd, { 
+      const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/quiz/generate_paper`, fd, {
         headers: {
           ...headers,
           'Content-Type': 'multipart/form-data'
-        }, 
-        responseType: 'arraybuffer', 
+        },
+        responseType: 'arraybuffer',
         timeout: 300000 // 5 minutes 
       });
 
@@ -100,7 +100,7 @@ function QuestionPaper() {
         const match = /filename="?([^";]+)"?/.exec(disposition);
         if (match) filename = match[1];
       } else if (formData.subject) {
-        filename = `${formData.subject.replace(/[\\/:*?"<>|]/g,'')}_question_paper.pdf`;
+        filename = `${formData.subject.replace(/[\\/:*?"<>|]/g, '')}_question_paper.pdf`;
       }
 
       downloadBlob(res.data, filename, res.headers['content-type'] || 'application/pdf');

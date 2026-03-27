@@ -31,7 +31,7 @@ export default function FileUpload({ setResults }) {
     if (!token) return;
     (async () => {
       try {
-        const resp = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
+        const resp = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
         if (resp.data && resp.data.user) {
           const u = resp.data.user;
           if (u.institutionName) setInstitutionName(u.institutionName);
@@ -64,7 +64,7 @@ export default function FileUpload({ setResults }) {
         const headers = {};
         if (token) headers['Authorization'] = `Bearer ${token}`;
 
-        const resp = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/upload/preview`, form, { headers, timeout: 300000 });
+        const resp = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/upload/preview`, form, { headers, timeout: 300000 });
         if (resp.data && resp.data.metadata) {
           setExtractedMeta(resp.data.metadata);
           // Autofill fields if empty
@@ -104,7 +104,7 @@ export default function FileUpload({ setResults }) {
     setProcessingTime(null);
     setResults({ groups: [], unique: [] }); // Clear previous results
     const startTime = Date.now();
-    
+
     try {
       const form = new FormData();
       files.forEach(f => form.append("files", f));
@@ -131,19 +131,19 @@ export default function FileUpload({ setResults }) {
       const headers = {};
       if (token) headers["Authorization"] = `Bearer ${token}`;
 
-      const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/upload`, form, {
+      const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/upload`, form, {
         headers: headers,
         timeout: 600000 // 10 minutes timeout to allow deep OCR processing on cloud servers
       });
-      
-      
+
+
       const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
       setProcessingTime(elapsed);
-      
+
       // Ensure we have valid data structure
       const groups = Array.isArray(res.data.groups) ? res.data.groups : [];
       let unique = Array.isArray(res.data.unique) ? res.data.unique : [];
-      
+
       // Normalize unique questions structure - ensure each has text property
       unique = unique.map((q, idx) => {
         if (!q) return null;
@@ -161,8 +161,8 @@ export default function FileUpload({ setResults }) {
         }
         return q;
       }).filter(q => q !== null && q.text && q.text.toString().trim().length > 0);
-      
-      
+
+
       // Always set results, even if empty - ensure proper state update
       const resultsToSet = {
         groups: groups,
@@ -170,11 +170,11 @@ export default function FileUpload({ setResults }) {
         metadata: res.data.metadata || {},
         filesProcessed: files.length
       };
-      
-      
+
+
       setResults(resultsToSet);
-      
-      
+
+
       // Apply extracted metadata if available
       if (res.data && res.data.metadata) {
         setExtractedMeta(res.data.metadata);
@@ -197,8 +197,8 @@ export default function FileUpload({ setResults }) {
       // Provide a small persisted marker in the UI
       try {
         localStorage.setItem('lastAnalysisTimestamp', Date.now().toString());
-      } catch (e) {}
-      
+      } catch (e) { }
+
       // Persist analysis locally so navigating away doesn't clear results
       try {
         localStorage.setItem('lastAnalysis', JSON.stringify({
@@ -229,15 +229,15 @@ export default function FileUpload({ setResults }) {
     } catch (err) {
       setProgress('');
       setLoading(false);
-      
+
       // Always set empty results on error so UI shows "no results" message
       setResults({
         groups: [],
         unique: []
       });
-      
+
       let errorMessage = "Error uploading files. ";
-      
+
       if (err.code === 'ECONNABORTED' || err.response?.status === 504) {
         errorMessage = "Processing took too long. Please try with smaller files or fewer pages.";
       } else if (err.response?.status === 400) {
@@ -247,7 +247,7 @@ export default function FileUpload({ setResults }) {
       } else if (err.response?.status === 500) {
         errorMessage = "Server error: " + (err.response.data?.detail || err.message);
       } else if (err.code === 'ECONNREFUSED' || err.code === 'ERR_NETWORK') {
-        errorMessage = `Cannot connect to server. Please make sure the backend server is running on ${process.env.REACT_APP_API_URL || "http://localhost:4000"}`;
+        errorMessage = `Cannot connect to server. Please make sure the backend server is running on ${process.env.REACT_APP_API_URL || "http://localhost:  4001"}`;
       } else if (err.response?.data?.error) {
         errorMessage = err.response.data.error + (err.response.data.detail ? ': ' + err.response.data.detail : '');
         // If server said no text extracted, offer enhancement
@@ -258,7 +258,7 @@ export default function FileUpload({ setResults }) {
       } else {
         errorMessage += err.message || "Unknown error occurred.";
       }
-      
+
       alert(errorMessage);
     } finally {
       setLoading(false);
@@ -295,10 +295,10 @@ export default function FileUpload({ setResults }) {
   return (
     <div className="file-upload-container">
       <div className="file-input-wrapper">
-        <input 
-          type="file" 
-          multiple 
-          accept=".pdf,image/*" 
+        <input
+          type="file"
+          multiple
+          accept=".pdf,image/*"
           ref={fileInputRef}
           onChange={handleFiles}
         />
@@ -334,7 +334,7 @@ export default function FileUpload({ setResults }) {
         <div className="form-grid">
           <div className="form-group">
             <label>Level Type</label>
-            <select value={levelType} onChange={(e)=>setLevelType(e.target.value)}>
+            <select value={levelType} onChange={(e) => setLevelType(e.target.value)}>
               <option>Board</option>
               <option>University</option>
             </select>
@@ -342,25 +342,25 @@ export default function FileUpload({ setResults }) {
 
           <div className="form-group">
             <label>State</label>
-            <input 
-              value={state} 
-              onChange={(e)=>setState(e.target.value)} 
+            <input
+              value={state}
+              onChange={(e) => setState(e.target.value)}
               placeholder="e.g., Gujarat"
             />
           </div>
 
           <div className="form-group full-width">
             <label>{levelType === 'University' ? 'University Name' : 'Board Name'}</label>
-            <input 
-              value={institutionName} 
-              onChange={(e)=>setInstitutionName(e.target.value)} 
+            <input
+              value={institutionName}
+              onChange={(e) => setInstitutionName(e.target.value)}
               placeholder={levelType === 'University' ? 'Enter university name ,eg. Mumbai university' : 'Enter board name eg, HSC,SSC'}
             />
           </div>
 
           <div className="form-group">
             <label>Class</label>
-            <select value={classLevel} onChange={(e)=>setClassLevel(e.target.value)}>
+            <select value={classLevel} onChange={(e) => setClassLevel(e.target.value)}>
               <option value="10th">10th</option>
               <option value="12th">12th</option>
               <option value="undergraduate">Undergraduate</option>
@@ -370,9 +370,9 @@ export default function FileUpload({ setResults }) {
           {classLevel === 'undergraduate' && (
             <div className="form-group">
               <label>Degree Name</label>
-              <input 
-                value={degreeName} 
-                onChange={(e)=>setDegreeName(e.target.value)} 
+              <input
+                value={degreeName}
+                onChange={(e) => setDegreeName(e.target.value)}
                 placeholder="e.g., B.Sc, B.Com"
               />
             </div>
@@ -380,18 +380,18 @@ export default function FileUpload({ setResults }) {
 
           <div className="form-group">
             <label>Semester</label>
-            <input 
-              value={semester} 
-              onChange={(e)=>setSemester(e.target.value)} 
+            <input
+              value={semester}
+              onChange={(e) => setSemester(e.target.value)}
               placeholder="e.g., 1, 2, 5 "
             />
           </div>
-          
+
           <div className="form-group">
             <label>Year</label>
-            <input 
-              value={year} 
-              onChange={(e)=>setYear(e.target.value)} 
+            <input
+              value={year}
+              onChange={(e) => setYear(e.target.value)}
               placeholder="e.g., 2024"
             />
           </div>
@@ -413,9 +413,9 @@ export default function FileUpload({ setResults }) {
         </div>
       )}
 
-      <button 
-        onClick={upload} 
-        disabled={loading} 
+      <button
+        onClick={upload}
+        disabled={loading}
         className="upload-button"
       >
         {loading ? (progress || "Analyzing...") : "Upload & Analyze"}
@@ -437,7 +437,7 @@ export default function FileUpload({ setResults }) {
                 const token = localStorage.getItem('token');
                 const headers = {};
                 if (token) headers['Authorization'] = `Bearer ${token}`;
-                const resp = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/upload/enhance`, form, { headers, timeout: 120000 });
+                const resp = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/upload/enhance`, form, { headers, timeout: 120000 });
                 if (resp.data) {
                   const groups = Array.isArray(resp.data.groups) ? resp.data.groups : [];
                   const unique = Array.isArray(resp.data.unique) ? resp.data.unique : [];
@@ -458,12 +458,12 @@ export default function FileUpload({ setResults }) {
           </button>
         </div>
       )}
-      
+
       {processingTime && (
-        <div style={{ 
-          marginTop: '15px', 
-          padding: '10px', 
-          backgroundColor: '#e8f5e9', 
+        <div style={{
+          marginTop: '15px',
+          padding: '10px',
+          backgroundColor: '#e8f5e9',
           borderRadius: '6px',
           textAlign: 'center',
           color: '#2e7d32',
@@ -472,12 +472,12 @@ export default function FileUpload({ setResults }) {
           ✓ Analysis completed in {processingTime} seconds
         </div>
       )}
-      
+
       {progress && !loading && (
-        <div style={{ 
-          marginTop: '10px', 
-          padding: '8px', 
-          backgroundColor: '#fff3cd', 
+        <div style={{
+          marginTop: '10px',
+          padding: '8px',
+          backgroundColor: '#fff3cd',
           borderRadius: '6px',
           textAlign: 'center',
           color: '#856404',

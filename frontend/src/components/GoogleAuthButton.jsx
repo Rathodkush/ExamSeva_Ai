@@ -16,7 +16,7 @@ export default function GoogleAuthButton({ text = 'continue_with' }) {
     // Fallback Client ID from your .env in case Render deployment missed it
     const FALLBACK_ID = '196060547910-ebktcqsbq88vj13bua60qdec733lq9f5.apps.googleusercontent.com';
     const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID || FALLBACK_ID;
-    
+
     if (!clientId) {
       setEnabled(false);
       return;
@@ -35,7 +35,7 @@ export default function GoogleAuthButton({ text = 'continue_with' }) {
               callback: async (resp) => {
                 try {
                   setError('');
-                  const r = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/auth/google`, { credential: resp.credential });
+                  const r = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/auth/google`, { credential: resp.credential });
                   if (r.data?.success) {
                     localStorage.setItem('token', r.data.token);
                     localStorage.setItem('user', JSON.stringify(r.data.user));
@@ -51,7 +51,7 @@ export default function GoogleAuthButton({ text = 'continue_with' }) {
             });
             window._googleAuthInitialized = true;
           }
-          
+
           g.accounts.id.renderButton(btnRef.current, {
             theme: 'outline',
             size: 'large',

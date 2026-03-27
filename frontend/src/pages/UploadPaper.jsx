@@ -17,7 +17,7 @@ function UploadPaper() {
   const loadPreviousUploads = async () => {
     try {
       setLoadingPrevious(true);
-      const res = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/uploads`);
+      const res = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/uploads`);
       if (res.data && res.data.uploads) {
         setPreviousUploads(res.data.uploads.slice(0, 10)); // Show last 10
       }

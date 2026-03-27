@@ -60,7 +60,7 @@ function Quize() {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/quiz/generate`, formData, {
+      const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/quiz/generate`, formData, {
         headers: headers,
         timeout: 300000 // 5 minutes (300k ms)
       });
@@ -86,7 +86,7 @@ function Quize() {
       console.error('Error generating quiz:', err);
       let errorMsg = 'Failed to generate quiz. ';
       if (err.code === 'ECONNREFUSED' || err.response?.status === 404) {
-        errorMsg += 'Backend server is not running. Please start the backend server on port 4000.';
+        errorMsg += 'Backend server is not running. Please start the backend server on port   4001.';
       } else {
         errorMsg += err.response?.data?.detail || err.response?.data?.error || err.message;
       }
@@ -114,7 +114,7 @@ function Quize() {
     setAnswers({ ...answers, [questionId]: answerIndex });
   };
 
-  const downloadBlob = (data, filename, mime='application/pdf') => {
+  const downloadBlob = (data, filename, mime = 'application/pdf') => {
     const blob = new Blob([data], { type: mime });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -141,19 +141,19 @@ function Quize() {
       if (stored.state) form.append('state', stored.state);
       if (stored.semester) form.append('semester', stored.semester);
       if (stored.year) form.append('year', stored.year);
-    } catch (e) {}
+    } catch (e) { }
 
     const token = localStorage.getItem('token');
     const headers = { 'Content-Type': 'multipart/form-data' };
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
     try {
-      const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/quiz/generate_pdf`, form, { 
+      const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/quiz/generate_pdf`, form, {
         headers: {
           ...headers,
           'Content-Type': 'multipart/form-data'
-        }, 
-        responseType: 'arraybuffer', 
+        },
+        responseType: 'arraybuffer',
         timeout: 300000 // 5 minutes
       });
       // If server returns an empty/small PDF, show a clear message instead of downloading a blank file
@@ -168,7 +168,7 @@ function Quize() {
         const match = /filename="?([^";]+)"?/.exec(disposition);
         if (match) filename = match[1];
       } else if (uploadData.subject) {
-        filename = `${uploadData.subject.replace(/[\\/:*?"<>|]/g,'')}_quiz.pdf`;
+        filename = `${uploadData.subject.replace(/[\\/:*?"<>|]/g, '')}_quiz.pdf`;
       }
       downloadBlob(res.data, filename, res.headers['content-type'] || 'application/pdf');
     } catch (err) {
@@ -181,11 +181,11 @@ function Quize() {
     }
   };
 
- 
+
 
   const handleSubmitQuiz = async () => {
     if (!generatedQuiz || !generatedQuiz.questions) return;
-    
+
     let correct = 0;
     let wrong = 0;
     const questionResults = generatedQuiz.questions.map((q, idx) => {
@@ -219,7 +219,7 @@ function Quize() {
     const token = localStorage.getItem('token');
     if (token) {
       try {
-        await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/quiz/score`, {
+        await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/quiz/score`, {
           quizId: generatedQuiz._id || null,
           score: correct,
           totalQuestions: total
@@ -246,7 +246,7 @@ function Quize() {
       <div className="page-container">
         <h1 className="page-title">Quiz Generator</h1>
         <p className="page-subtitle">Upload e-books, PDFs, Word docs, or images to generate interactive quizzes</p>
-        
+
         <div className="quiz-upload-section">
           <h2 className="section-title">Generate Quiz from Material</h2>
 
@@ -267,13 +267,13 @@ function Quize() {
               <p className="file-hint">Supported: PDF, e-books (EPUB, MOBI), Images (JPG, PNG), Word documents (DOC, DOCX)</p>
             </div>
 
-            <button 
-              className="generate-btn-purple" 
-              onClick={handleGenerateQuiz} 
+            <button
+              className="generate-btn-purple"
+              onClick={handleGenerateQuiz}
               disabled={isGenerating}
             >
               {isGenerating ? 'Generating Quiz...' : 'Generate Quiz'}
-            </button>  
+            </button>
           </div>
         </div>
 
@@ -284,10 +284,10 @@ function Quize() {
               <div className="quiz-actions-small">
                 <button className="download-small-btn" onClick={downloadQuizPdf}>Download PDF</button>
                 <button className="reset-small-btn" onClick={() => {
-                   setGeneratedQuiz(null);
-                   setAnswers({});
-                   setSubmitted(false);
-                   setResults(null);
+                  setGeneratedQuiz(null);
+                  setAnswers({});
+                  setSubmitted(false);
+                  setResults(null);
                 }}>New Quiz</button>
               </div>
             </div>
@@ -300,13 +300,13 @@ function Quize() {
                     <div className="question-text">{q.question}</div>
                     <div className="question-options">
                       {q.options.map((opt, optIdx) => (
-                        <label 
-                          key={optIdx} 
+                        <label
+                          key={optIdx}
                           className={`option-label ${answers[q._id || idx] === optIdx ? 'selected' : ''}`}
                         >
-                          <input 
-                            type="radio" 
-                            name={`question-${q._id || idx}`} 
+                          <input
+                            type="radio"
+                            name={`question-${q._id || idx}`}
                             value={optIdx}
                             checked={answers[q._id || idx] === optIdx}
                             onChange={() => handleAnswerChange(q._id || idx, optIdx)}

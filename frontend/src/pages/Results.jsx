@@ -10,7 +10,7 @@ function Results() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('analysis'); // 'analysis' | 'quizzes'
-  
+
   useEffect(() => {
     loadResults();
   }, []);
@@ -20,24 +20,24 @@ function Results() {
       setLoading(true);
       const token = localStorage.getItem('token');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      
+
       const [uploadsRes, quizzesRes] = await Promise.all([
-        axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/uploads`, { headers }),
-        axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/quiz/my-scores`, { headers }).catch(() => ({ data: { success: false } }))
+        axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/uploads`, { headers }),
+        axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/quiz/my-scores`, { headers }).catch(() => ({ data: { success: false } }))
       ]);
-      
+
       if (uploadsRes.data && uploadsRes.data.uploads) {
-        const analyzedPapers = uploadsRes.data.uploads.filter(upload => 
-          (upload.groups && upload.groups.length > 0) || 
+        const analyzedPapers = uploadsRes.data.uploads.filter(upload =>
+          (upload.groups && upload.groups.length > 0) ||
           (upload.unique && upload.unique.length > 0)
         );
-        
+
         const formattedPapers = analyzedPapers.map(upload => ({
           id: upload._id,
           name: upload.files && upload.files.length > 0 ? upload.files[0] : (upload.metadata?.course || 'Analyzed Paper'),
           date: upload.createdAt ? new Date(upload.createdAt).toLocaleDateString() : 'Unknown Date',
-          questions: (upload.groups ? upload.groups.reduce((sum, g) => sum + (g.members ? g.members.length : 0), 0) : 0) + 
-                    (upload.unique ? upload.unique.length : 0),
+          questions: (upload.groups ? upload.groups.reduce((sum, g) => sum + (g.members ? g.members.length : 0), 0) : 0) +
+            (upload.unique ? upload.unique.length : 0),
           uploadData: upload
         }));
         setPapers(formattedPapers);
@@ -56,7 +56,7 @@ function Results() {
 
   const getResultsForPaper = (paper) => {
     if (!paper || !paper.uploadData) return { groups: [], unique: [] };
-    
+
     return {
       groups: paper.uploadData.groups || [],
       unique: paper.uploadData.unique || [],
@@ -87,20 +87,20 @@ function Results() {
       <h1>Exam Results & Analysis</h1>
 
       <div className="results-tabs">
-        <button 
+        <button
           className={`results-tab ${activeTab === 'analysis' ? 'active' : ''}`}
           onClick={() => setActiveTab('analysis')}
         >
           Paper Analysis
         </button>
-        <button 
+        <button
           className={`results-tab ${activeTab === 'quizzes' ? 'active' : ''}`}
           onClick={() => setActiveTab('quizzes')}
         >
           Quiz Results
         </button>
       </div>
-      
+
       <div className="results-content">
         {activeTab === 'analysis' ? (
           <>
@@ -112,8 +112,8 @@ function Results() {
                 </div>
               ) : (
                 papers.map(paper => (
-                  <div 
-                    key={paper.id} 
+                  <div
+                    key={paper.id}
                     className={`paper-card ${selectedPaper?.id === paper.id ? 'active' : ''}`}
                     onClick={() => setSelectedPaper(paper)}
                   >

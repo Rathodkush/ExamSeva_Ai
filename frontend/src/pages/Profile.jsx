@@ -22,7 +22,7 @@ function UserStatistics() {
         return;
       }
 
-      const response = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/user/statistics`, {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4001"}/api/user/statistics`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -161,7 +161,7 @@ function Profile() {
             return;
           }
 
-          const response = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/auth/me`, {
+          const response = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4001"}/api/auth/me`, {
             headers: {
               Authorization: `Bearer ${token}`
             }
@@ -213,7 +213,7 @@ function Profile() {
         return;
       }
 
-      const response = await axios.put(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/auth/profile`, profileData, {
+      const response = await axios.put(`${process.env.REACT_APP_API_URL || "http://localhost:4001"}/api/auth/profile`, profileData, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -253,7 +253,7 @@ function Profile() {
 
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/auth/profile-picture`, formData, {
+      const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4001"}/api/auth/profile-picture`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
@@ -263,7 +263,7 @@ function Profile() {
       if (res.data.success) {
         setProfileData(prev => ({ ...prev, profilePicture: res.data.profilePicture }));
         setMessage('Profile picture updated successfully');
-        
+
         // Update auth context and local storage
         if (authUser) {
           const updatedUser = { ...authUser, profilePicture: res.data.profilePicture };
@@ -288,7 +288,7 @@ function Profile() {
     <div className="profile-container">
       <div className="profile-header">
         <h1>My Account</h1>
-        <button 
+        <button
           className="edit-button"
           onClick={() => isEditing ? handleSave() : setIsEditing(true)}
         >
@@ -320,210 +320,210 @@ function Profile() {
 
       <div className="profile-content">
         {activeTab === 'profile' && (
-        <div className="profile-card">
-          <div className="profile-avatar">
-            <div className="avatar-container">
-              {profileData.profilePicture ? (
-                <img 
-                  src={profileData.profilePicture.startsWith('http') 
-                        ? profileData.profilePicture 
-                        : `${process.env.REACT_APP_API_URL || "http://localhost:4000"}/uploads/${profileData.profilePicture.startsWith('/') ? profileData.profilePicture.substring(1) : profileData.profilePicture}`
-                      } 
-                  alt="Profile" 
-                  className="profile-img" 
-                  onError={(e) => {
-                    e.target.onerror = null; 
-                    e.target.src = "https://ui-avatars.com/api/?name=" + (profileData.fullName || 'User') + "&background=6366f1&color=fff";
-                  }}
-                />
-              ) : (
-                <div className="avatar-circle">
-                  {profileData.fullName ? profileData.fullName.charAt(0).toUpperCase() : 'U'}
-                </div>
-              )}
-              {isEditing && (
-                <div className="avatar-edit-overlay">
-                  <label htmlFor="profile-pic-input">
-                    <span className="camera-icon">📷</span>
-                    <input 
-                      type="file" 
-                      id="profile-pic-input" 
-                      onChange={handleProfilePictureUpload} 
-                      accept="image/*"
-                      style={{ display: 'none' }}
-                    />
-                  </label>
-                </div>
+          <div className="profile-card">
+            <div className="profile-avatar">
+              <div className="avatar-container">
+                {profileData.profilePicture ? (
+                  <img
+                    src={profileData.profilePicture.startsWith('http')
+                      ? profileData.profilePicture
+                      : `${process.env.REACT_APP_API_URL || "http://localhost:4001"}/uploads/${profileData.profilePicture.startsWith('/') ? profileData.profilePicture.substring(1) : profileData.profilePicture}`
+                    }
+                    alt="Profile"
+                    className="profile-img"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = "https://ui-avatars.com/api/?name=" + (profileData.fullName || 'User') + "&background=6366f1&color=fff";
+                    }}
+                  />
+                ) : (
+                  <div className="avatar-circle">
+                    {profileData.fullName ? profileData.fullName.charAt(0).toUpperCase() : 'U'}
+                  </div>
+                )}
+                {isEditing && (
+                  <div className="avatar-edit-overlay">
+                    <label htmlFor="profile-pic-input">
+                      <span className="camera-icon">📷</span>
+                      <input
+                        type="file"
+                        id="profile-pic-input"
+                        onChange={handleProfilePictureUpload}
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                      />
+                    </label>
+                  </div>
+                )}
+              </div>
+              <h2>{profileData.fullName || 'User'}</h2>
+            </div>
+
+            <div className="profile-details">
+              <div className="detail-group">
+                <label>Full Name</label>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    name="fullName"
+                    value={profileData.fullName}
+                    onChange={handleChange}
+                    className="profile-input"
+                  />
+                ) : (
+                  <p>{profileData.fullName || 'Not set'}</p>
+                )}
+              </div>
+
+              <div className="detail-group">
+                <label>Email</label>
+                {isEditing ? (
+                  <input
+                    type="email"
+                    name="email"
+                    value={profileData.email}
+                    onChange={handleChange}
+                    className="profile-input"
+                    disabled
+                  />
+                ) : (
+                  <p>{profileData.email || 'Not set'}</p>
+                )}
+              </div>
+
+              {/* Extra academic fields: hide completely for admin users (not required) */}
+              {authUser?.role !== 'admin' && (
+                <>
+                  <div className="detail-group">
+                    <label>Phone</label>
+                    {isEditing ? (
+                      <input
+                        type="tel"
+                        name="phone"
+                        value={profileData.phone}
+                        onChange={handleChange}
+                        className="profile-input"
+                      />
+                    ) : (
+                      <p>{profileData.phone || 'Not set'}</p>
+                    )}
+                  </div>
+
+                  <div className="detail-group">
+                    <label>Class/Standard</label>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        name="classStandard"
+                        value={profileData.classStandard}
+                        onChange={handleChange}
+                        className="profile-input"
+                      />
+                    ) : (
+                      <p>{profileData.classStandard || 'Not set'}</p>
+                    )}
+                  </div>
+
+                  <div className="detail-group">
+                    <label>Course Type</label>
+                    {isEditing ? (
+                      <select
+                        name="courseType"
+                        value={profileData.courseType}
+                        onChange={handleChange}
+                        className="profile-input"
+                      >
+                        <option value="">Select Course Type</option>
+                        <option value="School">School</option>
+                        <option value="High School">High School</option>
+                        <option value="Undergraduate">Undergraduate</option>
+                        <option value="Postgraduate">Postgraduate</option>
+                        <option value="Diploma">Diploma</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    ) : (
+                      <p>{profileData.courseType || 'Not set'}</p>
+                    )}
+                  </div>
+
+                  <div className="detail-group">
+                    <label>University / Board</label>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        name="institutionName"
+                        value={profileData.institutionName}
+                        onChange={handleChange}
+                        className="profile-input"
+                      />
+                    ) : (
+                      <p>{profileData.institutionName || 'Not set'}</p>
+                    )}
+                  </div>
+
+                  <div className="detail-group">
+                    <label>State Board</label>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        name="boardName"
+                        value={profileData.boardName}
+                        onChange={handleChange}
+                        className="profile-input"
+                      />
+                    ) : (
+                      <p>{profileData.boardName || 'Not set'}</p>
+                    )}
+                  </div>
+
+                  <div className="detail-group">
+                    <label>State</label>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        name="state"
+                        value={profileData.state}
+                        onChange={handleChange}
+                        className="profile-input"
+                      />
+                    ) : (
+                      <p>{profileData.state || 'Not set'}</p>
+                    )}
+                  </div>
+
+                  <div className="detail-group">
+                    <label>Semester</label>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        name="semester"
+                        value={profileData.semester}
+                        onChange={handleChange}
+                        className="profile-input"
+                      />
+                    ) : (
+                      <p>{profileData.semester || 'Not set'}</p>
+                    )}
+                  </div>
+
+                  <div className="detail-group">
+                    <label>Year</label>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        name="year"
+                        value={profileData.year}
+                        onChange={handleChange}
+                        className="profile-input"
+                      />
+                    ) : (
+                      <p>{profileData.year || 'Not set'}</p>
+                    )}
+                  </div>
+                </>
               )}
             </div>
-            <h2>{profileData.fullName || 'User'}</h2>
           </div>
-
-          <div className="profile-details">
-            <div className="detail-group">
-              <label>Full Name</label>
-              {isEditing ? (
-                <input
-                  type="text"
-                  name="fullName"
-                  value={profileData.fullName}
-                  onChange={handleChange}
-                  className="profile-input"
-                />
-              ) : (
-                <p>{profileData.fullName || 'Not set'}</p>
-              )}
-            </div>
-
-            <div className="detail-group">
-              <label>Email</label>
-              {isEditing ? (
-                <input
-                  type="email"
-                  name="email"
-                  value={profileData.email}
-                  onChange={handleChange}
-                  className="profile-input"
-                  disabled
-                />
-              ) : (
-                <p>{profileData.email || 'Not set'}</p>
-              )}
-            </div>
-
-            {/* Extra academic fields: hide completely for admin users (not required) */}
-            {authUser?.role !== 'admin' && (
-              <>
-                <div className="detail-group">
-                  <label>Phone</label>
-                  {isEditing ? (
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={profileData.phone}
-                      onChange={handleChange}
-                      className="profile-input"
-                    />
-                  ) : (
-                    <p>{profileData.phone || 'Not set'}</p>
-                  )}
-                </div>
-
-                <div className="detail-group">
-                  <label>Class/Standard</label>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      name="classStandard"
-                      value={profileData.classStandard}
-                      onChange={handleChange}
-                      className="profile-input"
-                    />
-                  ) : (
-                    <p>{profileData.classStandard || 'Not set'}</p>
-                  )}
-                </div>
-
-                <div className="detail-group">
-                  <label>Course Type</label>
-                  {isEditing ? (
-                    <select
-                      name="courseType"
-                      value={profileData.courseType}
-                      onChange={handleChange}
-                      className="profile-input"
-                    >
-                      <option value="">Select Course Type</option>
-                      <option value="School">School</option>
-                      <option value="High School">High School</option>
-                      <option value="Undergraduate">Undergraduate</option>
-                      <option value="Postgraduate">Postgraduate</option>
-                      <option value="Diploma">Diploma</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  ) : (
-                    <p>{profileData.courseType || 'Not set'}</p>
-                  )}
-                </div>
-
-                <div className="detail-group">
-                  <label>University / Board</label>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      name="institutionName"
-                      value={profileData.institutionName}
-                      onChange={handleChange}
-                      className="profile-input"
-                    />
-                  ) : (
-                    <p>{profileData.institutionName || 'Not set'}</p>
-                  )}
-                </div>
-
-                <div className="detail-group">
-                  <label>State Board</label>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      name="boardName"
-                      value={profileData.boardName}
-                      onChange={handleChange}
-                      className="profile-input"
-                    />
-                  ) : (
-                    <p>{profileData.boardName || 'Not set'}</p>
-                  )}
-                </div>
-
-                <div className="detail-group">
-                  <label>State</label>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      name="state"
-                      value={profileData.state}
-                      onChange={handleChange}
-                      className="profile-input"
-                    />
-                  ) : (
-                    <p>{profileData.state || 'Not set'}</p>
-                  )}
-                </div>
-
-                <div className="detail-group">
-                  <label>Semester</label>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      name="semester"
-                      value={profileData.semester}
-                      onChange={handleChange}
-                      className="profile-input"
-                    />
-                  ) : (
-                    <p>{profileData.semester || 'Not set'}</p>
-                  )}
-                </div>
-
-                <div className="detail-group">
-                  <label>Year</label>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      name="year"
-                      value={profileData.year}
-                      onChange={handleChange}
-                      className="profile-input"
-                    />
-                  ) : (
-                    <p>{profileData.year || 'Not set'}</p>
-                  )}
-                </div>
-              </>
-            )}
-          </div>
-        </div>
         )}
 
         {/* Hide student statistics block for admin users; show in its own tab */}

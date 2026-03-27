@@ -272,7 +272,7 @@ const SettingsSchema = new mongoose.Schema({
   logoUrl: { type: String, default: '' },
   contactEmail: { type: String, default: 'examsevahelpdesk@gmail.com' },
   contactPhone: { type: String, default: '022-05200' },
-  contactAddress: { type: String, default: '123 Education Street, Mumbai City, 400005' },
+  contactAddress: { type: String, default: '123 Education Street, Mumbai City,   400105' },
   aboutUs: { type: String, default: '' },
   footerLinks: [{
     title: String,
@@ -336,10 +336,10 @@ const notifyAllUsers = async (message, type = 'announcement', senderId = null, m
     if (excludeSender && senderId && mongoose.Types.ObjectId.isValid(senderId)) {
       query._id = { $ne: senderId };
     }
-    
+
     const users = await UserModel.find(query, '_id');
     const userIds = users.map(u => u._id);
-    
+
     // Create notifications for each user - doing it in bulk for performance
     const notifData = userIds.map(uid => ({
       toUserId: uid,
@@ -349,11 +349,11 @@ const notifyAllUsers = async (message, type = 'announcement', senderId = null, m
       meta,
       isRead: false
     }));
-    
+
     if (notifData.length === 0) return;
-    
+
     const createdNotifs = await MessageModel.insertMany(notifData);
-    
+
     // Emit to each user with their unique notification object (including its _id)
     if (ioInstance) {
       createdNotifs.forEach(n => {
@@ -427,7 +427,7 @@ app.use(extractRouter);
 const convertDocxToTextFile = async (filePath, originalName) => {
   const ext = path.extname(originalName || filePath).toLowerCase();
   if (ext !== '.docx' && ext !== '.doc') return { path: filePath, name: originalName, isTemp: false };
-  
+
   try {
     let finalPath = filePath;
     let isTemp = false;
@@ -1079,7 +1079,7 @@ app.post('/api/auth/profile-picture', authenticateToken, profileUpload.single('p
       return res.status(400).json({ error: 'No file uploaded' });
     }
     const profilePictureUrl = getRelativePath(req.file.path || `uploads/profiles/${req.file.filename}`);
-    
+
     // Save to the new dedicated images collection
     await ProfileImageModel.create({
       userId: req.user.userId,
@@ -1088,7 +1088,7 @@ app.post('/api/auth/profile-picture', authenticateToken, profileUpload.single('p
 
     // Also update the User model for fast access
     await UserModel.findByIdAndUpdate(req.user.userId, { profilePicture: profilePictureUrl });
-    
+
     res.json({ success: true, profilePicture: profilePictureUrl });
   } catch (err) {
     console.error('Profile picture upload error:', err);
@@ -1877,13 +1877,13 @@ app.get('/api/uploads/:id/download', async (req, res) => {
     if (!upload || !upload.files || upload.files.length === 0) {
       return res.status(404).json({ error: 'No files found for this upload' });
     }
-    
+
     // Download first file by default
     const storedPath = upload.files[0];
     const fileName = path.basename(storedPath);
     const localPath = path.join(uploadsDir, fileName);
     const resolvedPath = fs.existsSync(localPath) ? localPath : storedPath;
-    
+
     if (fs.existsSync(resolvedPath)) {
       res.download(resolvedPath, fileName);
     } else {
@@ -1900,14 +1900,14 @@ app.get('/api/uploads/:id/files/:fileIndex/view', async (req, res) => {
     if (!upload || !upload.files || !upload.files[req.params.fileIndex]) {
       return res.status(404).json({ error: 'File not found' });
     }
-    
+
     const storedPath = upload.files[req.params.fileIndex];
     const fileName = path.basename(storedPath);
     const localPath = path.join(uploadsDir, fileName);
     const resolvedPath = fs.existsSync(localPath) ? localPath : storedPath;
-    
+
     if (!fs.existsSync(resolvedPath)) return res.status(404).json({ error: 'File missing' });
-    
+
     // Set content type based on extension
     const ext = path.extname(resolvedPath).toLowerCase();
     const mimeTypes = {
@@ -1917,7 +1917,7 @@ app.get('/api/uploads/:id/files/:fileIndex/view', async (req, res) => {
       '.png': 'image/png',
       '.txt': 'text/plain'
     };
-    
+
     res.setHeader('Content-Type', mimeTypes[ext] || 'application/octet-stream');
     res.sendFile(filePath);
   } catch (err) {
@@ -2184,12 +2184,12 @@ app.get('/api/notes/:id/download', async (req, res) => {
   try {
     const note = await NoteModel.findById(req.params.id);
     if (!note) return res.status(404).json({ error: 'Note not found' });
-    
+
     let filePath = note.filePath;
     if (!filePath && note.files && note.files[0]) {
       filePath = note.files[0].path;
     }
-    
+
     if (!filePath) return res.status(404).json({ error: 'No file available' });
 
     // Fallback: If legacy data points to Cloudinary, just redirect instead of failing
@@ -2200,11 +2200,11 @@ app.get('/api/notes/:id/download', async (req, res) => {
     const fileName = note.fileName || (filePath ? path.basename(filePath) : 'note.pdf');
     const localPath = path.join(notesDir, path.basename(filePath));
     const resolvedPath = fs.existsSync(localPath) ? localPath : filePath;
-    
+
     if (!fs.existsSync(resolvedPath)) {
       return res.status(404).json({ error: 'File missing' });
     }
-    
+
     res.download(resolvedPath, fileName);
   } catch (err) {
     console.error('Error downloading note:', err);
@@ -2216,17 +2216,17 @@ app.get('/api/notes/:id/files/:fileIndex/download', async (req, res) => {
   try {
     const note = await NoteModel.findById(req.params.id);
     if (!note) return res.status(404).json({ error: 'Note not found' });
-    
+
     let file = null;
     const idx = parseInt(req.params.fileIndex);
-    
+
     if (note.files && note.files[idx]) {
       file = note.files[idx];
     } else if (idx === 0 && note.filePath) {
       // Handle legacy single-file notes in multi-file route
       file = { path: note.filePath, name: note.fileName };
     }
-    
+
     if (!file) return res.status(404).json({ error: 'File not found' });
 
     // Fallback: If legacy data points to Cloudinary, just redirect
@@ -2237,11 +2237,11 @@ app.get('/api/notes/:id/files/:fileIndex/download', async (req, res) => {
     const fileName = file.name || path.basename(file.path) || 'note.pdf';
     const localPath = path.join(notesDir, fileName);
     const resolvedPath = fs.existsSync(localPath) ? localPath : file.path;
-    
+
     if (!fs.existsSync(resolvedPath)) {
       return res.status(404).json({ error: 'File missing' });
     }
-    
+
     res.download(resolvedPath, fileName);
   } catch (err) {
     console.error('Error downloading note file:', err);
@@ -2254,23 +2254,23 @@ app.get('/api/notes/:id/view', async (req, res) => {
   try {
     const note = await NoteModel.findById(req.params.id);
     if (!note) return res.status(404).json({ error: 'Note not found' });
-    
+
     // Check files array first, then fallback to legacy filePath
     let filePath = note.filePath;
     let fileName = note.fileName || 'note.pdf';
-    
+
     // For legacy single file, we use filePath (if present)
     // If it's a new multi-file note, we use the first file for this route
     if (!filePath && note.files && note.files.length > 0) {
       filePath = note.files[0].path;
       fileName = note.files[0].name;
     }
-    
+
     if (!filePath || !fs.existsSync(filePath)) {
       console.warn(`[VIEW] File not found on disk at ${filePath}`);
       return res.status(404).json({ error: 'File not found on server' });
     }
-    
+
     // Detect extension from the ORIGINAL fileName, not the disk filePath
     const ext = path.extname(fileName).toLowerCase();
     const mimeTypes = {
@@ -2280,7 +2280,7 @@ app.get('/api/notes/:id/view', async (req, res) => {
       '.png': 'image/png',
       '.txt': 'text/plain'
     };
-    
+
     res.setHeader('Content-Type', mimeTypes[ext] || 'application/octet-stream');
     res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
     res.sendFile(path.resolve(filePath));
@@ -2294,17 +2294,17 @@ app.get('/api/notes/:id/files/:fileIndex/view', async (req, res) => {
   try {
     const note = await NoteModel.findById(req.params.id);
     if (!note) return res.status(404).json({ error: 'Note not found' });
-    
+
     const idx = parseInt(req.params.fileIndex);
     if (!note.files || !note.files[idx]) return res.status(404).json({ error: 'File not found' });
-    
+
     const file = note.files[idx];
     const fileName = path.basename(file.path);
     const localPath = path.join(notesDir, fileName);
     const resolvedPath = fs.existsSync(localPath) ? localPath : file.path;
-    
+
     if (!fs.existsSync(resolvedPath)) return res.status(404).json({ error: 'File missing' });
-    
+
     // Set content type based on extension
     const ext = path.extname(resolvedPath).toLowerCase();
     const mimeTypes = {
@@ -2314,7 +2314,7 @@ app.get('/api/notes/:id/files/:fileIndex/view', async (req, res) => {
       '.png': 'image/png',
       '.txt': 'text/plain'
     };
-    
+
     res.setHeader('Content-Type', mimeTypes[ext] || 'application/octet-stream');
     res.sendFile(path.resolve(resolvedPath));
   } catch (err) {
@@ -2634,7 +2634,7 @@ app.post('/api/quiz/score', authenticateToken, async (req, res) => {
   try {
     const { quizId, score, totalQuestions } = req.body;
     const percentage = Math.round((score / totalQuestions) * 100);
-    
+
     const newScore = await QuizScoreModel.create({
       userId: req.user.userId,
       quizId: quizId || null,
@@ -2642,7 +2642,7 @@ app.post('/api/quiz/score', authenticateToken, async (req, res) => {
       totalQuestions,
       percentage
     });
-    
+
     res.json({ success: true, score: newScore });
   } catch (err) {
     console.error('Error saving quiz score:', err);
@@ -2697,7 +2697,7 @@ app.post('/api/forum/posts/:id/reply', async (req, res) => {
       const postOwnerId = post.authorId;
       if (postOwnerId && postOwnerId.toString() !== (req.user ? req.user.userId : '')) {
         await createNotification(
-          postOwnerId, 
+          postOwnerId,
           `Your post "${post.title}" has a new reply by ${author || 'Anonymous'}`,
           'forum_reply',
           authorId,
@@ -2783,7 +2783,7 @@ app.post('/api/studyhub/search', authenticateToken, async (req, res) => {
 
     // If noteId is provided, resolve filePath and send to python search to limit scope
     let payload = { question, subject };
-    
+
     if (noteId) {
       try {
         const note = await NoteModel.findById(noteId);
@@ -3312,17 +3312,17 @@ app.get('/api/admin/notes/:id/files/:fileIndex/download', async (req, res) => {
   try {
     const note = await NoteModel.findById(req.params.id);
     if (!note) return res.status(404).json({ error: 'Note not found' });
-    
+
     const fileIndex = parseInt(req.params.fileIndex);
     if (!note.files || !note.files[fileIndex]) return res.status(404).json({ error: 'File index not found' });
-    
+
     const file = note.files[fileIndex];
     const fileName = path.basename(file.path);
     const localPath = path.join(notesDir, fileName);
     const resolvedPath = fs.existsSync(localPath) ? localPath : file.path;
-    
+
     if (!fs.existsSync(resolvedPath)) return res.status(404).json({ error: 'File not found on server' });
-    
+
     res.download(resolvedPath, file.name || fileName);
   } catch (err) {
     res.status(500).json({ error: 'Failed' });
@@ -3479,7 +3479,7 @@ app.get('/api/settings', async (req, res) => {
         logoUrl: '',
         contactEmail: 'support@examseva.com',
         contactPhone: '022-05200',
-        contactAddress: '123 Education Street, Mumbai City, 400005',
+        contactAddress: '123 Education Street, Mumbai City,   400105',
         aboutUs: '',
         footerLinks: []
       };
@@ -3501,7 +3501,7 @@ app.get('/api/admin/settings', authenticateToken, requireAdmin, async (req, res)
         logoUrl: '',
         contactEmail: 'support@examseva.com',
         contactPhone: '022-05200',
-        contactAddress: '123 Education Street, Mumbai City, 400005',
+        contactAddress: '123 Education Street, Mumbai City,   400105',
         aboutUs: '',
         footerLinks: []
       };
@@ -3738,7 +3738,7 @@ io.on('connection', (socket) => {
   });
 });
 
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 4001;
 
 // Start server
 const nodeServer = server.listen(PORT, () => {

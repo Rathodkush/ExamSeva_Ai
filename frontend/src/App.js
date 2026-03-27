@@ -82,7 +82,7 @@ function AppRoutes() {
   useEffect(() => {
     const trackVisit = async () => {
       try {
-        await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/stats/track-visit`);
+        await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/stats/track-visit`);
       } catch (err) { }
     };
     trackVisit();
@@ -96,118 +96,118 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/uploadpaper" element={<UploadPaper />} />
-      <Route 
-        path="/studyhub" 
+      <Route
+        path="/studyhub"
         element={
           isAuthenticated ? <StudyHub /> : <Navigate to="/login" replace />
-        } 
+        }
       />
-      <Route 
+      <Route
         path="/viewer"
         element={
           isAuthenticated ? <PdfViewer /> : <Navigate to="/login" replace />
         }
       />
-      <Route 
-        path="/quize" 
+      <Route
+        path="/quize"
         element={
           isAuthenticated ? <Quize /> : <Navigate to="/login" replace />
-        } 
+        }
       />
-      <Route 
-        path="/question-paper" 
+      <Route
+        path="/question-paper"
         element={
           isAuthenticated ? <QuestionPaper /> : <Navigate to="/login" replace />
-        } 
+        }
       />
-      
-      <Route 
-        path="/forum" 
+
+      <Route
+        path="/forum"
         element={
           isAuthenticated ? <Forum /> : <Navigate to="/login" replace />
-        } 
+        }
       />
-      <Route 
-        path="/login" 
+      <Route
+        path="/login"
         element={
           <PublicRoute>
             <Login />
           </PublicRoute>
-        } 
+        }
       />
       <Route path="/admin-login" element={<AdminLogin />} />
-      <Route 
-        path="/register" 
+      <Route
+        path="/register"
         element={
           <PublicRoute>
             <Register />
           </PublicRoute>
-        } 
+        }
       />
       <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route 
-        path="/profile" 
+      <Route
+        path="/profile"
         element={
           <ProtectedRoute>
             <Profile />
           </ProtectedRoute>
-        } 
+        }
       />
-      <Route 
-        path="/results" 
+      <Route
+        path="/results"
         element={
           isAuthenticated ? <Results /> : <Navigate to="/login" replace />
-        } 
+        }
       />
       <Route path="/about" element={<About />} />
       <Route path="/contact" element={<Contact />} />
-      <Route 
-        path="/admin-dashboard" 
+      <Route
+        path="/admin-dashboard"
         element={
           <AdminProtectedRoute>
             <AdminDashboard />
           </AdminProtectedRoute>
-        } 
+        }
       />
-      <Route 
-        path="/admin-users" 
+      <Route
+        path="/admin-users"
         element={
           <AdminProtectedRoute>
             <AdminUsers />
           </AdminProtectedRoute>
-        } 
+        }
       />
-      <Route 
-        path="/admin-notes" 
+      <Route
+        path="/admin-notes"
         element={
           <AdminProtectedRoute>
             <AdminNotes />
           </AdminProtectedRoute>
-        } 
+        }
       />
-      <Route 
-        path="/admin-question-papers" 
+      <Route
+        path="/admin-question-papers"
         element={
           <AdminProtectedRoute>
             <AdminQuestionPapers />
           </AdminProtectedRoute>
-        } 
+        }
       />
-      <Route 
-        path="/admin-announcements" 
+      <Route
+        path="/admin-announcements"
         element={
           <AdminProtectedRoute>
             <AdminAnnouncements />
           </AdminProtectedRoute>
-        } 
+        }
       />
-      <Route 
-        path="/admin-settings" 
+      <Route
+        path="/admin-settings"
         element={
           <AdminProtectedRoute>
             <AdminSettings />
           </AdminProtectedRoute>
-        } 
+        }
       />
     </Routes>
   );

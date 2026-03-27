@@ -5,7 +5,7 @@ const SettingsSchema = new mongoose.Schema({
   logoUrl: { type: String, default: '' },
   contactEmail: { type: String, default: 'support@examseva.com' },
   contactPhone: { type: String, default: '022-05200' },
-  contactAddress: { type: String, default: '123 Education Street, Mumbai City, 400005' },
+  contactAddress: { type: String, default: '123 Education Street, Mumbai City,   400105' },
   aboutUs: { type: String, default: '' },
   footerLinks: [{
     title: String,

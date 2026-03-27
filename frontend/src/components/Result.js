@@ -176,7 +176,7 @@ export default function Results({ results }) {
     try {
       const token = localStorage.getItem('token');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      const resp = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/studyhub/search`, { question: q.text }, { headers });
+      const resp = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/studyhub/search`, { question: q.text }, { headers });
       if (resp.data && resp.data.success && resp.data.result) {
         const r = resp.data.result;
         if (r.found) {
@@ -367,7 +367,7 @@ export default function Results({ results }) {
               try {
                 const token = localStorage.getItem('token');
                 const payload = { groups, unique: validUnique, metadata: results.metadata || {} };
-                const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/analysis/report`, payload, {
+                const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/analysis/report`, payload, {
                   // Existing logic...
                   responseType: 'blob',
                   headers: token ? { Authorization: `Bearer ${token}` } : {}
@@ -387,7 +387,7 @@ export default function Results({ results }) {
                 const token = localStorage.getItem('token');
                 const headers = token ? { Authorization: `Bearer ${token}` } : {};
                 const payload = { groups, unique: validUnique, metadata: results.metadata || {}, sections: ['repeated'] };
-                const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/analysis/report`, payload, { responseType: 'blob', headers });
+                const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/analysis/report`, payload, { responseType: 'blob', headers });
                 const url = window.URL.createObjectURL(new Blob([res.data]));
                 const a = document.createElement('a'); a.href = url; a.download = 'repeated_questions.pdf'; a.click();
               } catch (err) { alert('Download failed'); }
@@ -401,7 +401,7 @@ export default function Results({ results }) {
                 const token = localStorage.getItem('token');
                 const headers = token ? { Authorization: `Bearer ${token}` } : {};
                 const payload = { groups, unique: validUnique, metadata: results.metadata || {}, sections: ['unique'] };
-                const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/analysis/report`, payload, { responseType: 'blob', headers });
+                const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/analysis/report`, payload, { responseType: 'blob', headers });
                 const url = window.URL.createObjectURL(new Blob([res.data]));
                 const a = document.createElement('a'); a.href = url; a.download = 'unique_questions.pdf'; a.click();
               } catch (err) { alert('Download failed'); }

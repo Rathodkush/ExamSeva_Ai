@@ -24,7 +24,7 @@ function Register() {
     password: '',
     confirmPassword: ''
   });
-  
+
   const [otpData, setOtpData] = useState({
     emailOtp: '',
     phoneOtp: ''
@@ -37,7 +37,7 @@ function Register() {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/settings`);
+        const response = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/settings`);
         if (response.data.settings) {
           setSettings(response.data.settings);
         }
@@ -135,7 +135,7 @@ function Register() {
     setLoading(true);
     setError('');
     try {
-      const response = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/auth/send-otp`, {
+      const response = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/auth/send-otp`, {
         email: formData.email,
         phone: formData.phone
       });
@@ -158,7 +158,7 @@ function Register() {
     setLoading(true);
     setError('');
     try {
-      await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/auth/verify-otp`, {
+      await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/auth/verify-otp`, {
         email: formData.email,
         phone: formData.phone,
         emailOtp: otpData.emailOtp,
@@ -204,7 +204,7 @@ function Register() {
         role
       };
 
-      const response = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/auth/register`, registrationData);
+      const response = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/auth/register`, registrationData);
 
       if (response.data.success) {
         // Store token in localStorage
@@ -246,10 +246,10 @@ function Register() {
         <form onSubmit={handleSubmit} className="auth-form">
           {step === 1 && (
             <div className="step-animation">
-        <div className="google-auth-wrapper">
-          <GoogleAuthButton text="signup_with" />
-          <div className="auth-divider">or fill your details below</div>
-        </div>
+              <div className="google-auth-wrapper">
+                <GoogleAuthButton text="signup_with" />
+                <div className="auth-divider">or fill your details below</div>
+              </div>
 
               <div className="form-group">
                 <label htmlFor="fullName">Full Name</label>
@@ -308,23 +308,23 @@ function Register() {
                   marginBottom: '15px',
                   textAlign: 'center'
                 }}>
-                  <p style={{fontSize: '13px', color: '#1e40af', fontWeight: 'bold', margin: '0'}}>
-                    [TEST MODE] OTP: <span style={{fontSize: '16px', letterSpacing: '2px'}}>{testOtp.email}</span>
+                  <p style={{ fontSize: '13px', color: '#1e40af', fontWeight: 'bold', margin: '0' }}>
+                    [TEST MODE] OTP: <span style={{ fontSize: '16px', letterSpacing: '2px' }}>{testOtp.email}</span>
                   </p>
-                  <p style={{fontSize: '11px', color: '#60a5fa', margin: '2px 0 0 0'}}>Use this code for both boxes below.</p>
+                  <p style={{ fontSize: '11px', color: '#60a5fa', margin: '2px 0 0 0' }}>Use this code for both boxes below.</p>
                 </div>
               )}
               <div className="otp-verification-section">
                 <h3>Verify your Identity</h3>
-                <p style={{fontSize: '14px', color: '#667', marginBottom: '15px'}}>Enter the 6-digit codes sent to your email and phone.</p>
-                
+                <p style={{ fontSize: '14px', color: '#667', marginBottom: '15px' }}>Enter the 6-digit codes sent to your email and phone.</p>
+
                 <div className="form-group">
                   <label htmlFor="emailOtp">Email OTP</label>
                   <input
                     type="text"
                     id="emailOtp"
                     value={otpData.emailOtp}
-                    onChange={(e) => setOtpData({...otpData, emailOtp: e.target.value.replace(/\D/g, '').slice(0, 6)})}
+                    onChange={(e) => setOtpData({ ...otpData, emailOtp: e.target.value.replace(/\D/g, '').slice(0, 6) })}
                     placeholder="Enter 6-digit email code"
                     className="otp-input"
                   />
@@ -336,24 +336,24 @@ function Register() {
                     type="text"
                     id="phoneOtp"
                     value={otpData.phoneOtp}
-                    onChange={(e) => setOtpData({...otpData, phoneOtp: e.target.value.replace(/\D/g, '').slice(0, 6)})}
+                    onChange={(e) => setOtpData({ ...otpData, phoneOtp: e.target.value.replace(/\D/g, '').slice(0, 6) })}
                     placeholder="Enter 6-digit phone code"
                     className="otp-input"
                   />
                 </div>
 
                 <div className="otp-actions">
-                  <button 
-                    type="button" 
-                    onClick={sendOTP} 
-                    className="resend-btn" 
+                  <button
+                    type="button"
+                    onClick={sendOTP}
+                    className="resend-btn"
                     disabled={timer > 0 || loading}
                   >
                     {timer > 0 ? `Resend in ${timer}s` : 'Resend OTP'}
                   </button>
-                  <button 
-                    type="button" 
-                    onClick={verifyOTP} 
+                  <button
+                    type="button"
+                    onClick={verifyOTP}
                     className="auth-button"
                     disabled={loading || otpData.emailOtp.length < 6 || otpData.phoneOtp.length < 6}
                   >
@@ -384,8 +384,8 @@ function Register() {
                       minLength="6"
                       placeholder="Min 6 char"
                     />
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       className="password-toggle-btn"
                       onClick={() => setShowPassword(!showPassword)}
                     >
@@ -405,8 +405,8 @@ function Register() {
                       required
                       placeholder="Repeat password"
                     />
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       className="password-toggle-btn"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     >

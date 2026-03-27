@@ -31,8 +31,8 @@ function ForgotPassword() {
     setLoading(true);
 
     try {
-      const response = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/auth/forgot-password`, { email });
-      
+      const response = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/auth/forgot-password`, { email });
+
       if (response.data.success) {
         setMessage(response.data.message);
         // In development, show the token
@@ -61,12 +61,12 @@ function ForgotPassword() {
     setLoading(true);
 
     try {
-      const response = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/auth/reset-password`, {
+      const response = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/auth/reset-password`, {
         token: resetToken,
         newPassword: resetData.newPassword,
         confirmPassword: resetData.confirmPassword
       });
-      
+
       if (response.data.success) {
         setMessage('Password has been reset successfully! You can now login with your new password.');
         setResetData({ newPassword: '', confirmPassword: '' });
@@ -86,10 +86,10 @@ function ForgotPassword() {
         <div className="auth-card">
           <h1 className="auth-title">Reset Password</h1>
           <p className="auth-subtitle">Enter your new password below.</p>
-          
+
           {error && <div className="error-message">{error}</div>}
           {message && <div className="success-message">{message}</div>}
-          
+
           <form onSubmit={handleResetSubmit} className="auth-form">
             <div className="form-group">
               <label htmlFor="newPassword">New Password</label>
@@ -136,10 +136,10 @@ function ForgotPassword() {
       <div className="auth-card">
         <h1 className="auth-title">Forgot Password</h1>
         <p className="auth-subtitle">Enter your email address and we'll send you instructions to reset your password.</p>
-        
+
         {error && <div className="error-message">{error}</div>}
         {message && <div className="success-message">{message}</div>}
-        
+
         <form onSubmit={handleEmailSubmit} className="auth-form">
           <div className="form-group">
             <label htmlFor="email">Email Address</label>

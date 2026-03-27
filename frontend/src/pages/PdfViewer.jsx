@@ -40,7 +40,7 @@ export default function PdfViewer() {
         // show a small notice to the user (non-blocking)
         const banner = document.createElement('div');
         banner.className = 'pdf-answer-banner';
-        banner.innerHTML = `<strong>Answer match:</strong> ${questionText.substring(0, 200)} ${snippet ? '<div style="opacity:0.85;margin-top:6px;font-size:13px;color:#333">Snippet: '+ snippet.substring(0,200) + '</div>' : ''}`;
+        banner.innerHTML = `<strong>Answer match:</strong> ${questionText.substring(0, 200)} ${snippet ? '<div style="opacity:0.85;margin-top:6px;font-size:13px;color:#333">Snippet: ' + snippet.substring(0, 200) + '</div>' : ''}`;
         banner.style.position = 'fixed';
         banner.style.top = '80px';
         banner.style.left = '50%';
@@ -60,7 +60,7 @@ export default function PdfViewer() {
       try {
         setLoading(true);
         const token = localStorage.getItem('token');
-        const resp = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:4000"}/api/studyhub/open?path=${encodeURIComponent(file)}`, {
+        const resp = await axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:  4001"}/api/studyhub/open?path=${encodeURIComponent(file)}`, {
           responseType: 'arraybuffer',
           headers: token ? { Authorization: `Bearer ${token}` } : {}
         });

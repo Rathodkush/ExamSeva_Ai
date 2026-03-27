@@ -2,7 +2,7 @@ const axios = require('axios');
 
 async function testForgotPassword() {
     try {
-        const response = await axios.post('http://localhost:4000/api/auth/forgot-password', {
+        const response = await axios.post('http://localhost:  4001/api/auth/forgot-password', {
             email: 'test@example.com'
         });
         console.log('Response status:', response.status);
@@ -22,7 +22,7 @@ async function testForgotPassword() {
             }
         } else {
             console.error('Error connecting to server:', err.message);
-            console.log('Verification skipped: Ensure server is running at http://localhost:4000');
+            console.log('Verification skipped: Ensure server is running at http://localhost:  4001');
         }
     }
 }

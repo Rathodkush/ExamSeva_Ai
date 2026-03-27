@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:4000',
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:  4001',
   headers: {
     'Content-Type': 'application/json'
   }
@@ -17,7 +17,7 @@ api.interceptors.response.use(
       localStorage.removeItem('user');
       // Only redirect if not already on login page to avoid loops
       if (!window.location.pathname.includes('/login')) {
-         window.location.href = '/login';
+        window.location.href = '/login';
       }
     }
     return Promise.reject(error);
