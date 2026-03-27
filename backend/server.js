@@ -1076,7 +1076,7 @@ app.post('/api/auth/profile-picture', authenticateToken, profileUpload.single('p
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
-    const profilePictureUrl = `uploads/profiles/${req.file.filename}`;
+    const profilePictureUrl = getRelativePath(req.file.path || `uploads/profiles/${req.file.filename}`);
     
     // Save to the new dedicated images collection
     await ProfileImageModel.create({
