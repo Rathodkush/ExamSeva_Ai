@@ -403,6 +403,27 @@ const profileUpload = upload;
 const notesDir = dirs.notes;
 const uploadsDir = path.join(__dirname, 'uploads');
 
+// Helper to get relative path from uploads root for frontend access
+const getRelativePath = (absPath) => {
+  if (!absPath) return '';
+  // Convert all slashes to forward slashes for consistency
+  const normalizedPath = absPath.replace(/\\/g, '/');
+  
+  // Look for "uploads/" in the path and take everything after it
+  const uploadsIndex = normalizedPath.toLowerCase().indexOf('/uploads/');
+  if (uploadsIndex !== -1) {
+    return normalizedPath.substring(uploadsIndex + 9);
+  }
+  
+  // Also handle cases where path starts with "uploads/"
+  if (normalizedPath.toLowerCase().startsWith('uploads/')) {
+    return normalizedPath.substring(8);
+  }
+
+  // Fallback to basename if no uploads folder found in path
+  return path.basename(normalizedPath);
+};
+
 
 // Mount the extract-questions route (uses the same multer middleware: quizUpload.single('file'))
 const extractRouter = require('./routes_extract_questions');
@@ -1483,7 +1504,7 @@ app.get('/api/question-papers', async (req, res) => {
     const papers = await OfficialPaper.find(query).sort({ createdAt: -1 }).limit(50).lean();
     const mappedPapers = papers.map(paper => ({
       ...paper,
-      fileName: paper.filePath ? paper.filePath.replace(/\\/g, '/').replace(/^uploads\//, '') : (paper.files && paper.files[0] ? paper.files[0].replace(/\\/g, '/').replace(/^uploads\//, '') : '')
+      fileName: getRelativePath(paper.filePath || (paper.files && paper.files[0] ? paper.files[0] : ''))
     }));
     res.json({ success: true, count: mappedPapers.length, papers: mappedPapers });
   } catch (err) {
@@ -1498,7 +1519,7 @@ app.get('/api/admin/question-papers', authenticateToken, requireAdmin, async (re
     const papers = await OfficialPaper.find().sort({ createdAt: -1 }).lean();
     const mappedPapers = papers.map(paper => ({
       ...paper,
-      fileName: paper.filePath ? paper.filePath.replace(/\\/g, '/').replace(/^uploads\//, '') : (paper.files && paper.files[0] ? paper.files[0].replace(/\\/g, '/').replace(/^uploads\//, '') : '')
+      fileName: getRelativePath(paper.filePath || (paper.files && paper.files[0] ? paper.files[0] : ''))
     }));
     res.json({ success: true, papers: mappedPapers });
   } catch (err) {
