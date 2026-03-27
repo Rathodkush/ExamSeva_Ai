@@ -185,7 +185,7 @@ function AdminQuestionPapers() {
               {paper.examType && <p><strong>Exam Type:</strong> {paper.examType}</p>}
               <p><strong>File:</strong> 
                 <a 
-                  href={paper.fileName.startsWith('http') ? paper.fileName : `${process.env.REACT_APP_API_URL || 'http://localhost:4000'}/uploads/${paper.fileName}`} 
+                  href={`${process.env.REACT_APP_API_URL || 'http://localhost:4000'}/uploads/${paper.fileName}`} 
                   target="_blank" 
                   rel="noopener noreferrer"
                   style={{ wordBreak: 'break-all', color: '#6366f1', textDecoration: 'underline' }}
