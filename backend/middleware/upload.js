@@ -36,9 +36,8 @@ const storage = new CloudinaryStorage({
     
     return {
       folder: folder,
-      public_id: Date.now() + '-' + file.originalname.split('.')[0].replace(/\s+/g, '_'),
-      resource_type: isImage ? 'image' : 'raw', // use 'raw' for PDFs to avoid conversion issues, or 'auto'
-      format: ext.replace('.', '') // ensure format is preserved
+      public_id: Date.now() + '-' + file.originalname.split('.')[0].replace(/[^a-zA-Z0-9]/g, '_'),
+      resource_type: 'auto', // Cloudinary will decide if it's image or raw based on file
     };
   },
 });
