@@ -46,7 +46,14 @@ app.use((req, res, next) => {
   res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
   next();
 });
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', (req, res, next) => {
+  // If the request path itself looks like a full URL (Cloudinary case)
+  if (req.url.includes('http://') || req.url.includes('https://')) {
+    const cloudUrl = req.url.substring(req.url.indexOf('http'));
+    return res.redirect(cloudUrl);
+  }
+  next();
+}, express.static(path.join(__dirname, 'uploads')));
 
 // Global error handlers to surface crashes during startup
 process.on('uncaughtException', (err) => {
